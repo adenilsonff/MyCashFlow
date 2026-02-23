@@ -1,0 +1,41 @@
+Estrutura revisada das tabelas de login
+1. Tabela usuario (autenticação)
+CREATE TABLE usuario (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,   -- login do usuário
+    senha VARCHAR(255) NOT NULL,          -- senha criptografada (hash)
+    dois_fatores ENUM('nenhum','email','sms','app') DEFAULT 'nenhum', -- tipo de 2FA
+    token_2fa VARCHAR(10),                -- código temporário de validação
+    token_expira TIMESTAMP,               -- validade do token
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+🔒 Segurança:
+- senha deve ser armazenada com hash seguro (bcrypt/argon2).
+- dois_fatores define o método de validação (nenhum, e-mail, SMS ou app autenticador).
+- token_2fa guarda o código temporário enviado ao usuário.
+- token_expira garante que o código só seja válido por alguns minutos.
+
+2. Tabela cliente (dados cadastrais)
+CREATE TABLE cliente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,              -- vínculo com a tabela usuario
+    nome VARCHAR(100) NOT NULL,
+    documento VARCHAR(20),                -- CPF ou RG
+    endereco VARCHAR(200),
+    telefone VARCHAR(20),
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+);
+
+
+
+Fluxo prático de login com 2FA
+- Usuário entra com email + senha → sistema valida na tabela usuario.
+- Se dois_fatores ≠ nenhum, o sistema gera um token_2fa e salva com token_expira.
+- O token é enviado por email/SMS/app.
+- Usuário digita o código → sistema valida se corresponde ao token_2fa e se está dentro do prazo.
+- Se válido → acesso liberado.
+
+👉 Assim você terá um sistema de login robusto, com senha criptografada e segunda camada de segurança.
+Quer que eu monte um exemplo em PHP mostrando como gerar e validar esse token 2FA (por e-mail ou SMS), para você já ter a base prática do login seguro?

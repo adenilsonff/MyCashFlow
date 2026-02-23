@@ -1,0 +1,33 @@
+Estrutura da tabela contas_mes
+CREATE TABLE contas_mes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,              -- Nome/descrição da conta (ex: Luz, Academia)
+    valor DECIMAL(10,2) NOT NULL,            -- Valor da conta
+    tipo ENUM('fixa','variavel') NOT NULL,   -- Tipo da conta
+    vencimento DATE NOT NULL,                -- Data de vencimento
+    paga BOOLEAN DEFAULT FALSE,              -- Controle se já foi paga ou não
+    porcentagem DECIMAL(5,2),                -- % da conta no total (calculado depois)
+    dias_restantes INT                       -- Dias até o vencimento (calculado depois)
+);
+
+
+Observações importantes
+- nome → descrição da conta (água, luz, celular, etc.).
+- valor → pode ser atualizado quando mudar (fixas mudam anualmente, variáveis mensalmente).
+- tipo → ajuda a diferenciar despesas fixas e variáveis.
+- vencimento → data limite para pagamento.
+- paga → controle simples (0 = não paga, 1 = paga).
+- porcentagem e dias_restantes → não precisam ser digitados manualmente; podem ser calculados via consulta SQL ou no PHP.
+Exemplo de cálculo
+- Porcentagem:
+SELECT nome, valor, 
+       (valor / (SELECT SUM(valor) FROM contas_mes)) * 100 AS porcentagem
+FROM contas_mes;
+- Dias restantes:
+SELECT nome, vencimento, 
+       DATEDIFF(vencimento, CURDATE()) AS dias_restantes
+FROM contas_mes;
+
+
+Assim você terá uma tabela enxuta, mas poderosa, que cobre exatamente o que precisa para o controle diário das contas.
+👉 Quer que eu prepare já alguns INSERTs de exemplo (água, luz, academia, celular) para você testar essa tabela no phpMyAdmin e ver os cálculos funcionando?

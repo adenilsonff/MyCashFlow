@@ -1,0 +1,24 @@
+Estrutura da tabela extras
+CREATE TABLE extras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(100) NOT NULL,   -- Ex: "Freelance design", "Venda de produto"
+    valor DECIMAL(10,2) NOT NULL,      -- Valor a ser recebido
+    data DATE NOT NULL,                -- Data prevista ou recebida
+    recebido BOOLEAN DEFAULT FALSE     -- Controle se já foi recebido (0 = não, 1 = sim)
+);
+
+
+Observações
+- descricao → identifica a origem do extra (freelance, venda, serviço pontual).
+- valor → o valor esperado ou recebido.
+- data → ajuda a organizar por mês/ano.
+- recebido → controle simples para saber se já entrou no caixa.
+Exemplo de uso
+INSERT INTO extras (descricao, valor, data, recebido)
+VALUES
+('Freelance design', 500.00, '2026-02-20', TRUE),
+('Venda de notebook usado', 1200.00, '2026-02-25', FALSE);
+
+
+👉 Assim você terá uma tabela enxuta para controlar ganhos adicionais, sem misturar com salário ou aulas.
+Quer que eu prepare uma consulta SQL consolidada que some contas, receitas e extras e mostre o saldo final do mês (total recebido – total de despesas)? Isso já te daria uma visão de caixa mensal.

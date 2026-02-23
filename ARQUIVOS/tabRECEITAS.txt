@@ -1,0 +1,36 @@
+Estrutura da tabela receitas
+CREATE TABLE receitas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(100) NOT NULL,          -- Ex: "Salário principal", "Aulas na escola", "Serviço extra"
+    tipo ENUM('fixo','variavel') NOT NULL,   -- fixo = salário principal, variavel = extras
+    valor DECIMAL(10,2) NOT NULL,            -- valor recebido
+    data DATE NOT NULL,                      -- data prevista ou recebida
+    recebido BOOLEAN DEFAULT FALSE,          -- controle se já foi recebido
+    porcentagem DECIMAL(5,2)                 -- % em relação ao total (calculado depois)
+);
+
+
+Observações
+- descricao → identifica a origem da renda (emprego, aulas, freelances).
+- tipo → diferencia salário fixo (atualizado anualmente) e extras (mudam mês a mês).
+- valor → o valor da receita.
+- data → pode ser a data prevista ou efetiva do recebimento.
+- recebido → controle simples (0 = não recebido, 1 = recebido).
+- porcentagem → calculado em relação ao total do mês.
+Exemplo de cálculo da porcentagem
+SELECT descricao, valor,
+       (valor / (SELECT SUM(valor) FROM receitas WHERE recebido = TRUE)) * 100 AS porcentagem
+FROM receitas
+WHERE recebido = TRUE;
+
+
+Exemplo de uso
+INSERT INTO receitas (descricao, tipo, valor, data, recebido)
+VALUES 
+('Salário principal', 'fixo', 3500.00, '2026-02-05', TRUE),
+('Aulas na escola', 'variavel', 800.00, '2026-02-10', TRUE),
+('Serviço extra - site', 'variavel', 1200.00, '2026-02-15', FALSE);
+
+
+👉 Assim você terá uma tabela que controla tanto o salário fixo quanto os extras, com possibilidade de atualizar valores e calcular participação no total.
+Quer que eu prepare também uma consulta SQL consolidada que mostre lado a lado: total recebido, porcentagem de cada receita e saldo ainda a receber no mês?

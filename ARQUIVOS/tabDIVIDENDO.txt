@@ -1,0 +1,13 @@
+Estrutura da tabela dividendo
+Separada, mas vinculada à tabela acao para calcular dividendos recebidos.
+CREATE TABLE dividendo (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    acao_id INT NOT NULL,                    -- Referência à tabela acao
+    valor_unitario DECIMAL(10,2) NOT NULL,   -- Valor pago por ação
+    data DATE NOT NULL,                      -- Data do pagamento do dividendo
+    total DECIMAL(10,2),                     -- Total recebido (calculado depois)
+    FOREIGN KEY (acao_id) REFERENCES acao(id)
+);
+
+
+

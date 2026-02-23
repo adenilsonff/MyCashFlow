@@ -1,0 +1,30 @@
+Exemplos práticos
+1. Adicionar uma nova coluna
+ALTER TABLE acao 
+ADD COLUMN valor_mercado DECIMAL(10,2);
+
+
+2. Alterar o tipo de uma coluna
+ALTER TABLE daytrade 
+MODIFY COLUMN valor_venda DECIMAL(12,4);
+
+
+3. Renomear uma coluna
+ALTER TABLE conta 
+CHANGE COLUMN nome descricao VARCHAR(100);
+
+
+4. Remover uma coluna
+ALTER TABLE receitas 
+DROP COLUMN porcentagem;
+
+
+5. Adicionar várias colunas de uma vez
+ALTER TABLE daytrade 
+ADD COLUMN taxa_liquidacao DECIMAL(10,2) DEFAULT 0,
+ADD COLUMN taxa_emolumentos DECIMAL(10,2) DEFAULT 0,
+ADD COLUMN taxa_transferencia DECIMAL(10,2) DEFAULT 0;
+
+
+
+

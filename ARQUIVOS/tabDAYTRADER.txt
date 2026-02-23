@@ -1,0 +1,41 @@
+Estrutura da tabela daytrade
+CREATE TABLE daytrade (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data DATE NOT NULL,                      -- Data da operação
+    ticker VARCHAR(20) NOT NULL,             -- Ex: PETR4, VALE3
+    quantidade INT NOT NULL,
+    valor_compra DECIMAL(10,2),              -- Preço unitário de compra
+    valor_venda DECIMAL(10,2),               -- Preço unitário de venda
+    preco_medio DECIMAL(10,2),               -- Preço médio
+    valor_mercado DECIMAL(10,2),             -- Valor da ação no dia (via API)
+    taxa_liquidacao DECIMAL(10,2) DEFAULT 0,
+    taxa_emolumentos DECIMAL(10,2) DEFAULT 0,
+    taxa_transferencia DECIMAL(10,2) DEFAULT 0,
+    total DECIMAL(10,2),
+    resultado DECIMAL(10,2),
+    darf DECIMAL(10,2)
+);
+
+
+Como funciona
+- data → registra o dia da operação.
+- ticker → identifica o ativo.
+- quantidade → número de ações negociadas.
+- valor_compra / valor_venda → preços unitários.
+- preco_medio → calculado conforme suas compras/vendas acumuladas.
+- taxas → você insere manualmente (liquidação, emolumentos, transferência).
+- total → pode ser calculado como quantidade × valor_venda ou quantidade × valor_compra.
+- resultado → diferença entre venda e compra, descontando taxas.
+- darf → 15% sobre o lucro líquido, se houver.
+Exemplo prático
+INSERT INTO daytrade (data, ticker, quantidade, valor_compra, valor_venda, preco_medio,
+                      taxa_liquidacao, taxa_emolumentos, taxa_transferencia, total, resultado, darf)
+VALUES ('2026-02-23', 'PETR4', 100, 28.00, 29.50, 28.75,
+        2.00, 1.50, 0.50, 2950.00, 138.00, 20.70);
+
+
+Observações
+- O preço médio pode ser calculado via consulta SQL ou preenchido manualmente conforme sua estratégia.
+- O resultado e a DARF podem ser calculados automaticamente em relatórios, mas também podem ser armazenados na tabela para facilitar.
+- Essa estrutura já contempla os três tipos de taxas da corretora que você mencionou.
+👉 Quer que eu prepare uma consulta SQL consolidada que, a partir dessa tabela, calcule automaticamente o lucro líquido e o valor da DARF por operação, sem precisar inserir manualmente esses campos?

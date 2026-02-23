@@ -1,0 +1,17 @@
+Estrutura sugerida para seu sistema de finanças
+- Frontend (HTML, CSS, JS)
+	- Interface simples e responsiva (use Bootstrap para ganhar tempo).
+	- Telas principais:
+		- Dashboard (saldo geral, gráficos)
+		- Contas da casa (cadastro e controle de despesas)
+		- Bolsa (operações de day trade e dividendos)
+
+- Backend (PHP)
+	- PHP é ótimo porque integra facilmente com MySQL.
+	- Você pode usar XAMPP ou Laragon para rodar localmente no desktop.
+
+- Banco de dados (MySQL)
+
+--------------------------------------------
+XAMP 
+instale com apache, mysql, php e phpmyadmin

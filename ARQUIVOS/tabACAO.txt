@@ -1,0 +1,13 @@
+Estrutura revisada da tabela acao
+CREATE TABLE acao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticker VARCHAR(20) NOT NULL,             -- Ex: PETR4, VALE3
+    quantidade INT NOT NULL,                 -- Quantidade comprada
+    valor_unitario DECIMAL(10,2) NOT NULL,   -- Preço pago por ação
+    data DATE NOT NULL,                      -- Data da compra
+    valor_mercado DECIMAL(10,2),             -- Valor da ação no dia (via API)
+    total DECIMAL(10,2) GENERATED ALWAYS AS (quantidade * valor_unitario) STORED
+);
+
+
+
