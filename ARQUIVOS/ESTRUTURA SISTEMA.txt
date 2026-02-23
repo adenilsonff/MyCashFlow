@@ -13,5 +13,28 @@ Estrutura sugerida para seu sistema de finanças
 - Banco de dados (MySQL)
 
 --------------------------------------------
-XAMP 
-instale com apache, mysql, php e phpmyadmin
+
+XAMP instale com apache, mysql, php e phpmyadmin
+Git configurado para versionamento e controle do projeto.
+
+Banco de dados com todas as tabelas principais já estruturadas (conta, receitas, extras, ações, dividendos, daytrade e usuário/cliente).
+
+
+- Configuração do projeto web
+- Criar a estrutura de pastas (controllers, models, views).
+- Definir o index.php como entrada principal.
+- Criar config.php para conexão ao banco.
+- Módulo de login
+- Implementar cadastro e autenticação de usuários.
+- Usar password_hash() e password_verify() para senhas.
+- Implementar 2FA (token por e-mail/SMS ou app).
+- CRUD das tabelas principais
+- Criar páginas para cadastrar, listar, editar e remover registros.
+- Começar pelo módulo conta (despesas), depois avançar para receitas, extras, ações, dividendos e daytrade.
+- Relatórios e cálculos
+- Consultas SQL para totais, porcentagens, dias restantes, lucro líquido, DARF etc.
+- Exibir dashboards com gráficos (Chart.js ou Google Charts).
+- Interface web
+- Criar layout base com Bootstrap para responsividade.
+- Implementar menus e navegação entre módulos.
+

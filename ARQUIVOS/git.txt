@@ -1,5 +1,5 @@
 git config --global user.name adenilsonff
-
+git config --global user.email adenilson.ff@outlook.com
 
 echo "# sysbroken" >> README.md
 git init
@@ -13,3 +13,9 @@ git push -u origin main
 git remote add origin https://github.com/adenilsonff/sysbroken.git
 git branch -M main
 git push -u origin main
+
+git status
+git add .
+git commit -m "mensagem"
+git push >
+git pull <
