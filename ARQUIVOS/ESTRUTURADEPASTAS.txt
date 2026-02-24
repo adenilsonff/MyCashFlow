@@ -1,0 +1,14 @@
+Estrutura inicial do projeto
+Dentro da pasta C:\xampp\htdocs\MyCashFlow, organize assim:
+MyCashFlow/
+│── index.php              # ponto de entrada
+│── config.php             # conexão com o banco
+│── includes/              # cabeçalho, rodapé, menus
+│── controllers/           # lógica das tabelas
+│── models/                # classes que representam cada tabela
+│── views/                 # páginas visuais (HTML/PHP)
+│── assets/                # CSS, JS, imagens
+
+
+
+

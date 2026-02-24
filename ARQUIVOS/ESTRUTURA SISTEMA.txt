@@ -14,16 +14,14 @@ Estrutura sugerida para seu sistema de finanças
 
 --------------------------------------------
 
-XAMP instale com apache, mysql, php e phpmyadmin
-Git configurado para versionamento e controle do projeto.
-
-Banco de dados com todas as tabelas principais já estruturadas (conta, receitas, extras, ações, dividendos, daytrade e usuário/cliente).
-
-
+- XAMP instale com apache, mysql, php e phpmyadmin
+- Git configurado para versionamento e controle do projeto.
+- Banco de dados com todas as tabelas principais já estruturadas (conta, receitas, extras, ações, dividendos, daytrade e usuário/cliente).
 - Configuração do projeto web
 - Criar a estrutura de pastas (controllers, models, views).
 - Definir o index.php como entrada principal.
 - Criar config.php para conexão ao banco.
+
 - Módulo de login
 - Implementar cadastro e autenticação de usuários.
 - Usar password_hash() e password_verify() para senhas.
