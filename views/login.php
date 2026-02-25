@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $senha = $_POST['senha'];
 
-    $sql = "SELECT * FROM usuario WHERE email = ?";
+    $sql = "SELECT * FROM usuarios WHERE email = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Login - MyCashFlow</title>
-    <link rel="stylesheet" href="../includes/style-auth.css">
+    <link rel="stylesheet" href="../assets/css/style-auth.css">
     <script>
         function atualizarRelogio() {
             const agora = new Date();

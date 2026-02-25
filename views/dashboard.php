@@ -27,30 +27,32 @@ include("../config.php");
         <div class="card">
             <h3>Contas</h3>
             <?php
-            $sql = "SELECT SUM(valor) AS total_contas FROM contas";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
-            echo "<p>Total: R$ " . number_format($row['total_contas'], 2, ',', '.') . "</p>";
-            ?>
+	    $sql = "SELECT COALESCE(SUM(valor), 0) AS total_contas FROM contas";
+	    $result = $conn->query($sql);
+	    $row = $result->fetch_assoc();
+	    $total_contas = $row['total_contas'] ?? 0;
+	    echo "<p>Total: R$ " . number_format($total_contas, 2, ',', '.') . "</p>";            ?>
         </div>
 
         <div class="card">
-            <h3>Receitas</h3>
+            <h3>Rendas</h3>
             <?php
-            $sql = "SELECT SUM(valor) AS total_receitas FROM receitas";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
-            echo "<p>Total: R$ " . number_format($row['total_receitas'], 2, ',', '.') . "</p>";
+	    $sql = "SELECT COALESCE(SUM(valor), 0) AS total_renda FROM rendas";
+	    $result = $conn->query($sql);
+	    $row = $result->fetch_assoc();
+	    $total_renda = $row['total_renda'] ?? 0;
+	    echo "<p>Total em Renda: R$ " . number_format($total_renda, 2, ',', '.') . "</p>";
             ?>
         </div>
 
         <div class="card">
             <h3>Investimentos</h3>
             <?php
-            $sql = "SELECT SUM(total) AS total_acoes FROM acao";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
-            echo "<p>Total em Ações: R$ " . number_format($row['total_acoes'], 2, ',', '.') . "</p>";
+	    $sql = "SELECT COALESCE(SUM(total), 0) AS total_acoes FROM acoes";
+	    $result = $conn->query($sql);
+	    $row = $result->fetch_assoc();
+	    $total_acoes = $row['total_acoes'] ?? 0;
+	    echo "<p>Total em Ações: R$ " . number_format($total_acoes, 2, ',', '.') . "</p>";
             ?>
         </div>
     </div>

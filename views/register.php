@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <title>Cadastro - MyCashFlow</title>
     <!-- CSS específico para login e registro -->
-    <link rel="stylesheet" href="../includes/style-auth.css">
+    <link rel="stylesheet" href="/MyCashFlow/assets/css/style-auth.css">
 </head>
 <body>
     <header>
