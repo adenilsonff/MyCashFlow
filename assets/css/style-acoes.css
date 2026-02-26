@@ -8,14 +8,6 @@ body {
     flex-direction: column;
 }
 
-/* Cabeçalho */
-header {
-    background: #2C3E50;
-    color: white;
-    padding: 15px;
-    text-align: center;
-}
-
 /* Container principal */
 .acoes-layout {
     flex: 1;
@@ -23,7 +15,7 @@ header {
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: auto;
 }
 
@@ -33,24 +25,45 @@ header {
     color: #2C3E50;
 }
 
-/* Formulário de cadastro */
-.form-acoes {
+/* Container flex para cadastro e lista */
+.acoes-container {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Card de cadastro menor à esquerda */
+.card-cadastro {
+    flex: 1; /* ocupa 1 parte */
     background: white;
     padding: 20px;
-    margin: 20px auto;
-    width: 400px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
+/* Card da lista maior à direita */
+.card-lista {
+    flex: 2; /* ocupa 2 partes */
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Formulário */
+.form-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 .form-acoes input, .form-acoes button {
-    width: 100%;
     padding: 10px;
-    margin-top: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
 
+/* Botão */
 .form-acoes button {
     background: #2C3E50;
     color: white;
@@ -63,10 +76,9 @@ header {
     background: #1A252F;
 }
 
-/* Tabela de ações */
+/* Tabela */
 .tabela-acoes {
-    width: 90%;
-    margin: 20px auto;
+    width: 100%;
     border-collapse: collapse;
     background: white;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -91,10 +103,9 @@ header {
     background: #f1f1f1;
 }
 
-/* Rodapé */
-footer {
-    text-align: center;
-    padding: 10px;
-    background: #2C3E50;
-    color: white;
+/* Responsividade: empilhar em telas pequenas */
+@media (max-width: 768px) {
+    .acoes-container {
+        flex-direction: column;
+    }
 }
