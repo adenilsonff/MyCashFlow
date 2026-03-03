@@ -1,4 +1,4 @@
-/* Layout da página de Ações */
+/* Layout geral */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -16,79 +16,72 @@ header {
     text-align: center;
 }
 
-/* Container principal */
-.acoes-layout {
-    flex: 1;
+/* Menu principal */
+nav {
+    background: #34495E;
+    padding: 10px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+nav a:hover {
+    background: #2C3E50;
+}
+
+/* Container principal da Dashboard */
+.dashboard-layout {
+    flex: 1;
     padding: 20px;
-    max-width: 1000px;
+    max-width: 1200px;
     margin: auto;
 }
 
-.acoes-layout h2 {
+/* Título */
+.dashboard-layout h2 {
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     color: #2C3E50;
 }
 
-/* Formulário de cadastro */
-.form-acoes {
+/* Cards container */
+.cards-container {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Card individual */
+.card {
+    flex: 1;
+    min-width: 250px;
+    max-width: 350px;
     background: white;
     padding: 20px;
-    margin: 20px auto;
-    width: 400px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.form-acoes input, .form-acoes button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-.form-acoes button {
-    background: #2C3E50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.form-acoes button:hover {
-    background: #1A252F;
-}
-
-/* Tabela de ações */
-.tabela-acoes {
-    width: 90%;
-    margin: 20px auto;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.tabela-acoes th, .tabela-acoes td {
-    padding: 12px;
     text-align: center;
-    border-bottom: 1px solid #ddd;
 }
 
-.tabela-acoes th {
-    background: #2C3E50;
-    color: white;
+.card h3 {
+    margin-bottom: 10px;
+    color: #2C3E50;
 }
 
-.tabela-acoes tr:nth-child(even) {
-    background: #f9f9f9;
-}
-
-.tabela-acoes tr:hover {
-    background: #f1f1f1;
+.card p {
+    font-size: 16px;
+    font-weight: bold;
+    color: #27AE60;
 }
 
 /* Rodapé */
@@ -97,4 +90,16 @@ footer {
     padding: 10px;
     background: #2C3E50;
     color: white;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .cards-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card {
+        width: 90%;
+    }
 }
