@@ -1,0 +1,44 @@
+/* Base herdada do style-acoes.css: cores, tipografia, botões, menus, footer */
+/* Aqui você pode copiar os estilos principais do style-acoes.css e ajustar apenas o centro */
+
+/* Container principal da página de contas */
+.contas-container {
+    display: flex;
+    flex-direction: column; /* organiza os cards em coluna */
+    gap: 20px;              /* espaço entre os cards */
+    padding: 20px;
+}
+
+/* Para agrupar alguns cards lado a lado */
+.contas-row {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+/* Estilo dos cards */
+.card-cadastro, .card-lista {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Tabela da lista */
+.tabela-acoes {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabela-acoes th, .tabela-acoes td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.tabela-acoes th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}

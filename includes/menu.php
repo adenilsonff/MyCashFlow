@@ -1,5 +1,5 @@
 <nav>
-    <a href="dashboard.php">Dashboard</a>
+    <a href="dashboard.php">Home</a>
     <a href="contas.php">Contas</a>
     <a href="rendas.php">Rendas</a>
     <a href="extras.php">Extras</a>
