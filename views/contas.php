@@ -208,7 +208,7 @@ function diasRestantes($dataVencimento) {
                 </thead>
                 <tbody>
                     <?php foreach ($contas as $c) { ?>
-                    <tr>
+                    <tr class="<?= $c['paga'] ? 'linha-paga' : 'linha-nao-paga' ?>">
                         <td><?= htmlspecialchars($c['nome']) ?></td>
                         <td><?= $c['tipo'] ?></td>
                         <td><?= date("d/m/Y", strtotime($c['vencimento'])) ?></td>
