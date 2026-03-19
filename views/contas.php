@@ -47,7 +47,8 @@ if (isset($_POST['ajustar_valor'])) {
 // Inserir nova conta
 if (isset($_POST['nova_conta'])) {
     $nome = $_POST['nomeConta'];
-    $tipo = $_POST['tipoConta'];
+    $tipo = $_POST['tipoConta'];          // mensal/anual
+    $categoria = $_POST['categoria'];     // pessoal/conjunta
     $vencimento = new DateTime($_POST['vencimento']);
     $valor = floatval($_POST['valor']);
 
@@ -55,32 +56,56 @@ if (isset($_POST['nova_conta'])) {
         for ($i = 0; $i < 12; $i++) {
             $dataVenc = clone $vencimento;
             $dataVenc->modify("+$i month");
-            $dataFormatada = $dataVenc->format("Y-m-d"); // CORREÇÃO
+            $dataFormatada = $dataVenc->format("Y-m-d");
 
-            $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, vencimento, paga, valor) VALUES (?, ?, ?, 0, ?)");
-            $stmt->bind_param("sssi", $nome, $tipo, $dataFormatada, $valor);
+            $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) VALUES (?, ?, ?, ?, 0, ?)");
+            $stmt->bind_param("ssssd", $nome, $tipo, $categoria, $dataFormatada, $valor);
             $stmt->execute();
+
+            if ($stmt->error) {
+                echo "Erro no INSERT: " . $stmt->error;
+            }
+
             $stmt->close();
         }
     } else {
-        $dataFormatada = $vencimento->format("Y-m-d"); // CORREÇÃO
-        $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, vencimento, paga, valor) VALUES (?, ?, ?, 0, ?)");
-        $stmt->bind_param("sssi", $nome, $tipo, $dataFormatada, $valor);
+        $dataFormatada = $vencimento->format("Y-m-d");
+
+        $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) VALUES (?, ?, ?, ?, 0, ?)");
+        $stmt->bind_param("ssssd", $nome, $tipo, $categoria, $dataFormatada, $valor);
         $stmt->execute();
+
+        if ($stmt->error) {
+            echo "Erro no INSERT: " . $stmt->error;
+        }
+
         $stmt->close();
     }
 }
 
-// Filtro de mês/ano
+// Filtro de mês/ano + categoria
 $mes = $_GET['mes'] ?? date("n");
 $ano = $_GET['ano'] ?? date("Y");
+$categoriaFiltro = $_GET['categoria'] ?? ''; // nova opção do filtro
 
-$sql = "SELECT id, nome, tipo, vencimento, paga, valor 
+$sql = "SELECT id, nome, tipo, categoria, vencimento, paga, valor 
         FROM contas 
-        WHERE MONTH(vencimento) = ? AND YEAR(vencimento) = ?
-        ORDER BY vencimento ASC";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $mes, $ano);
+        WHERE MONTH(vencimento) = ? AND YEAR(vencimento) = ?";
+
+if (!empty($categoriaFiltro)) {
+    $sql .= " AND categoria = ?";
+}
+
+$sql .= " ORDER BY vencimento ASC";
+
+if (!empty($categoriaFiltro)) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iis", $mes, $ano, $categoriaFiltro);
+} else {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $mes, $ano);
+}
+
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -124,6 +149,10 @@ function diasRestantes($dataVencimento) {
                         <option value="mensal">Mensal</option>
                         <option value="anual">Anual</option>
                     </select>
+                    <select name="categoria" required>
+                        <option value="pessoal">Pessoal</option>
+                        <option value="conjunta">Conjunta</option>
+                    </select>
                     <input type="date" name="vencimento" required>
                     <input type="number" step="0.01" name="valor" placeholder="R$ 0,00" required>
                     <button type="submit">Registrar</button>
@@ -150,6 +179,11 @@ function diasRestantes($dataVencimento) {
                             echo "<option value='$y' $sel>$y</option>";
                         }
                         ?>
+                    </select>
+                    <select name="categoria">
+                        <option value="">Todas</option>
+                        <option value="pessoal" <?= (isset($_GET['categoria']) && $_GET['categoria']=="pessoal") ? "selected" : "" ?>>Pessoal</option>
+                        <option value="conjunta" <?= (isset($_GET['categoria']) && $_GET['categoria']=="conjunta") ? "selected" : "" ?>>Conjunta</option>
                     </select>
                     <button type="submit">Filtrar</button>
                 </form>
@@ -199,6 +233,7 @@ function diasRestantes($dataVencimento) {
                     <tr>
                         <th>Nome</th>
                         <th>Tipo</th>
+                        <th>Categoria</th>
                         <th>Vencimento</th>
                         <th>Valor</th>
                         <th>Paga</th>
@@ -211,6 +246,7 @@ function diasRestantes($dataVencimento) {
                     <tr class="<?= $c['paga'] ? 'linha-paga' : 'linha-nao-paga' ?>">
                         <td><?= htmlspecialchars($c['nome']) ?></td>
                         <td><?= $c['tipo'] ?></td>
+                        <td><?= ucfirst($c['categoria']) ?></td>
                         <td><?= date("d/m/Y", strtotime($c['vencimento'])) ?></td>
                         <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
                         <td>
@@ -227,12 +263,6 @@ function diasRestantes($dataVencimento) {
                         <td><?= diasRestantes($c['vencimento']) ?></td>
                     </tr>
                     <?php } ?>
-                    <tr style="font-weight:bold; background:#f4f4f4;">
-                        <td colspan="3">Total</td>
-                        <td>R$ <?= number_format($total, 2, ',', '.') ?></td>
-                        <td colspan="3"></td>
-                    </tr>
-                </tbody>
             </table>
         </div>
     </main>

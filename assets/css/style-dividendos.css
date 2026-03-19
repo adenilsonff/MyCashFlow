@@ -1,0 +1,76 @@
+/* Layout da página de Dividendos */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #ECF0F1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container principal */
+.acoes-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.acoes-layout h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2C3E50;
+}
+
+/* Container flex para os cards */
+.acoes-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+    justify-content: center; /* Centraliza os cards */
+}
+
+/* Card de cadastro (mesmo padrão das Ações) */
+.card-cadastro {
+    width: 320px;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-cadastro h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #2C3E50;
+}
+
+.card-cadastro p {
+    font-size: 14px;
+    color: #666;
+}
+
+.card-cadastro:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.3);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .acoes-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .card-cadastro {
+        width: 100%;
+    }
+}

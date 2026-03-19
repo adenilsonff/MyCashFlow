@@ -32,8 +32,8 @@ function getDadosAcao($ticker) {
 // Inserir nova operação
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $ticker = strtoupper($_POST['ticker']);
-    $quantidade = $_POST['quantidade'];
-    $valor_unitario = $_POST['valor_unitario'];
+    $quantidade = (int) $_POST['quantidade'];
+    $valor_unitario = (float) $_POST['valor_unitario'];
     $data = $_POST['data'];
     $acao = $_POST['acao']; // compra ou venda
 
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $quantidade = -$quantidade;
     }
 
-    $stmt = $conn->prepare("INSERT INTO acoes (ticker, quantidade, valor_unitario, data, valor_mercado, logo) 
+    $stmt = $conn->prepare("INSERT INTO acoes_nacionais (ticker, quantidade, valor_unitario, data, valor_mercado, logo) 
                             VALUES (?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("sidsss", $ticker, $quantidade, $valor_unitario, $data, $valor_mercado, $logo);
     $stmt->execute();
