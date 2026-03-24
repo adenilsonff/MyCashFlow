@@ -22,7 +22,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <main class="acoes-layout">
         <div class="acoes-container" style="margin-top:30px;">
             <!-- Card DataCOM -->
-            <div class="card-cadastro" onclick="location.href='datacom.php'" style="cursor:pointer;">
+            <div class="card-cadastro" onclick="location.href='div_datacom.php'" style="cursor:pointer;">
                 <h2>DataCOM</h2>
                 <p>Data maxima para direito aos dividendos</p>
             </div>
