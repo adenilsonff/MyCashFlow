@@ -28,13 +28,13 @@ if (!isset($_SESSION['usuario_id'])) {
             </div>
 
             <!-- Card Dividendos -->
-            <div class="card-cadastro" onclick="location.href='dividendos.php'" style="cursor:pointer;">
+            <div class="card-cadastro" onclick="location.href='div_valor.php'" style="cursor:pointer;">
                 <h2>Dividendos</h2>
                 <p>Valores a receber de dividendo</p>
             </div>
 
             <!-- Card Compra -->
-            <div class="card-cadastro" onclick="location.href='compra_div.php'" style="cursor:pointer;">
+            <div class="card-cadastro" onclick="location.href='div_compra.php'" style="cursor:pointer;">
                 <h2>Compra</h2>
                 <p>Calculo a recever de dividendos</p>
             </div>

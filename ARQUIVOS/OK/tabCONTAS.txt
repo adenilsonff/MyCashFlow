@@ -1,13 +1,14 @@
 Estrutura da tabela contas_mes
-CREATE TABLE contas_mes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,              -- Nome/descrição da conta (ex: Luz, Academia)
-    valor DECIMAL(10,2) NOT NULL,            -- Valor da conta
-    tipo ENUM('fixa','variavel') NOT NULL,   -- Tipo da conta
-    vencimento DATE NOT NULL,                -- Data de vencimento
-    paga BOOLEAN DEFAULT FALSE,              -- Controle se já foi paga ou não
-    porcentagem DECIMAL(5,2),                -- % da conta no total (calculado depois)
-    dias_restantes INT                       -- Dias até o vencimento (calculado depois)
+CREATE TABLE contas (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    tipo ENUM('fixa', 'variavel') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    vencimento DATE NOT NULL,
+    paga TINYINT(1) NULL DEFAULT 0,
+    porcentagem DECIMAL(5,2) NULL DEFAULT NULL,
+    dias_restantes INT(11) NULL DEFAULT NULL,
+    categoria VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pessoal'
 );
 
 

@@ -1,0 +1,11 @@
+Estrutura revisada da tabela acao
+CREATE TABLE acoes_nacionais (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ticker VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    quantidade INT(11) NOT NULL,
+    valor_unitario DECIMAL(10,2) NOT NULL,
+    data DATE NOT NULL,
+    valor_mercado DECIMAL(10,2) DEFAULT NULL,
+    logo VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
+);
+

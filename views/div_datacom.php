@@ -12,7 +12,7 @@ $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date("Y");
 
 // Inserir novo registro Div DataCOM
 if (isset($_POST['nova_div'])) {
-    $acao = strtoupper($_POST['acao']); // garante maiúscula
+    $ticker = strtoupper(trim($_POST['ticker'])); // usuário digita o ticker
     $datacom = new DateTime($_POST['datacom']);
     $datapag = new DateTime($_POST['datapag']);
     $valor = floatval($_POST['valor']);
@@ -21,8 +21,27 @@ if (isset($_POST['nova_div'])) {
     $dataComFormatada = $datacom->format("Y-m-d");
     $dataPagFormatada = $datapag->format("Y-m-d");
 
-    $stmt = $conn->prepare("INSERT INTO div_datacom (acao, datacom, datapag, valor, tipo) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssds", $acao, $dataComFormatada, $dataPagFormatada, $valor, $tipo);
+    // Verifica se a ação já existe em acoes_nacionais
+    $stmt = $conn->prepare("SELECT id FROM acoes_nacionais WHERE ticker = ?");
+    $stmt->bind_param("s", $ticker);
+    $stmt->execute();
+    $stmt->bind_result($idAcao);
+    if ($stmt->fetch()) {
+        // já existe
+        $stmt->close();
+    } else {
+        // não existe, cria
+        $stmt->close();
+        $stmtInsert = $conn->prepare("INSERT INTO acoes_nacionais (ticker, quantidade, valor_unitario, data) VALUES (?, 0, 0, CURDATE())");
+        $stmtInsert->bind_param("s", $ticker);
+        $stmtInsert->execute();
+        $idAcao = $stmtInsert->insert_id;
+        $stmtInsert->close();
+    }
+
+    // Agora insere o dividendo
+    $stmt = $conn->prepare("INSERT INTO div_datacom (id_acao, datacom, datapag, valor, tipo) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("issds", $idAcao, $dataComFormatada, $dataPagFormatada, $valor, $tipo);
     $stmt->execute();
     $stmt->close();
 }
@@ -46,11 +65,12 @@ if (isset($_POST['deletar_div'])) {
     $stmt->close();
 }
 
-// Buscar registros do mês/ano
-$sql = "SELECT id, acao, datacom, datapag, valor, tipo 
-        FROM div_datacom 
-        WHERE MONTH(datacom) = ? AND YEAR(datacom) = ?
-        ORDER BY datacom ASC";
+// Buscar registros do mês/ano com JOIN
+$sql = "SELECT d.id, a.ticker AS acao, d.datacom, d.datapag, d.valor, d.tipo
+        FROM div_datacom d
+        JOIN acoes_nacionais a ON d.id_acao = a.id
+        WHERE MONTH(d.datacom) = ? AND YEAR(d.datacom) = ?
+        ORDER BY d.datacom ASC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $mes, $ano);
 $stmt->execute();
@@ -85,8 +105,8 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
                 <form class="form-rendas" method="POST">
                     <input type="hidden" name="nova_div" value="1">
 
-                    <!-- Nome da ação -->
-                    <input type="text" name="acao" placeholder="Ex: PETR4, VALE3..." required>
+                    <!-- Nome da ação (ticker) -->
+                    <input type="text" name="ticker" placeholder="Ex: PETR4, VALE3..." required>
 
                     <!-- Data COM -->
                     <label for="datacom">dataCOM</label>
@@ -167,7 +187,7 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
 
         <!-- Lista -->
         <div class="card-lista-renda">
-            <h2>Lista Div DataCOM - <?= $meses[$mes-1] ?>/<?= $ano ?></h2>
+            <h2>Lista dataCOM - <?= $meses[$mes-1] ?>/<?= $ano ?></h2>
             <table class="tabela-rendas">
                 <thead>
                     <tr>
@@ -181,20 +201,16 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
                 </thead>
                 <tbody>
                     <?php foreach ($divs as $d) { 
-                        // Normaliza ambas as datas para meia-noite
                         $dataCom = new DateTime($d['datacom']);
-                        $dataCom->setTime(23,59,59); // fim do dia da data COM
-
+                        $dataCom->setTime(23,59,59);
                         $hoje = new DateTime();
-                        $hoje->setTime(0,0,0); // início do dia de hoje
+                        $hoje->setTime(0,0,0);
 
-                        // diferença em segundos
                         $segundosRestantes = $dataCom->getTimestamp() - $hoje->getTimestamp();
 
                         if ($segundosRestantes <= 0) {
-                            $tempoRestante = "------"; // já passou ou é hoje
+                            $tempoRestante = "------";
                         } else {
-                            // arredonda para cima para contar dias corridos
                             $diasRestantes = ceil($segundosRestantes / 86400);
                             $tempoRestante = $diasRestantes . " dias";
                         }
@@ -215,8 +231,8 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
                 </tbody>
             </table>
         </div>
-        </main>
+    </main>
 
-        <?php include("../includes/footer.php"); ?>
-        </body>
-        </html>
+    <?php include("../includes/footer.php"); ?>
+</body>
+</html>

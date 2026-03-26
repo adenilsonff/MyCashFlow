@@ -1,0 +1,8 @@
+CREATE TABLE div_datacom (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    acao VARCHAR(20) NOT NULL,          -- Ex: PETR4, VALE3
+    datacom DATE NOT NULL,              -- Data COM
+    datapag DATE NOT NULL,              -- Data de pagamento
+    valor DECIMAL(10,2) NOT NULL,       -- Valor do dividendo/JCP
+    tipo ENUM('DIV','JCP') NOT NULL     -- Tipo do provento
+);

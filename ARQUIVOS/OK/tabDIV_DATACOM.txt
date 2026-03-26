@@ -1,0 +1,36 @@
+CREATE TABLE div_datacom (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id_acao INT(11) NOT NULL,
+    datacom DATE NOT NULL,
+    datapag DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    tipo ENUM('DIV', 'JCP') NOT NULL,
+    FOREIGN KEY (id_acao) REFERENCES acoes_nacionais(id)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE TABLE div_datacom (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    acao VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    datacom DATE NOT NULL,
+    datapag DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    tipo ENUM('DIV', 'JCP') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
+);

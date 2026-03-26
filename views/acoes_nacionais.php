@@ -61,7 +61,8 @@ $sql = "SELECT
             MAX(logo) AS logo,
             (MAX(valor_mercado) * SUM(quantidade)) - SUM(quantidade * valor_unitario) AS resultado
         FROM acoes_nacionais
-        GROUP BY ticker";
+        GROUP BY ticker
+        HAVING quantidade_total > 0";
 $result = $conn->query($sql);
 ?>
 
@@ -113,7 +114,7 @@ $result = $conn->query($sql);
                             <th>Logo</th>
                             <th>Ticker</th>
                             <th>Quantidade Total</th>
-                            <th>Valor Médio Ponderado</th>
+                            <th>Valor Médio</th>
                             <th>Total Investido</th>
                             <th>Valor Mercado Atual</th>
                             <th>Resultado</th>
