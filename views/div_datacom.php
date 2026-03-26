@@ -7,39 +7,63 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+// Função para buscar dados da ação via Brapi
+function getDadosAcao($ticker) {
+    $token = "pV9h8EEsN5xs9ESi2Uk89n";  
+    $ticker_api = strtoupper($ticker) . ".SA";  
+    $url = "https://brapi.dev/api/quote/$ticker_api?token=$token";
+
+    $response = @file_get_contents($url);
+    if ($response === false) {
+        return [null, null];
+    }
+
+    $data = json_decode($response, true);
+
+    if (isset($data['results'][0])) {
+        $valor_mercado = $data['results'][0]['regularMarketPrice'] ?? null;
+        $logo = $data['results'][0]['logourl'] ?? null;
+        return [$valor_mercado, $logo];
+    } else {
+        return [null, null];
+    }
+}
+
 $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date("n");
 $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date("Y");
 
 // Inserir novo registro Div DataCOM
 if (isset($_POST['nova_div'])) {
-    $ticker = strtoupper(trim($_POST['ticker'])); // usuário digita o ticker
+    $ticker = strtoupper(trim($_POST['ticker']));
     $datacom = new DateTime($_POST['datacom']);
     $datapag = new DateTime($_POST['datapag']);
     $valor = floatval($_POST['valor']);
-    $tipo = $_POST['tipo']; // DIV ou JCP
+    $tipo = $_POST['tipo'];
 
     $dataComFormatada = $datacom->format("Y-m-d");
     $dataPagFormatada = $datapag->format("Y-m-d");
 
-    // Verifica se a ação já existe em acoes_nacionais
+    // Verifica se a ação já existe
     $stmt = $conn->prepare("SELECT id FROM acoes_nacionais WHERE ticker = ?");
     $stmt->bind_param("s", $ticker);
     $stmt->execute();
     $stmt->bind_result($idAcao);
     if ($stmt->fetch()) {
-        // já existe
         $stmt->close();
     } else {
-        // não existe, cria
         $stmt->close();
-        $stmtInsert = $conn->prepare("INSERT INTO acoes_nacionais (ticker, quantidade, valor_unitario, data) VALUES (?, 0, 0, CURDATE())");
-        $stmtInsert->bind_param("s", $ticker);
+        // Busca logo e valor de mercado
+        list($valor_mercado, $logo) = getDadosAcao($ticker);
+
+        $stmtInsert = $conn->prepare("INSERT INTO acoes_nacionais (ticker, quantidade, valor_unitario, data, valor_mercado, logo) 
+                                      VALUES (?, 0, 0, CURDATE(), ?, ?)");
+        $stmtInsert->bind_param("sds", $ticker, $valor_mercado, $logo);
         $stmtInsert->execute();
         $idAcao = $stmtInsert->insert_id;
         $stmtInsert->close();
     }
 
-    // Agora insere o dividendo
+    // Insere o dividendo
     $stmt = $conn->prepare("INSERT INTO div_datacom (id_acao, datacom, datapag, valor, tipo) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("issds", $idAcao, $dataComFormatada, $dataPagFormatada, $valor, $tipo);
     $stmt->execute();
@@ -66,7 +90,7 @@ if (isset($_POST['deletar_div'])) {
 }
 
 // Buscar registros do mês/ano com JOIN
-$sql = "SELECT d.id, a.ticker AS acao, d.datacom, d.datapag, d.valor, d.tipo
+$sql = "SELECT d.id, a.ticker AS acao, a.logo, d.datacom, d.datapag, d.valor, d.tipo
         FROM div_datacom d
         JOIN acoes_nacionais a ON d.id_acao = a.id
         WHERE MONTH(d.datacom) = ? AND YEAR(d.datacom) = ?
@@ -85,6 +109,7 @@ while ($row = $result->fetch_assoc()) {
 
 $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -191,6 +216,7 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
             <table class="tabela-rendas">
                 <thead>
                     <tr>
+                        <th>Logo</th>
                         <th>Ação</th>
                         <th>Data COM</th>
                         <th>Data Pagamento</th>
@@ -216,6 +242,13 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
                         }
                     ?>
                     <tr>
+                        <td>
+                            <?php if (!empty($d['logo'])) { ?>
+                                <img src="<?= $d['logo'] ?>" alt="<?= $d['acao'] ?>" style="height:30px;">
+                            <?php } else { ?>
+                                -
+                            <?php } ?>
+                        </td>
                         <td><?= htmlspecialchars($d['acao']) ?></td>
                         <td><?= date("d/m/Y", strtotime($d['datacom'])) ?></td>
                         <td><?= date("d/m/Y", strtotime($d['datapag'])) ?></td>
