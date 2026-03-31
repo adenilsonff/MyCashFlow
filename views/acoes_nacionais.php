@@ -70,8 +70,8 @@ $result = $conn->query($sql);
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Ações</title>
-    <link rel="stylesheet" href="../assets/css/style-acoes.css?v=4">
+    <title>Ações Nacionais</title>
+    <link rel="stylesheet" href="../assets/css/style-acoes.css?v=5">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>
@@ -121,7 +121,11 @@ $result = $conn->query($sql);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while($row = $result->fetch_assoc()) { ?>
+                        <?php 
+                        $total_resultado = 0;
+                        while($row = $result->fetch_assoc()) { 
+                            $total_resultado += $row['resultado'];
+                        ?>
                         <tr>
                             <td>
                                 <?php if (!empty($row['logo'])) { ?>
@@ -150,6 +154,18 @@ $result = $conn->query($sql);
                             </td>
                         </tr>
                         <?php } ?>
+
+                        <!-- Linha final com o total consolidado -->
+                        <tr>
+                            <td colspan="6" style="text-align:right;"><strong>Total:</strong></td>
+                            <td>
+                                <?php if ($total_resultado >= 0) { ?>
+                                    <span style="color:green;">+ R$ <?= number_format($total_resultado, 2, ',', '.') ?></span>
+                                <?php } else { ?>
+                                    <span style="color:red;">- R$ <?= number_format(abs($total_resultado), 2, ',', '.') ?></span>
+                                <?php } ?>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
