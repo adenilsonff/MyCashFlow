@@ -113,8 +113,8 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
 
                     <!-- Tipo da renda: mensal ou anual -->
                     <select name="tipoRenda">
+                        <option value="unica">Unica</option>
                         <option value="mensal">Mensal</option>
-                        <option value="anual">Anual</option>
                     </select>
 
                     <!-- Data do recebimento -->

@@ -20,7 +20,7 @@ include("../config.php");
     <div class="cards-container">
         <!-- Card Contas -->
         <div class="card">
-            <h3>Contas</h3>
+            <h3>Despesas</h3>
             <?php
             $sql = "SELECT COALESCE(SUM(valor), 0) AS total_contas FROM contas";
             $result = $conn->query($sql);
@@ -32,7 +32,7 @@ include("../config.php");
 
         <!-- Card Rendas -->
         <div class="card">
-            <h3>Rendas</h3>
+            <h3>Receitas</h3>
             <?php
             $sql = "SELECT COALESCE(SUM(valor), 0) AS total_renda FROM rendas";
             $result = $conn->query($sql);

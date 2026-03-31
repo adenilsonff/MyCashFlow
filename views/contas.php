@@ -146,8 +146,8 @@ function diasRestantes($dataVencimento) {
                     <input type="hidden" name="nova_conta" value="1">
                     <input type="text" name="nomeConta" placeholder="Nome da Conta" required>
                     <select name="tipoConta">
+                        <option value="unica">Unica</option>
                         <option value="mensal">Mensal</option>
-                        <option value="anual">Anual</option>
                     </select>
                     <select name="categoria" required>
                         <option value="pessoal">Pessoal</option>
