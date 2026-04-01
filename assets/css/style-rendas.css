@@ -1,5 +1,3 @@
-/* Base herdada do style-acoes.css: cores, tipografia, botões, menus, footer */
-
 /* Layout da página de Rendas */
 body {
     margin: 0;
@@ -17,7 +15,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: auto;
 }
 
@@ -27,48 +25,46 @@ body {
     color: #2C3E50;
 }
 
-/* Container flex para cadastro e lista */
-.rendas-container {
-    display: flex;
-    align-items: flex-start;
+/* Grid principal: 3 colunas */
+.rendas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr; /* esquerda, meio, direita */
     gap: 20px;
     width: 100%;
 }
 
-/* Card de cadastro */
-.card-cadastro-renda {
-    width: 320px;
-    flex: 0 0 auto;
-    align-self: flex-start;
+/* Cada coluna */
+.col-esquerda, .col-meio, .col-direita {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Cards */
+.card-cadastro-renda, .card-lista-renda {
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Card da lista */
-.card-lista-renda {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Formulário */
+/* Formulários */
 .form-rendas {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.form-rendas input, .form-rendas select, .form-rendas button {
+.form-rendas input,
+.form-rendas select,
+.form-rendas button {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    font-size: 14px;
 }
 
-/* Botão */
+/* Botões */
 .form-rendas button {
     background: #2C3E50;
     color: white;
@@ -108,30 +104,27 @@ body {
     background: #f1f1f1;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .rendas-container {
-        flex-direction: column;
-    }
-    .card-cadastro-renda {
-        width: 100%;
-    }
-}
-
-/* Renda recebida: riscar e mudar cor */
+/* Renda recebida */
 .tabela-rendas tr.linha-recebida {
     background-color: #e0f7fa; /* azul claro */
     color: #0277bd;            /* azul escuro */
-    opacity: 0.6;              /* levemente apagado */
+    opacity: 0.6;
 }
 
 .tabela-rendas tr.linha-recebida td:first-child {
-    text-decoration: line-through; /* risca o nome da renda */
+    text-decoration: line-through;
 }
 
-/* Renda não recebida: estilo normal */
+/* Renda não recebida */
 .tabela-rendas tr.linha-nao-recebida {
     background-color: #fff;
     color: #000;
     opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .rendas-grid {
+        grid-template-columns: 1fr; /* uma coluna só */
+    }
 }

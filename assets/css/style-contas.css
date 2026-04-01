@@ -15,7 +15,7 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: auto;
 }
 
@@ -25,17 +25,23 @@ body {
     color: #2C3E50;
 }
 
-/* Cards lado a lado */
-.contas-row {
-    display: flex;
-    align-items: flex-start;
+/* Grid principal: 3 colunas */
+.contas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr; /* esquerda, meio, direita */
     gap: 20px;
     width: 100%;
 }
 
+/* Cada coluna */
+.col-esquerda, .col-meio, .col-direita {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 /* Card de cadastro e lista */
 .card-cadastro, .card-lista {
-    flex: 1;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -102,7 +108,7 @@ body {
 .tabela-acoes tr.linha-paga {
     background-color: #e0f2f1; /* verde bem claro */
     color: #2e7d32;            /* verde escuro */
-    opacity: 0.4;              /* levemente apagado */
+    opacity: 0.6;              /* levemente apagado */
 }
 
 .tabela-acoes tr.linha-paga td:first-child {
@@ -117,389 +123,8 @@ body {
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-    .contas-row {
-        flex-direction: column;
-    }
-    .card-cadastro {
-        width: 100%;
-    }
-}/* Layout da página de Contas */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #ECF0F1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container principal */
-.contas-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-}
-
-.contas-container h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #2C3E50;
-}
-
-/* Cards lado a lado */
-.contas-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    width: 100%;
-}
-
-/* Card de cadastro e lista */
-.card-cadastro, .card-lista {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Formulários */
-.form-acoes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.form-acoes input,
-.form-acoes select,
-.form-acoes button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-/* Botões */
-.form-acoes button {
-    background: #2C3E50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.form-acoes button:hover {
-    background: #1A252F;
-}
-
-/* Tabela */
-.tabela-acoes {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.tabela-acoes th, .tabela-acoes td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-}
-
-.tabela-acoes th {
-    background: #2C3E50;
-    color: white;
-}
-
-.tabela-acoes tr:nth-child(even) {
-    background: #f9f9f9;
-}
-
-.tabela-acoes tr:hover {
-    background: #f1f1f1;
-}
-
-/* Conta paga: destaque visual */
-.tabela-acoes tr.linha-paga {
-    background-color: #e0f2f1; /* verde bem claro */
-    color: #2e7d32;            /* verde escuro */
-    opacity: 0.4;              /* levemente apagado */
-}
-
-.tabela-acoes tr.linha-paga td:first-child {
-    text-decoration: line-through;
-}
-
-/* Conta não paga */
-.tabela-acoes tr.linha-nao-paga {
-    background-color: #fff;
-    color: #000;
-    opacity: 1;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .contas-row {
-        flex-direction: column;
-    }
-    .card-cadastro {
-        width: 100%;
-    }
-}/* Layout da página de Contas */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #ECF0F1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container principal */
-.contas-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-}
-
-.contas-container h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #2C3E50;
-}
-
-/* Cards lado a lado */
-.contas-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    width: 100%;
-}
-
-/* Card de cadastro e lista */
-.card-cadastro, .card-lista {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Formulários */
-.form-acoes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.form-acoes input,
-.form-acoes select,
-.form-acoes button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-/* Botões */
-.form-acoes button {
-    background: #2C3E50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.form-acoes button:hover {
-    background: #1A252F;
-}
-
-/* Tabela */
-.tabela-acoes {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.tabela-acoes th, .tabela-acoes td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-}
-
-.tabela-acoes th {
-    background: #2C3E50;
-    color: white;
-}
-
-.tabela-acoes tr:nth-child(even) {
-    background: #f9f9f9;
-}
-
-.tabela-acoes tr:hover {
-    background: #f1f1f1;
-}
-
-/* Conta paga: destaque visual */
-.tabela-acoes tr.linha-paga {
-    background-color: #e0f2f1; /* verde bem claro */
-    color: #2e7d32;            /* verde escuro */
-    opacity: 0.4;              /* levemente apagado */
-}
-
-.tabela-acoes tr.linha-paga td:first-child {
-    text-decoration: line-through;
-}
-
-/* Conta não paga */
-.tabela-acoes tr.linha-nao-paga {
-    background-color: #fff;
-    color: #000;
-    opacity: 1;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .contas-row {
-        flex-direction: column;
-    }
-    .card-cadastro {
-        width: 100%;
-    }
-}/* Layout da página de Contas */
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #ECF0F1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Container principal */
-.contas-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
-}
-
-.contas-container h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #2C3E50;
-}
-
-/* Cards lado a lado */
-.contas-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    width: 100%;
-}
-
-/* Card de cadastro e lista */
-.card-cadastro, .card-lista {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Formulários */
-.form-acoes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.form-acoes input,
-.form-acoes select,
-.form-acoes button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-/* Botões */
-.form-acoes button {
-    background: #2C3E50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.form-acoes button:hover {
-    background: #1A252F;
-}
-
-/* Tabela */
-.tabela-acoes {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-.tabela-acoes th, .tabela-acoes td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-}
-
-.tabela-acoes th {
-    background: #2C3E50;
-    color: white;
-}
-
-.tabela-acoes tr:nth-child(even) {
-    background: #f9f9f9;
-}
-
-.tabela-acoes tr:hover {
-    background: #f1f1f1;
-}
-
-/* Conta paga: destaque visual */
-.tabela-acoes tr.linha-paga {
-    background-color: #e0f2f1; /* verde bem claro */
-    color: #2e7d32;            /* verde escuro */
-    opacity: 0.4;              /* levemente apagado */
-}
-
-.tabela-acoes tr.linha-paga td:first-child {
-    text-decoration: line-through;
-}
-
-/* Conta não paga */
-.tabela-acoes tr.linha-nao-paga {
-    background-color: #fff;
-    color: #000;
-    opacity: 1;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .contas-row {
-        flex-direction: column;
-    }
-    .card-cadastro {
-        width: 100%;
+@media (max-width: 992px) {
+    .contas-grid {
+        grid-template-columns: 1fr; /* uma coluna só */
     }
 }
