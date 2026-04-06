@@ -12,7 +12,7 @@ if (!isset($_SESSION['usuario_id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Dividendos - Demonstrativo</title>
-    <link rel="stylesheet" href="../assets/css/style-rendas.css?v=1">
+    <link rel="stylesheet" href="../assets/css/style-divis.css?v=1">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>

@@ -7,16 +7,24 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-// Cotação do dólar no dia atual (PTAX)
-$dataHoje = date("m-d-Y");
-$url = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/" . "CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='" . $dataHoje . "'&\$top=100&\$format=json";
-$response = @file_get_contents($url);
-$data = json_decode($response, true);
+// Cotação do dólar via AwesomeAPI
+$url_dolar = "https://economia.awesomeapi.com.br/json/last/USD-BRL";
+$response_dolar = @file_get_contents($url_dolar);
+$data_dolar = json_decode($response_dolar, true);
 
 $cotacao_dolar = null;
-if (!empty($data["value"])) {
-    $cotacao = end($data["value"]);
-    $cotacao_dolar = $cotacao["cotacaoCompra"];
+if (!empty($data_dolar["USDBRL"])) {
+    $cotacao_dolar = $data_dolar["USDBRL"]["bid"];
+}
+
+// Cotação do euro via AwesomeAPI
+$url_euro = "https://economia.awesomeapi.com.br/json/last/EUR-BRL";
+$response_euro = @file_get_contents($url_euro);
+$data_euro = json_decode($response_euro, true);
+
+$cotacao_euro = null;
+if (!empty($data_euro["EURBRL"])) {
+    $cotacao_euro = $data_euro["EURBRL"]["bid"];
 }
 
 // Função para buscar dados da ação via Brapi
@@ -91,28 +99,26 @@ $result = $conn->query($sql);
     <?php include("../includes/menu.php"); ?>
 
     <main class="acoes-layout">
-        <!-- Card da Cotação do Dólar -->
         <div class="card-lista">
-            <h2>Dólar hoje</h2>
-            <?php if ($cotacao_dolar !== null) { ?>
-                <table class="tabela-acoes">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Valor</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><?= date("d/m/Y") ?></td>
-                            <td>R$ <?= number_format($cotacao_dolar, 4, ',', '.') ?></td>
-                        </tr>
-                    </tbody>
-                </table>
-            <?php } else { ?>
-                <p>Não foi possível obter a cotação.</p>
-            <?php } ?>
+            <h2>Cotações de hoje</h2>
+            <table class="tabela-acoes">
+                <thead>
+                    <tr>
+                        <!-- <th>Data</th> --> <!-- comentado -->
+                        <th>Dólar (USD)</th>
+                        <th>Euro (EUR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <!-- <td><?= date("d/m/Y") ?></td> --> <!-- comentado -->
+                        <td>R$ <?= number_format($cotacao_dolar, 4, ',', '.') ?></td>
+                        <td>R$ <?= number_format($cotacao_euro, 4, ',', '.') ?></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+
        
         <div class="acoes-container">
             <!-- Card de Operação -->

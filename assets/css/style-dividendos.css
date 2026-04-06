@@ -31,14 +31,13 @@ body {
     align-items: flex-start;
     gap: 20px;
     width: 100%;
-    justify-content: center; /* Centraliza os cards */
+    flex-wrap: wrap; /* permite quebrar linha em telas menores */
 }
 
-/* Card de cadastro (mesmo padrão das Ações) */
+/* Card de navegação */
 .card-cadastro {
     width: 320px;
     flex: 0 0 auto;
-    align-self: flex-start;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -59,6 +58,7 @@ body {
     color: #666;
 }
 
+/* Efeito hover */
 .card-cadastro:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 12px rgba(0,0,0,0.3);
@@ -74,4 +74,3 @@ body {
         width: 100%;
     }
 }
-

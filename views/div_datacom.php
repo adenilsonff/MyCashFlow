@@ -116,7 +116,7 @@ $meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto"
 <head>
     <meta charset="UTF-8">
     <title>Div DataCOM</title>
-    <link rel="stylesheet" href="../assets/css/style-rendas.css?v=1">
+    <link rel="stylesheet" href="../assets/css/style-divis.css?v=1">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>
