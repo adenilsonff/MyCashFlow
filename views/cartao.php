@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Contas</title>
-    <link rel="stylesheet" href="../assets/css/style-extra.css?v=1">
+    <link rel="stylesheet" href="../assets/css/style-rendas.css?v=1">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>
