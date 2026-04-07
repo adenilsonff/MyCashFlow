@@ -1,0 +1,10 @@
+CREATE TABLE cartoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,              -- Nome do cartão/conta
+    categoria ENUM('pessoal','conjunta','unica') NOT NULL,
+    data DATE NOT NULL,                      -- Data de vencimento/lançamento
+    valor DECIMAL(10,2) NOT NULL,            -- Valor da fatura ou parcela
+    parcela INT NOT NULL DEFAULT 1,          -- Número da parcela
+    paga TINYINT(1) NOT NULL DEFAULT 0,      -- Status (0 = não paga, 1 = paga)
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,6 +1,4 @@
-/* Base herdada do style-acoes.css: cores, tipografia, botões, menus, footer */
-
-/* Layout da página de Rendas */
+/* Layout da página de Cartões */
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -11,65 +9,63 @@ body {
 }
 
 /* Container principal */
-.rendas-layout {
+.cartoes-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: auto;
 }
 
-.rendas-layout h2 {
+.cartoes-container h2 {
     text-align: center;
     margin-bottom: 15px;
     color: #2C3E50;
 }
 
-/* Container flex para cadastro e lista */
-.rendas-container {
-    display: flex;
-    align-items: flex-start;
+/* Grid principal: 3 colunas */
+.cartoes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 2fr; /* esquerda, meio, direita */
     gap: 20px;
     width: 100%;
 }
 
-/* Card de cadastro */
-.card-cadastro-renda {
-    width: 320px;
-    flex: 0 0 auto;
-    align-self: flex-start;
+/* Cada coluna */
+.col-esquerda, .col-meio, .col-direita {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Card de cadastro e lista */
+.card-cadastro, .card-lista {
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Card da lista */
-.card-lista-renda {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Formulário */
-.form-rendas {
+/* Formulários */
+.form-acoes {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.form-rendas input, .form-rendas select, .form-rendas button {
+.form-acoes input,
+.form-acoes select,
+.form-acoes button {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    font-size: 14px;
 }
 
-/* Botão */
-.form-rendas button {
+/* Botões */
+.form-acoes button {
     background: #2C3E50;
     color: white;
     border: none;
@@ -77,61 +73,58 @@ body {
     font-weight: bold;
 }
 
-.form-rendas button:hover {
+.form-acoes button:hover {
     background: #1A252F;
 }
 
 /* Tabela */
-.tabela-rendas {
+.tabela-acoes {
     width: 100%;
     border-collapse: collapse;
     background: white;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-.tabela-rendas th, .tabela-rendas td {
+.tabela-acoes th, .tabela-acoes td {
     padding: 12px;
     text-align: center;
     border-bottom: 1px solid #ddd;
 }
 
-.tabela-rendas th {
+.tabela-acoes th {
     background: #2C3E50;
     color: white;
 }
 
-.tabela-rendas tr:nth-child(even) {
+.tabela-acoes tr:nth-child(even) {
     background: #f9f9f9;
 }
 
-.tabela-rendas tr:hover {
+.tabela-acoes tr:hover {
     background: #f1f1f1;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .rendas-container {
-        flex-direction: column;
-    }
-    .card-cadastro-renda {
-        width: 100%;
-    }
-}
-
-/* Renda recebida: riscar e mudar cor */
-.tabela-rendas tr.linha-recebida {
-    background-color: #e0f7fa; /* azul claro */
-    color: #0277bd;            /* azul escuro */
+/* Cartão pago: destaque visual */
+.tabela-acoes tr.linha-paga {
+    background-color: #e0f2f1; /* verde bem claro */
+    color: #2e7d32;            /* verde escuro */
     opacity: 0.6;              /* levemente apagado */
 }
 
-.tabela-rendas tr.linha-recebida td:first-child {
-    text-decoration: line-through; /* risca o nome da renda */
+.tabela-acoes tr.linha-paga td:first-child {
+    text-decoration: line-through;
 }
 
-/* Renda não recebida: estilo normal */
-.tabela-rendas tr.linha-nao-recebida {
+/* Cartão não pago */
+.tabela-acoes tr.linha-nao-paga {
     background-color: #fff;
     color: #000;
     opacity: 1;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .cartoes-grid {
+        grid-template-columns: 1fr; /* uma coluna só */
+    }
 }
