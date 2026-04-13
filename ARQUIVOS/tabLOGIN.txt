@@ -1,12 +1,9 @@
-Estrutura revisada das tabelas de login
-1. Tabela usuario (autenticação)
-CREATE TABLE usuario (
+CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) UNIQUE NOT NULL,   -- login do usuário
-    senha VARCHAR(255) NOT NULL,          -- senha criptografada (hash)
-    dois_fatores ENUM('nenhum','email','sms','app') DEFAULT 'nenhum', -- tipo de 2FA
-    token_2fa VARCHAR(10),                -- código temporário de validação
-    token_expira TIMESTAMP,               -- validade do token
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    status_assinatura ENUM('ativo','inativo') DEFAULT 'ativo',
+    data_expiracao DATE NOT NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,14 +15,14 @@ CREATE TABLE usuario (
 - token_expira garante que o código só seja válido por alguns minutos.
 
 2. Tabela cliente (dados cadastrais)
-CREATE TABLE cliente (
+CREATE TABLE clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,              -- vínculo com a tabela usuario
     nome VARCHAR(100) NOT NULL,
     documento VARCHAR(20),                -- CPF ou RG
     endereco VARCHAR(200),
     telefone VARCHAR(20),
-    FOREIGN KEY (usuario_id) REFERENCES usuario(id)
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
 

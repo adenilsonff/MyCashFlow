@@ -10,14 +10,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $data_expiracao = date('Y-m-d', strtotime('+30 days'));
     $status = "ativo";
 
-    $sql = "INSERT INTO usuario (email, senha, status_assinatura, data_expiracao) VALUES (?, ?, ?, ?)";
+    // Corrigido: nome da tabela é 'usuarios'
+    $sql = "INSERT INTO usuarios (email, senha, status_assinatura, data_expiracao) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssss", $email, $senha, $status, $data_expiracao);
 
     if ($stmt->execute()) {
         $sucesso = "Usuário cadastrado com sucesso! Assinatura válida até $data_expiracao.";
     } else {
-        $erro = "Erro ao cadastrar usuário.";
+        $erro = "Erro ao cadastrar usuário: " . $stmt->error;
     }
 }
 ?>

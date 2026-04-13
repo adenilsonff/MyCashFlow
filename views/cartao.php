@@ -50,17 +50,20 @@ if (isset($_POST['novo_cartao'])) {
     $valor = floatval($_POST['valor']);
     $parcelas = (int)$_POST['parcelas'];
 
+    // Valor de cada parcela
+    $valorParcela = $valor / $parcelas;
+
     // Se tiver parcelas, insere várias faturas
     for ($i = 0; $i < $parcelas; $i++) {
         $dataParcela = clone $data;
         $dataParcela->modify("+$i month");
         $dataFormatada = $dataParcela->format("Y-m-d");
 
-        // Criar variável para a parcela
+        // Número da parcela
         $parcela = $i + 1;
 
         $stmt = $conn->prepare("INSERT INTO cartoes (nome, categoria, data, paga, valor, parcela) VALUES (?, ?, ?, 0, ?, ?)");
-        $stmt->bind_param("sssdi", $nome, $categoria, $dataFormatada, $valor, $parcela);
+        $stmt->bind_param("sssdi", $nome, $categoria, $dataFormatada, $valorParcela, $parcela);
         $stmt->execute();
         $stmt->close();
     }
