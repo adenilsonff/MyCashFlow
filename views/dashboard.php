@@ -22,11 +22,27 @@ include("../config.php");
         <div class="card">
             <h3>Despesas</h3>
             <?php
-            $sql = "SELECT COALESCE(SUM(valor), 0) AS total_contas FROM contas";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
-            $total_contas = $row['total_contas'] ?? 0;
-            echo "<p>Total: R$ " . number_format($total_contas, 2, ',', '.') . "</p>";
+            $mesAtual = date('m');
+            $anoAtual = date('Y');
+
+            // Total do mês atual (usando vencimento)
+            $sqlMes = "SELECT COALESCE(SUM(valor), 0) AS total_mes 
+                    FROM contas 
+                    WHERE MONTH(vencimento) = $mesAtual AND YEAR(vencimento) = $anoAtual";
+            $resultMes = $conn->query($sqlMes);
+            $rowMes = $resultMes->fetch_assoc();
+            $total_mes = $rowMes['total_mes'] ?? 0;
+
+            // Total anual (usando vencimento)
+            $sqlAno = "SELECT COALESCE(SUM(valor), 0) AS total_ano 
+                    FROM contas 
+                    WHERE YEAR(vencimento) = $anoAtual";
+            $resultAno = $conn->query($sqlAno);
+            $rowAno = $resultAno->fetch_assoc();
+            $total_ano = $rowAno['total_ano'] ?? 0;
+
+            echo "<p><strong>Mês Atual:</strong> R$ " . number_format($total_mes, 2, ',', '.') . "</p>";
+            echo "<p><strong>Total Anual:</strong> R$ " . number_format($total_ano, 2, ',', '.') . "</p>";
             ?>
         </div>
 

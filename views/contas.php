@@ -1,6 +1,7 @@
 <?php
 include __DIR__ . '/../config.php';
 session_start();
+$tipo = null; // inicializa para evitar "undefined variable"
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
@@ -47,38 +48,37 @@ if (isset($_POST['ajustar_valor'])) {
 // Inserir nova conta
 if (isset($_POST['nova_conta'])) {
     $nome = $_POST['nomeConta'];
-    $tipo = $_POST['tipoConta'];          // mensal/anual
-    $categoria = $_POST['categoria'];     // pessoal/conjunta
+    $tipo = $_POST['tipoConta'];          // unica/mensal
+    $categoria = $_POST['categoria'];     
     $vencimento = new DateTime($_POST['vencimento']);
     $valor = floatval($_POST['valor']);
 
-    if ($tipo === "anual") {
+    if ($tipo === "mensal") {
+        $diaVencimento = (int)$vencimento->format("d");
         for ($i = 0; $i < 12; $i++) {
             $dataVenc = clone $vencimento;
             $dataVenc->modify("+$i month");
-            $dataFormatada = $dataVenc->format("Y-m-d");
 
-            $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) VALUES (?, ?, ?, ?, 0, ?)");
-            $stmt->bind_param("ssssd", $nome, $tipo, $categoria, $dataFormatada, $valor);
-            $stmt->execute();
-
-            if ($stmt->error) {
-                echo "Erro no INSERT: " . $stmt->error;
+            // Se o mês não tiver o dia (ex: 31/02), ajusta para último dia do mês
+            if ((int)$dataVenc->format("d") !== $diaVencimento) {
+                $dataVenc->modify("last day of this month");
             }
 
+            $dataFormatada = $dataVenc->format("Y-m-d");
+
+            $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) 
+                                    VALUES (?, ?, ?, ?, 0, ?)");
+            $stmt->bind_param("ssssd", $nome, $tipo, $categoria, $dataFormatada, $valor);
+            $stmt->execute();
             $stmt->close();
         }
-    } else {
+    } elseif ($tipo === "unica") {
         $dataFormatada = $vencimento->format("Y-m-d");
 
-        $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) VALUES (?, ?, ?, ?, 0, ?)");
+        $stmt = $conn->prepare("INSERT INTO contas (nome, tipo, categoria, vencimento, paga, valor) 
+                                VALUES (?, ?, ?, ?, 0, ?)");
         $stmt->bind_param("ssssd", $nome, $tipo, $categoria, $dataFormatada, $valor);
         $stmt->execute();
-
-        if ($stmt->error) {
-            echo "Erro no INSERT: " . $stmt->error;
-        }
-
         $stmt->close();
     }
 }
@@ -248,26 +248,33 @@ function diasRestantes($dataVencimento) {
                         </thead>
                         <tbody>
                             <?php foreach ($contas as $c) { ?>
-                            <tr class="<?= $c['paga'] ? 'linha-paga' : 'linha-nao-paga' ?>">
-                                <td><?= htmlspecialchars($c['nome']) ?></td>
-                                <td><?= $c['tipo'] ?></td>
-                                <td><?= ucfirst($c['categoria']) ?></td>
-                                <td><?= date("d/m/Y", strtotime($c['vencimento'])) ?></td>
-                                <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
-                                <td>
-                                    <form method="POST" style="display:inline;">
-                                        <input type="hidden" name="id" value="<?= $c['id'] ?>">
-                                        <select name="paga" onchange="this.form.submit()">
-                                            <option value="0" <?= !$c['paga'] ? 'selected' : '' ?>>Não</option>
-                                            <option value="1" <?= $c['paga'] ? 'selected' : '' ?>>Sim</option>
-                                        </select>
-                                        <input type="hidden" name="atualizar_paga" value="1">
-                                    </form>
-                                </td>
-                                <td><?= $total > 0 ? number_format(($c['valor']/$total)*100, 2, ',', '.') : '0,00' ?>%</td>
-                                <td><?= diasRestantes($c['vencimento']) ?></td>
-                            </tr>
+                                <tr class="<?= $c['paga'] ? 'linha-paga' : 'linha-nao-paga' ?>">
+                                    <td><?= htmlspecialchars($c['nome']) ?></td>
+                                    <td><?= $c['tipo'] ?></td>
+                                    <td><?= ucfirst($c['categoria']) ?></td>
+                                    <td><?= date("d/m/Y", strtotime($c['vencimento'])) ?></td>
+                                    <td>R$ <?= number_format($c['valor'], 2, ',', '.') ?></td>
+                                    <td>
+                                        <form method="POST" style="display:inline;">
+                                            <input type="hidden" name="id" value="<?= $c['id'] ?>">
+                                            <select name="paga" onchange="this.form.submit()">
+                                                <option value="0" <?= !$c['paga'] ? 'selected' : '' ?>>Não</option>
+                                                <option value="1" <?= $c['paga'] ? 'selected' : '' ?>>Sim</option>
+                                            </select>
+                                            <input type="hidden" name="atualizar_paga" value="1">
+                                        </form>
+                                    </td>
+                                    <td><?= $total > 0 ? number_format(($c['valor']/$total)*100, 2, ',', '.') : '0,00' ?>%</td>
+                                    <td><?= diasRestantes($c['vencimento']) ?></td>
+                                </tr>
                             <?php } ?>
+
+                            <!-- Linha de total -->
+                            <tr class="linha-total">
+                                <td colspan="4"><strong>Total</strong></td>
+                                <td><strong>R$ <?= number_format($total, 2, ',', '.') ?></strong></td>
+                                <td colspan="3"></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
