@@ -16,9 +16,10 @@ if (isset($_POST['nova_renda'])) {
     $descricao = $_POST['descricao'];
     $data = new DateTime($_POST['data']);
     $valor = floatval($_POST['valor']);
-    $tipo = $_POST['tipoRenda']; // mensal ou anual
+    $tipo = $_POST['tipoRenda']; // unica ou mensal
 
-    if ($tipo === "anual") {
+    if ($tipo === "mensal") {
+        // gera 12 meses a partir da data escolhida
         for ($i = 0; $i < 12; $i++) {
             $dataReceb = clone $data;
             $dataReceb->modify("+$i month");
@@ -29,7 +30,7 @@ if (isset($_POST['nova_renda'])) {
             $stmt->execute();
             $stmt->close();
         }
-    } else {
+    } else { // unica
         $dataFormatada = $data->format("Y-m-d");
         $stmt = $conn->prepare("INSERT INTO rendas (nome, descricao, data, valor, recebido, porcentagem) VALUES (?, ?, ?, ?, 0, 0)");
         $stmt->bind_param("sssd", $nome, $descricao, $dataFormatada, $valor);
@@ -37,6 +38,7 @@ if (isset($_POST['nova_renda'])) {
         $stmt->close();
     }
 }
+
 
 // Atualizar status recebido
 if (isset($_POST['atualizar_recebido'])) {

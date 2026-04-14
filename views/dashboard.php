@@ -50,11 +50,27 @@ include("../config.php");
         <div class="card">
             <h3>Receitas</h3>
             <?php
-            $sql = "SELECT COALESCE(SUM(valor), 0) AS total_renda FROM rendas";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
-            $total_renda = $row['total_renda'] ?? 0;
-            echo "<p>Total em Renda: R$ " . number_format($total_renda, 2, ',', '.') . "</p>";
+            $mesAtual = date('m');
+            $anoAtual = date('Y');
+
+            // Total do mês atual (usando coluna 'data')
+            $sqlMes = "SELECT COALESCE(SUM(valor), 0) AS total_mes 
+                    FROM rendas 
+                    WHERE MONTH(data) = $mesAtual AND YEAR(data) = $anoAtual";
+            $resultMes = $conn->query($sqlMes);
+            $rowMes = $resultMes->fetch_assoc();
+            $total_mes = $rowMes['total_mes'] ?? 0;
+
+            // Total anual (usando coluna 'data')
+            $sqlAno = "SELECT COALESCE(SUM(valor), 0) AS total_ano 
+                    FROM rendas 
+                    WHERE YEAR(data) = $anoAtual";
+            $resultAno = $conn->query($sqlAno);
+            $rowAno = $resultAno->fetch_assoc();
+            $total_ano = $rowAno['total_ano'] ?? 0;
+
+            echo "<p><strong>Mês Atual:</strong> R$ " . number_format($total_mes, 2, ',', '.') . "</p>";
+            echo "<p><strong>Total Anual:</strong> R$ " . number_format($total_ano, 2, ',', '.') . "</p>";
             ?>
         </div>
 
