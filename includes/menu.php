@@ -8,5 +8,6 @@
     <a href="dividendos.php">Dividendos</a>
     <a href="daytrade.php">DayTrade</a>
     <a href="relatorios.php">Relatórios</a>
+    <a href="configuracao.php">Configuração</a>
     <a href="logout.php">Sair</a>
 </nav>
