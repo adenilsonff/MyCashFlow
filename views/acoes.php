@@ -24,7 +24,7 @@ $total_geral = $total_nacional + $total_internacional;
 <head>
     <meta charset="UTF-8">
     <title>Ações</title>
-    <link rel="stylesheet" href="../assets/css/style-acoes.css?v=6">
+    <link rel="stylesheet" href="../assets/css/style-acoes-menu.css?v=6">
 </head>
 <body>
     <?php include("../includes/header.php"); ?>

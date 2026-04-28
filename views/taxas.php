@@ -1,11 +1,11 @@
 <?php
-// Página de Daytrade
+// Página de Cadastro de Taxas
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Daytrade</title>
+    <title>Cadastrar Taxa Corretora</title>
     <link rel="stylesheet" href="../assets/css/style-daytrade.css?v=1">
 </head>
 <body>
@@ -13,13 +13,7 @@
     <?php include("../includes/menu.php"); ?>
 
     <main class="rendas-layout">
-        <!-- Botão que abre o popup -->
-        <button class="btn-taxas" id="btnTaxas">Cadastrar Taxa Corretora</button>
-
-        <!-- Modal flutuante -->
-        <div id="modalTaxas" class="modal">
-          <div class="modal-content">
-            <span class="close">&times;</span>
+        <div class="card-cadastro-renda">
             <h2>Cadastrar Taxa da Corretora</h2>
             <form class="form-rendas" action="salvar_taxa.php" method="post">
                 <label for="corretora">Nome da Corretora:</label>
@@ -32,27 +26,13 @@
                 <button type="submit" class="btn-salvar">Salvar</button>
             </form>
 
-            <!-- Botão Voltar dentro do popup -->
+            <!-- Botão Voltar separado -->
             <a href="daytrade.php" class="btn-voltar">Voltar</a>
-          </div>
         </div>
     </main>
 
     <footer>
         <p>MyCashFlow © 2026 - Sistema de Finanças Pessoais</p>
     </footer>
-
-    <!-- Script para abrir/fechar modal -->
-    <script>
-    const modal = document.getElementById("modalTaxas");
-    const btn = document.getElementById("btnTaxas");
-    const span = document.querySelector(".close");
-
-    btn.onclick = () => modal.style.display = "block";
-    span.onclick = () => modal.style.display = "none";
-    window.onclick = (event) => {
-      if (event.target == modal) modal.style.display = "none";
-    };
-    </script>
 </body>
 </html>

@@ -1,0 +1,150 @@
+/* Layout da página de Ações */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #ECF0F1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container principal */
+.acoes-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.acoes-layout h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2C3E50;
+}
+
+/* Container flex para cadastro e lista */
+.acoes-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Card de cadastro */
+.card-cadastro {
+    width: 320px;
+    flex: 0 0 auto;
+    align-self: flex-start;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-cadastro h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #2C3E50;
+}
+
+.card-cadastro p {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Efeito hover com movimento */
+.card-cadastro:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.3);
+}
+
+/* Card da lista */
+.card-lista {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Formulário */
+.form-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-acoes input, .form-acoes button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Botão */
+.form-acoes button {
+    background: #2C3E50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.form-acoes button:hover {
+    background: #1A252F;
+}
+
+/* Aba de seleção (Compra/Venda) */
+.acao-tabs {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #2C3E50;
+}
+
+.acao-tabs input[type="radio"] {
+    margin-right: 5px;
+}
+
+/* Tabela */
+.tabela-acoes {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.tabela-acoes th, .tabela-acoes td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabela-acoes th {
+    background: #2C3E50;
+    color: white;
+}
+
+.tabela-acoes tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.tabela-acoes tr:hover {
+    background: #f1f1f1;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .acoes-container {
+        flex-direction: column;
+    }
+    .card-cadastro {
+        width: 100%;
+    }
+}
