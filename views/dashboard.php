@@ -14,7 +14,7 @@ include("../config.php");
 ?>
 
 <main class="dashboard-layout">
-    <h2>Dashboard - MyCashFlow</h2>
+    <h2>HOME - MyCashFlow</h2>
     <p>Bem-vindo, <?php echo $_SESSION['usuario_email']; ?>!</p>
 
     <div class="cards-container">

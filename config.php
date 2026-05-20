@@ -2,7 +2,7 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "financas"; // nome do banco que você já criou
+$db   = "financas"; 
 
 $conn = new mysqli($host, $user, $pass, $db);
 

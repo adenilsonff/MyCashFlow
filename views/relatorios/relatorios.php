@@ -1,9 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+include __DIR__ . '/../../config.php'; // sobe 2 níveis até a raiz
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    header("Location: ../../login.php"); // também sobe 2 níveis
     exit;
 }
 ?>
@@ -13,11 +13,12 @@ if (!isset($_SESSION['usuario_id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Relatórios</title>
-    <link rel="stylesheet" href="../assets/css/style-relatorios.css?v=1">
+    <!-- CSS relativo à pasta atual -->
+    <link rel="stylesheet" href="/MyCashFlow/assets/css/style-relatorios.css?v=1">
 </head>
 <body>
-    <?php include("../includes/header.php"); ?>
-    <?php include("../includes/menu.php"); ?>
+    <?php include("../../includes/header.php"); ?>
+    <?php include("../../includes/menu.php"); ?>
 
     <main class="relatorios-layout">
         <div class="relatorios-container" style="margin-top:30px;">
@@ -67,6 +68,6 @@ if (!isset($_SESSION['usuario_id'])) {
         </div>
     </main>
 
-    <?php include("../includes/footer.php"); ?>
+    <?php include("../../includes/footer.php"); ?>
 </body>
 </html>
