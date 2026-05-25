@@ -7,229 +7,221 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-$sql = "SELECT 
-            ticker,
-            SUM(quantidade) AS quantidade_total,
-            SUM(quantidade * valor_unitario) AS total_investido,
-            MAX(valor_mercado) AS valor_mercado_atual,
-            (MAX(valor_mercado) * SUM(quantidade)) - SUM(quantidade * valor_unitario) AS resultado
-        FROM acoes_nacionais
-        GROUP BY ticker
-        HAVING quantidade_total > 0";
-$result = $conn->query($sql);
+// --- FILTROS ---
+$where = [];
+if (!empty($_GET['data_inicio'])) {
+    $where[] = "data >= '" . $conn->real_escape_string($_GET['data_inicio']) . "'";
+}
+if (!empty($_GET['data_fim'])) {
+    $where[] = "data <= '" . $conn->real_escape_string($_GET['data_fim']) . "'";
+}
+if (!empty($_GET['ano'])) {
+    $where[] = "YEAR(data) = " . intval($_GET['ano']);
+}
+if (!empty($_GET['mes'])) {
+    $where[] = "MONTH(data) = " . intval($_GET['mes']);
+}
+if (!empty($_GET['ticker'])) {
+    $where[] = "ticker = '" . $conn->real_escape_string($_GET['ticker']) . "'";
+}
+$whereSql = $where ? "WHERE " . implode(" AND ", $where) : "";
 
-$dados_acoes = [];
-$total_investido = 0;
-$total_resultado = 0;
+// --- LISTA DE TICKERS ---
+$sqlTickers = "SELECT DISTINCT ticker FROM acoes_nacionais ORDER BY ticker ASC";
+$resTickers = $conn->query($sqlTickers);
 
-while($row = $result->fetch_assoc()) {
-    $dados_acoes[] = [
+// --- RESUMO ---
+$sqlResumo = "SELECT 
+                ticker,
+                SUM(quantidade) AS qtd_total,
+                SUM(quantidade * valor_unitario) AS investido,
+                MAX(valor_mercado) AS mercado_atual,
+                (MAX(valor_mercado) * SUM(quantidade)) - SUM(quantidade * valor_unitario) AS resultado
+              FROM acoes_nacionais
+              $whereSql
+              GROUP BY ticker
+              HAVING qtd_total > 0";
+$resResumo = $conn->query($sqlResumo);
+
+$dados = [];
+$totalInvestido = 0;
+$totalResultado = 0;
+
+while($row = $resResumo->fetch_assoc()) {
+    $dados[] = [
         'ticker' => $row['ticker'],
-        'investido' => $row['total_investido'],
-        'mercado' => $row['valor_mercado_atual'] * $row['quantidade_total'],
+        'investido' => $row['investido'],
+        'mercado' => $row['mercado_atual'] * $row['qtd_total'],
         'resultado' => $row['resultado']
     ];
-    $total_investido += $row['total_investido'];
-    $total_resultado += $row['resultado'];
+    $totalInvestido += $row['investido'];
+    $totalResultado += $row['resultado'];
 }
-$json_acoes = json_encode($dados_acoes);
+$jsonDados = json_encode($dados);
+
+// --- DETALHES ---
+$sqlDetalhes = "SELECT ticker, data, quantidade, valor_unitario, valor_mercado
+                FROM acoes_nacionais
+                $whereSql
+                ORDER BY data ASC";
+$resDetalhes = $conn->query($sqlDetalhes);
+
+$relatorio = [
+    'titulo' => 'Relatório de Ações Nacionais',
+    'total_investido' => $totalInvestido,
+    'total_resultado' => $totalResultado,
+    'dados' => $dados,
+    'detalhes' => $resDetalhes
+];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Relatório de Ações Nacionais</title>
-    <link rel="stylesheet" href="/MyCashFlow/assets/css/style-relatorios.css?v=1">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .dashboard {
-            display: flex;
-            gap: 30px;
-            margin-top: 20px;
-            align-items: flex-start;
-        }
-        .grafico-container {
-            flex: 1;
-            max-width: 500px;
-            height: 300px;
-            margin: 0 auto;
-        }
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-        .cards-container {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(220px, 1fr)); /* 3 colunas fixas */
-            gap: 20px;
-        }
-        .card-acao {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .card-acao:hover {
-            transform: translateY(-5px);
-        }
-        .card-acao h3 {
-            margin: 0;
-            font-size: 18px;
-            color: #333;
-        }
-        .valor {
-            font-size: 14px;
-            margin: 5px 0;
-        }
-        .positivo {
-            color: green;
-            font-weight: bold;
-        }
-        .negativo {
-            color: red;
-            font-weight: bold;
-        }
-
-    </style>
-
-
+    <title><?= $relatorio['titulo'] ?></title>
+    <link rel="stylesheet" href="/MyCashFlow/assets/css/relatorios/style-rel-acoes.css">
 </head>
 <body>
     <?php include("../../includes/header.php"); ?>
     <?php include("../../includes/menu.php"); ?>
 
     <main class="acoes-layout">
-        <h1>Relatório de Ações Nacionais</h1>
+        <h1><?= $relatorio['titulo'] ?></h1>
+        <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir</button>
+
+        <!-- FILTROS -->
+        <form method="GET" class="filtros">
+            <label>Data inicial: <input type="date" name="data_inicio" value="<?= $_GET['data_inicio'] ?? '' ?>"></label>
+            <label>Data final: <input type="date" name="data_fim" value="<?= $_GET['data_fim'] ?? '' ?>"></label>
+            <label>Ano:
+                <select name="ano">
+                    <option value="">Todos</option>
+                    <?php 
+                    $anos = $conn->query("SELECT DISTINCT YEAR(data) AS ano FROM acoes_nacionais ORDER BY ano DESC");
+                    while($a = $anos->fetch_assoc()) { ?>
+                        <option value="<?= $a['ano'] ?>" <?= (($_GET['ano'] ?? '')==$a['ano'])?'selected':'' ?>><?= $a['ano'] ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+            <label>Mês:
+                <select name="mes">
+                    <option value="">Todos</option>
+                    <?php 
+                    $meses = ['01'=>'Janeiro','02'=>'Fevereiro','03'=>'Março','04'=>'Abril','05'=>'Maio','06'=>'Junho','07'=>'Julho','08'=>'Agosto','09'=>'Setembro','10'=>'Outubro','11'=>'Novembro','12'=>'Dezembro'];
+                    foreach($meses as $num=>$nome) { ?>
+                        <option value="<?= $num ?>" <?= (($_GET['mes'] ?? '')==$num)?'selected':'' ?>><?= $nome ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+            <label>Ação:
+                <select name="ticker">
+                    <option value="">Todas</option>
+                    <?php while($t = $resTickers->fetch_assoc()) { ?>
+                        <option value="<?= $t['ticker'] ?>" <?= (($_GET['ticker'] ?? '')==$t['ticker'])?'selected':'' ?>><?= $t['ticker'] ?></option>
+                    <?php } ?>
+                </select>
+            </label>
+            <button type="submit">Filtrar</button>
+        </form>
 
         <!-- KPIs -->
         <section class="kpis">
             <div class="kpi-card">
                 <h3>Total Investido</h3>
-                <p>R$ <?= number_format($total_investido, 2, ',', '.') ?></p>
+                <p>R$ <?= number_format($relatorio['total_investido'], 2, ',', '.') ?></p>
             </div>
             <div class="kpi-card">
                 <h3>Resultado Consolidado</h3>
                 <p>
-                    <?php if ($total_resultado >= 0) { ?>
-                        <span class="positivo">+ R$ <?= number_format($total_resultado, 2, ',', '.') ?></span>
+                    <?php if ($relatorio['total_resultado'] >= 0) { ?>
+                        <span class="positivo">+ R$ <?= number_format($relatorio['total_resultado'], 2, ',', '.') ?></span>
                     <?php } else { ?>
-                        <span class="negativo">- R$ <?= number_format(abs($total_resultado), 2, ',', '.') ?></span>
+                        <span class="negativo">- R$ <?= number_format(abs($relatorio['total_resultado']), 2, ',', '.') ?></span>
                     <?php } ?>
                 </p>
             </div>
         </section>
 
-        <!-- Gráfico e cards lado a lado -->
-        <div class="dashboard">
-            <div class="grafico-container">
-                <h2>Visualização das Ações</h2>
+        <!-- Layout duas colunas -->
+        <div class="layout-duas-colunas">
+            <!-- Coluna esquerda: gráfico -->
+            <div class="col-esquerda">
                 <label for="tipoGrafico">Tipo de gráfico:</label>
                 <select id="tipoGrafico">
-                    <option value="bar" selected>Barras</option>
-                    <option value="pie">Pizza</option>
+                    <option value="bar">Barra</option>
                     <option value="line">Linha</option>
+                    <option value="pie">Pizza</option>
+                    <option value="doughnut">Rosquinha</option>
                 </select>
                 <canvas id="graficoAcoes"></canvas>
             </div>
 
-            <div class="cards-container">
-                <?php foreach($dados_acoes as $acao) { ?>
-                    <div class="card-acao">
-                        <h3><?= $acao['ticker'] ?></h3>
-                        <p class="valor">Investido: R$ <?= number_format($acao['investido'], 2, ',', '.') ?></p>
-                        <p class="valor">Mercado: R$ <?= number_format($acao['mercado'], 2, ',', '.') ?></p>
-                        <p class="valor">
-                            <?php if ($acao['resultado'] >= 0) { ?>
-                                <span class="positivo">+ R$ <?= number_format($acao['resultado'], 2, ',', '.') ?></span>
-                            <?php } else { ?>
-                                <span class="negativo">- R$ <?= number_format(abs($acao['resultado']), 2, ',', '.') ?></span>
-                            <?php } ?>
-                        </p>
-                    </div>
-                <?php } ?>
+            <!-- Coluna direita: cards -->
+            <div class="col-direita">
+                <div class="cards-container">
+                    <?php foreach($relatorio['dados'] as $acao) { ?>
+                        <div class="card-acao">
+                            <h3><?= $acao['ticker'] ?></h3>
+                            <p>Investido: R$ <?= number_format($acao['investido'], 2, ',', '.') ?></p>
+                            <p>Mercado: R$ <?= number_format($acao['mercado'], 2, ',', '.') ?></p>
+                            <p>
+                                <?php if ($acao['resultado'] >= 0) { ?>
+                                    <span class="positivo">+ R$ <?= number_format($acao['resultado'], 2, ',', '.') ?></span>
+                                <?php } else { ?>
+                                    <span class="negativo">- R$ <?= number_format(abs($acao['resultado']), 2, ',', '.') ?></span>
+                                <?php } ?>
+                            </p>
+                        </div>
+                    <?php } ?>
+                </div>
             </div>
         </div>
+
+        <!-- Tabela detalhada -->
+        <section class="tabela-detalhes">
+            <h2>Histórico de Operações</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Data</th>
+                        <th>Quantidade</th>
+                        <th>Valor Unitário</th>
+                        <th>Valor Mercado</th>
+                        <th>Resultado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while($row = $relatorio['detalhes']->fetch_assoc()) {
+                        $investido = $row['quantidade'] * $row['valor_unitario'];
+                        $mercado   = $row['quantidade'] * $row['valor_mercado'];
+                        $resultado = $mercado - $investido;
+                    ?>
+                        <tr>
+                            <td><?= $row['ticker'] ?></td>
+                            <td><?= date('d/m/Y', strtotime($row['data'])) ?></td>
+                            <td><?= $row['quantidade'] ?></td>
+                            <td>R$ <?= number_format($row['valor_unitario'], 2, ',', '.') ?></td>
+                            <td>R$ <?= number_format($row['valor_mercado'], 2, ',', '.') ?></td>
+                            <td><?= number_format($resultado, 2, ',', '.') ?></td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </section>
     </main>
 
     <footer>
         <p>MyCashFlow © 2026 - Sistema de Finanças Pessoais</p>
     </footer>
 
-    <!-- Script do gráfico -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Passando dados para JS externo -->
     <script>
-        const dadosAcoes = <?= $json_acoes ?>;
-        const ctx = document.getElementById('graficoAcoes').getContext('2d');
-
-        const tickers = dadosAcoes.map(item => item.ticker);
-        const investido = dadosAcoes.map(item => item.investido);
-        const mercado = dadosAcoes.map(item => item.mercado);
-
-        let chartConfig = {
-            type: 'bar',
-            data: {
-                labels: tickers,
-                datasets: [
-                    {
-                        label: 'Total Investido',
-                        data: investido,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
-                    },
-                    {
-                        label: 'Valor de Mercado',
-                        data: mercado,
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Comparativo Investido vs Mercado'
-                    }
-                }
-            }
-        };
-
-        let grafico = new Chart(ctx, chartConfig);
-
-        document.getElementById('tipoGrafico').addEventListener('change', function() {
-            grafico.destroy();
-            chartConfig.type = this.value;
-
-            if (this.value === 'pie') {
-                chartConfig.data = {
-                    labels: tickers,
-                    datasets: [{
-                        data: mercado,
-                        backgroundColor: ['#36A2EB','#FF6384','#FFCE56','#4BC0C0','#9966FF']
-                    }]
-                };
-            } else {
-                chartConfig.data = {
-                    labels: tickers,
-                    datasets: [
-                        {
-                            label: 'Total Investido',
-                            data: investido,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)'
-                        },
-                        {
-                            label: 'Valor de Mercado',
-                            data: mercado,
-                            backgroundColor: 'rgba(75, 192, 192, 0.6)'
-                        }
-                    ]
-                };
-            }
-
-            grafico = new Chart(ctx, chartConfig);
-        });
+        window.relatorioDados = <?= $jsonDados ?>;
     </script>
+    <!-- Arquivo JS separado -->
+    <script src="/MyCashFlow/assets/js/relatorios/rel-acoes.js"></script>
 </body>
 </html>
