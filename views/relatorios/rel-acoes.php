@@ -74,6 +74,7 @@ $relatorio = [
     'detalhes' => $resDetalhes
 ];
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -87,6 +88,12 @@ $relatorio = [
 
     <main class="acoes-layout">
         <h1><?= $relatorio['titulo'] ?></h1>
+        <div class="filtro-acoes">
+            <button class="btn-filtro" onclick="mostrarRelatorio('consolidado')">Consolidado</button>
+            <button class="btn-filtro" onclick="mostrarRelatorio('nacional')">Nacional</button>
+            <button class="btn-filtro" onclick="mostrarRelatorio('internacional')">Internacional</button>
+        </div>
+
         <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir</button>
 
         <!-- FILTROS -->

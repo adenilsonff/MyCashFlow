@@ -327,3 +327,27 @@ h1 {
 .tabela-detalhes tr:hover {
     background: #f1f1f1;
 }
+
+.filtro-acoes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-filtro {
+    background: #0078d7;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.btn-filtro:hover {
+    background: #005fa3;
+    transform: scale(1.05);
+}

@@ -47,3 +47,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+function mostrarRelatorio(tipo) {
+    if (tipo === 'consolidado') {
+        // carrega dados nacionais + internacionais
+        carregarRelatorio(window.relatorioNacional.concat(window.relatorioInternacional));
+    } else if (tipo === 'nacional') {
+        carregarRelatorio(window.relatorioNacional);
+    } else if (tipo === 'internacional') {
+        carregarRelatorio(window.relatorioInternacional);
+    }
+}
+
+// função que recria o gráfico e os cards
+function carregarRelatorio(dados) {
+    // aqui você reaproveita a lógica que já tem para montar gráfico e cards
+    // exemplo:
+    atualizarGrafico(dados);
+    atualizarCards(dados);
+}
