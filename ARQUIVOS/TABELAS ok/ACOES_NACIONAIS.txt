@@ -1,0 +1,14 @@
+CREATE TABLE acoes_nacionais (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    ticker VARCHAR(20) NOT NULL,
+    quantidade INT NOT NULL,
+    valor_unitario DECIMAL(15,2) NOT NULL,
+    data DATE NOT NULL,
+    valor_mercado DECIMAL(15,2) DEFAULT NULL,
+    logo VARCHAR(500) DEFAULT NULL,
+    tipo ENUM('compra', 'venda') NOT NULL,
+
+    PRIMARY KEY (id),
+    INDEX idx_acoes_nacionais_ticker (ticker),
+    INDEX idx_acoes_nacionais_data (data)
+);

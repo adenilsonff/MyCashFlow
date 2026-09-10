@@ -43,24 +43,30 @@ form label {
     font-weight: bold;
 }
 
-form input {
-    width: 100%;
+/* Inputs e botão com mesmo tamanho */
+form input,
+form button {
+    width: 100%; /* ou 80% se quiser menor */
     padding: 12px;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
     border-radius: 5px;
+    box-sizing: border-box; /* garante que padding não aumente a largura */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+form input {
+    border: 1px solid #ccc;
 }
 
 form button {
-    width: 80%;
-    padding: 14px;
-    margin-top: 10px;
     background: #2C3E50;
     color: white;
     border: none;
-    border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    margin-top: 10px;
 }
 
 form button:hover {

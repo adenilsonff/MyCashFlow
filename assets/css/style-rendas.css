@@ -1,130 +1,359 @@
-/* Layout da página de Rendas */
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #ECF0F1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+margin: 0;
+font-family: Arial, sans-serif;
+background-color: #ECF0F1;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
 }
 
-/* Container principal */
 .rendas-layout {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 1400px;
-    margin: auto;
+flex: 1;
+width: 100%;
+max-width: 1400px;
+margin: 0 auto;
+padding: 20px;
+box-sizing: border-box;
 }
 
-.rendas-layout h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #2C3E50;
+.cabecalho-rendas {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 15px;
+margin-bottom: 15px;
 }
 
-/* Grid principal: 3 colunas */
-.rendas-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 2fr; /* esquerda, meio, direita */
-    gap: 20px;
-    width: 100%;
+.cabecalho-rendas h1 {
+margin: 0;
+color: #2C3E50;
+font-size: 26px;
 }
 
-/* Cada coluna */
-.col-esquerda, .col-meio, .col-direita {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.cabecalho-rendas p {
+margin: 5px 0 0;
+color: #6C757D;
+font-size: 14px;
 }
 
-/* Cards */
-.card-cadastro-renda, .card-lista-renda {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+.acoes-rendas {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
 }
 
-/* Formulários */
-.form-rendas {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.btn-padrao,
+.btn-acao {
+border: none;
+border-radius: 6px;
+cursor: pointer;
+font-weight: bold;
+font-size: 14px;
+transition: 0.2s ease;
 }
 
-.form-rendas input,
-.form-rendas select,
-.form-rendas button {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+.btn-padrao {
+padding: 10px 16px;
+background: #2C3E50;
+color: white;
 }
 
-/* Botões */
-.form-rendas button {
-    background: #2C3E50;
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
+.btn-padrao:hover {
+background: #1A252F;
 }
 
-.form-rendas button:hover {
-    background: #1A252F;
+.resumo-rendas {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 15px;
+margin-bottom: 15px;
 }
 
-/* Tabela */
+.card-resumo {
+background: white;
+padding: 16px;
+border-radius: 10px;
+box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.card-resumo span {
+font-size: 13px;
+color: #6C757D;
+}
+
+.card-resumo strong {
+font-size: 21px;
+color: #2C3E50;
+}
+
+.card-lista-renda {
+background: white;
+border-radius: 10px;
+box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+overflow: hidden;
+}
+
+.titulo-tabela {
+padding: 15px 18px;
+border-bottom: 1px solid #E5E7EB;
+}
+
+.titulo-tabela h2 {
+margin: 0;
+font-size: 18px;
+color: #2C3E50;
+}
+
+.tabela-wrapper {
+width: 100%;
+overflow-x: auto;
+}
+
 .tabela-rendas {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+width: 100%;
+border-collapse: collapse;
+min-width: 900px;
 }
 
-.tabela-rendas th, .tabela-rendas td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #ddd;
+.tabela-rendas th,
+.tabela-rendas td {
+padding: 11px 10px;
+text-align: center;
+border-bottom: 1px solid #E5E7EB;
+font-size: 14px;
+vertical-align: middle;
 }
 
 .tabela-rendas th {
-    background: #2C3E50;
-    color: white;
+background: #2C3E50;
+color: white;
+font-weight: bold;
+white-space: nowrap;
 }
 
-.tabela-rendas tr:nth-child(even) {
-    background: #f9f9f9;
+.tabela-rendas tbody tr:hover {
+background: #F5F7F8;
 }
 
-.tabela-rendas tr:hover {
-    background: #f1f1f1;
-}
-
-/* Renda recebida */
 .tabela-rendas tr.linha-recebida {
-    background-color: #e0f7fa; /* azul claro */
-    color: #0277bd;            /* azul escuro */
-    opacity: 0.6;
+background: #EAF7F8;
+color: #0277BD;
 }
 
 .tabela-rendas tr.linha-recebida td:first-child {
-    text-decoration: line-through;
+text-decoration: line-through;
 }
 
-/* Renda não recebida */
 .tabela-rendas tr.linha-nao-recebida {
-    background-color: #fff;
-    color: #000;
-    opacity: 1;
+background: white;
+color: #2C3E50;
 }
 
-/* Responsividade */
-@media (max-width: 992px) {
-    .rendas-grid {
-        grid-template-columns: 1fr; /* uma coluna só */
-    }
+.tabela-rendas tfoot td {
+font-weight: bold;
+background: #F4F4F4;
+}
+
+.form-status {
+display: inline-block;
+margin: 0;
+}
+
+.form-status select {
+padding: 6px 8px;
+border: 1px solid #CDD3D8;
+border-radius: 5px;
+background: white;
+font-size: 13px;
+}
+
+.acoes-linha {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
+}
+
+.form-excluir {
+margin: 0;
+}
+
+.btn-acao {
+padding: 7px 10px;
+}
+
+.btn-ajustar {
+background: #2C3E50;
+color: white;
+}
+
+.btn-ajustar:hover {
+background: #1A252F;
+}
+
+.btn-excluir {
+background: #C0392B;
+color: white;
+}
+
+.btn-excluir:hover {
+background: #922B21;
+}
+
+.sem-registros {
+padding: 30px !important;
+color: #6C757D;
+}
+
+.modal-rendas {
+display: none;
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.45);
+z-index: 1000;
+align-items: center;
+justify-content: center;
+padding: 20px;
+box-sizing: border-box;
+}
+
+.modal-rendas.ativo {
+display: flex;
+}
+
+.modal-conteudo {
+position: relative;
+width: 100%;
+max-width: 430px;
+background: white;
+border-radius: 12px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+padding: 22px;
+box-sizing: border-box;
+}
+
+.modal-conteudo h2 {
+margin: 0 0 18px;
+color: #2C3E50;
+text-align: center;
+font-size: 20px;
+}
+
+.modal-fechar {
+position: absolute;
+top: 8px;
+right: 10px;
+width: 32px;
+height: 32px;
+border: none;
+background: transparent;
+font-size: 24px;
+line-height: 1;
+cursor: pointer;
+color: #6C757D;
+}
+
+.modal-fechar:hover {
+color: #2C3E50;
+}
+
+.form-rendas {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+.form-rendas input,
+.form-rendas select {
+width: 100%;
+padding: 10px;
+border: 1px solid #CDD3D8;
+border-radius: 6px;
+font-size: 14px;
+box-sizing: border-box;
+background: white;
+}
+
+.form-rendas input:focus,
+.form-rendas select:focus {
+outline: none;
+border-color: #2C3E50;
+}
+
+.form-rendas .btn-padrao {
+width: 100%;
+margin-top: 2px;
+}
+
+.nome-renda-ajuste {
+padding: 10px;
+background: #F4F6F7;
+border-radius: 6px;
+font-size: 14px;
+font-weight: bold;
+color: #2C3E50;
+text-align: center;
+}
+
+@media (max-width: 900px) {
+.rendas-layout {
+padding: 15px;
+}
+
+.cabecalho-rendas {
+align-items: flex-start;
+flex-direction: column;
+}
+
+.acoes-rendas {
+width: 100%;
+}
+
+.acoes-rendas .btn-padrao {
+flex: 1;
+}
+
+.resumo-rendas {
+grid-template-columns: 1fr;
+}
+
+.card-resumo {
+padding: 14px;
+}
+}
+
+@media (max-width: 600px) {
+.rendas-layout {
+padding: 10px;
+}
+
+.cabecalho-rendas h1 {
+font-size: 22px;
+}
+
+.acoes-rendas {
+flex-direction: column;
+}
+
+.acoes-rendas .btn-padrao {
+width: 100%;
+}
+
+.modal-rendas {
+padding: 10px;
+}
+
+.modal-conteudo {
+padding: 20px 16px;
+}
+
+.tabela-rendas th,
+.tabela-rendas td {
+padding: 9px 8px;
+font-size: 13px;
+}
 }

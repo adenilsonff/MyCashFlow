@@ -33,6 +33,12 @@ body {
     width: 100%;
 }
 
+/* 🔹 Ajuste para internacionais: empilhar cards */
+.acoes-container.internacionais {
+    flex-direction: column;   /* força coluna */
+    align-items: stretch;     /* ocupa toda a largura */
+}
+
 /* Card de cadastro */
 .card-cadastro {
     width: 320px;
@@ -71,6 +77,33 @@ body {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Card de cotação */
+.card-cotacao {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card-cotacao h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #2C3E50;
+}
+
+.card-cotacao p {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+.card-cotacao p:first-child {
+    color: #007bff; /* azul para dólar */
+}
+
+.card-cotacao p:last-child {
+    color: #28a745; /* verde para euro */
 }
 
 /* Formulário */
@@ -147,4 +180,36 @@ body {
     .card-cadastro {
         width: 100%;
     }
+}
+
+/* Botões de Compra/Venda */
+.acao-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-acao {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-acao.compra {
+    background-color: #e0f7e9;
+    color: #2e7d32;
+}
+
+.btn-acao.venda {
+    background-color: #fde0e0;
+    color: #c62828;
+}
+
+.btn-acao.active {
+    border: 2px solid #2C3E50;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
 }

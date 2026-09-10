@@ -1,0 +1,40 @@
+CREATE TABLE compras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    nome_original VARCHAR(255) NULL,
+    categoria VARCHAR(20) NOT NULL DEFAULT 'pessoal',
+    valor_total DECIMAL(10,2) NOT NULL,
+    total_parcelas INT NOT NULL DEFAULT 1,
+    data_compra DATE NOT NULL,
+    origem VARCHAR(20) NOT NULL,
+    identificador_ofx VARCHAR(64) NULL
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE cartoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    compra_id INT NOT NULL,
+    data DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    parcela INT NOT NULL,
+    paga TINYINT(1) NOT NULL DEFAULT 0,
+    fitid VARCHAR(255) NULL,
+
+    FOREIGN KEY (compra_id)
+        REFERENCES compras(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE ofx_importacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_arquivo VARCHAR(255) NOT NULL,
+    hash_arquivo VARCHAR(64) NOT NULL,
+    periodo_inicio DATE NULL,
+    periodo_fim DATE NULL,
+    quantidade_transacoes INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,12 @@
+CREATE TABLE rendas (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    descricao VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    data DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    tipo ENUM('unica','mensal') NOT NULL DEFAULT 'unica',
+    grupo_recorrencia VARCHAR(50) NULL DEFAULT NULL,
+    recebido TINYINT(1) NULL DEFAULT 0,
+    porcentagem DECIMAL(5,2) NULL DEFAULT 0.00,
+    PRIMARY KEY (id)
+);

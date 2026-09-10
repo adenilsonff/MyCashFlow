@@ -1,0 +1,206 @@
+/* Layout da página de Ações Internacionais */
+.acoes-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 1400px;
+    margin: auto;
+}
+
+/* Grid principal: 3 colunas */
+.acoes-container.internacionais {
+    display: grid;
+    grid-template-columns: 320px 1fr 1fr; /* esquerda, meio, direita */
+    gap: 20px;
+    width: 100%;
+}
+
+/* Cada coluna empilha seus cards */
+.col-esquerda, .col-meio, .col-direita {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Aparência geral dos cards */
+.card-cadastro, .card-lista {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efeito hover nos cards */
+.card-cadastro:hover, .card-lista:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 14px rgba(0,0,0,0.25);
+}
+
+/* Títulos */
+.card-cadastro h2,
+.card-cotacao h2,
+.card-lista h2 {
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    color: #2C3E50;
+    font-weight: bold;
+}
+
+/* Formulário */
+.form-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-acoes input,
+.form-acoes button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* Botão principal */
+.form-acoes button {
+    background: #2C3E50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.form-acoes button:hover {
+    background: #1A252F;
+}
+
+/* Botões de Compra/Venda */
+.acao-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-acao {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-acao.compra {
+    background-color: #e0f7e9;
+    color: #2e7d32;
+}
+
+.btn-acao.venda {
+    background-color: #fde0e0;
+    color: #c62828;
+}
+
+.btn-acao.active {
+    border: 2px solid #2C3E50;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+/* Tabela */
+.tabela-acoes {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.tabela-acoes th, .tabela-acoes td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabela-acoes th {
+    background: #2C3E50;
+    color: white;
+}
+
+.tabela-acoes tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.tabela-acoes tr:hover {
+    background: #f1f1f1;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .acoes-container.internacionais {
+        grid-template-columns: 1fr; /* uma coluna só */
+    }
+}
+
+/* Card de Cotação do Dia */
+.card-cotacao {
+    background: linear-gradient(135deg, #f0f9ff, #e0f7fa);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efeito hover */
+.card-cotacao:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 16px rgba(0,0,0,0.25);
+}
+
+/* Título */
+.card-cotacao h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #004d61;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* Container para valores lado a lado */
+.card-cotacao .cotacoes {
+    display: flex;
+    justify-content: space-around;
+    gap: 30px;
+    margin-top: 10px;
+}
+
+/* Valores */
+.card-cotacao p {
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+/* Ícones de moeda */
+.card-cotacao p.usd::before {
+    content: "💵";
+    font-size: 22px;
+}
+
+.card-cotacao p.eur::before {
+    content: "💶";
+    font-size: 22px;
+}
+
+/* Cores diferenciadas */
+.card-cotacao p.usd {
+    color: #007bff; /* azul para dólar */
+}
+
+.card-cotacao p.eur {
+    color: #28a745; /* verde para euro */
+}

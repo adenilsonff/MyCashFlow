@@ -1,0 +1,15 @@
+CREATE TABLE acoes_internacionais (
+    id INT NOT NULL AUTO_INCREMENT,
+    ticker VARCHAR(20) NOT NULL,
+    quantidade DECIMAL(22,8) NOT NULL,
+    valor_unitario DECIMAL(18,4) NOT NULL,
+    valor_investido DECIMAL(24,8) NOT NULL,
+    data DATE NOT NULL,
+    valor_mercado DECIMAL(18,4) DEFAULT NULL,
+    logo VARCHAR(500) DEFAULT NULL,
+    tipo VARCHAR(10) NOT NULL,
+
+    PRIMARY KEY (id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci;
