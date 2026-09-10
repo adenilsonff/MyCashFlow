@@ -1,11 +1,13 @@
+DROP TABLE IF EXISTS acoes_internacionais;
+
 CREATE TABLE acoes_internacionais (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     ticker VARCHAR(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    quantidade INT(11) NOT NULL,
-    valor_unitario DECIMAL(12,2) NOT NULL,
-    data DATE NOT NULL,
-    valor_mercado DECIMAL(15,2) NOT NULL,
-    logo VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
-    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    valor_investido DECIMAL(15,2) NOT NULL DEFAULT 0.00
+    quantidade DECIMAL(15,4) NOT NULL,              -- aceita frações de ações
+    valor_unitario DECIMAL(12,2) NOT NULL,          -- preço unitário em USD
+    valor_investido DECIMAL(15,2) NOT NULL DEFAULT 0.00, -- total investido em USD
+    data DATE NOT NULL,                             -- data da operação
+    valor_mercado DECIMAL(15,2) NULL,               -- preço atual de mercado
+    logo VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL, -- URL do logo
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP -- registro automático
 );

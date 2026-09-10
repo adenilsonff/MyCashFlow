@@ -1,0 +1,89 @@
+CREATE TABLE operacoes (
+id INT AUTO_INCREMENT PRIMARY KEY,
+corretora_id INT NOT NULL,
+data DATE NOT NULL,
+acao VARCHAR(20) NOT NULL,
+quantidade INT NOT NULL,
+
+valor_compra DECIMAL(15,2) NULL,
+valor_venda DECIMAL(15,2) NULL,
+
+total_compra DECIMAL(15,2) NOT NULL DEFAULT 0,
+total_venda DECIMAL(15,2) NOT NULL DEFAULT 0,
+valor_operacao DECIMAL(15,2) NOT NULL DEFAULT 0,
+lucro_bruto DECIMAL(15,2) NOT NULL DEFAULT 0,
+
+taxas DECIMAL(15,2) NOT NULL DEFAULT 0,
+
+deducao_1 DECIMAL(15,2) NOT NULL DEFAULT 0,
+imposto_20 DECIMAL(15,2) NOT NULL DEFAULT 0,
+lucro_desc DECIMAL(15,2) NOT NULL DEFAULT 0,
+darf DECIMAL(15,2) NOT NULL DEFAULT 0,
+lucro_final DECIMAL(15,2) NOT NULL DEFAULT 0,
+
+criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
+ON DELETE CASCADE
+);
+
+
+--------------------------------------------------------
+CREATE TABLE operacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    corretora_id INT NOT NULL,
+    data DATE NOT NULL,
+    acao VARCHAR(20) NOT NULL,
+    quantidade INT NOT NULL,
+    valor_compra DECIMAL(15,2) NOT NULL,
+    valor_venda DECIMAL(15,2) NOT NULL,
+
+    -- campos calculados
+    total_compra DECIMAL(15,2) NOT NULL,
+    total_venda DECIMAL(15,2) NOT NULL,
+    valor_operacao DECIMAL(15,2) NOT NULL,
+    lucro_bruto DECIMAL(15,2) NOT NULL,
+
+    taxa_liquidacao DECIMAL(15,2) NOT NULL,
+    taxa_emolumentos DECIMAL(15,2) NOT NULL,
+    taxas DECIMAL(15,2) NOT NULL,
+
+    deducao_1 DECIMAL(15,2) NOT NULL,
+    lucro_desc DECIMAL(15,2) NOT NULL,
+    darf DECIMAL(15,2) NOT NULL,
+    lucro_final DECIMAL(15,2) NOT NULL,
+
+    -- controle
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+----------------------------------------
+
+CREATE TABLE operacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    corretora_id INT NOT NULL,
+    data DATE NOT NULL,
+    acao VARCHAR(20) NOT NULL,
+    quantidade INT NOT NULL,
+    valor_compra DECIMAL(10,2) NOT NULL,
+    valor_venda DECIMAL(10,2) NOT NULL,
+    media DECIMAL(10,2),          -- preço médio
+    meta DECIMAL(10,2),           -- meta de preço
+    percentual DECIMAL(10,2),     -- % de variação
+    taxas DECIMAL(10,2),          -- soma das taxas aplicadas
+    deducao_1 DECIMAL(10,2),      -- dedução 1% (se aplicável)
+    total_compra DECIMAL(10,2),   -- total da compra
+    total_venda DECIMAL(10,2),    -- total da venda
+    valor_operacao DECIMAL(10,2), -- valor da operação
+    lucro_bruto DECIMAL(10,2),    -- lucro antes das taxas
+    lucro_desc DECIMAL(10,2),     -- lucro após descontos
+    total DECIMAL(10,2),          -- total final
+    darf DECIMAL(10,2),           -- imposto DARF
+    lucro DECIMAL(10,2),          -- lucro líquido
+    FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
+);
+
+
+
+

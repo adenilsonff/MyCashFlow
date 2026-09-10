@@ -1,0 +1,3 @@
+drop table operações;
+drop table corretora taxas;
+drop table corretoras;

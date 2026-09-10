@@ -1,0 +1,15 @@
+CREATE TABLE acoes_nacionais (
+    id INT NOT NULL AUTO_INCREMENT,
+    ticker VARCHAR(10) NOT NULL,
+    quantidade INT NOT NULL,
+    valor_unitario DECIMAL(10,2) NOT NULL,
+    data DATE NOT NULL,
+    valor_mercado DECIMAL(15,2) NULL DEFAULT NULL,
+    logo VARCHAR(255) DEFAULT NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    tipo ENUM('compra', 'venda') NOT NULL,
+
+    PRIMARY KEY (id)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_general_ci;
