@@ -1,3 +1,10 @@
+DROP TABLE cartoes;
+DROP TABLE compras;
+DROP TABLE ofx_importacoes;
+DROP TABLE cartao_nomes_recorrentes;
+
+---------------------------------------------------
+
 CREATE TABLE compras (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
