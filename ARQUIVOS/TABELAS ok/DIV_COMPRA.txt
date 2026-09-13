@@ -1,0 +1,12 @@
+CREATE TABLE div_datacom (
+    id INT NOT NULL AUTO_INCREMENT,
+    id_acao INT NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+
+    PRIMARY KEY (id),
+
+    FOREIGN KEY (id_acao)
+        REFERENCES acoes_nacionais(id)
+        ON DELETE CASCADE
+);
