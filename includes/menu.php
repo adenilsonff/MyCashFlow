@@ -9,7 +9,7 @@
     <a href="/MyCashFlow/views/daytrade.php">DayTrade</a>
     <a href="/MyCashFlow/views/relatorios/relatorios.php">Relatórios</a>
     <a href="/MyCashFlow/views/configuracao.php">Configuração</a>
-    <a href="/MyCashFlow/views/logout.php">Sair</a>
+    <a href="/MyCashFlow/views/login/logout.php">Sair</a>
 </nav>
 
 

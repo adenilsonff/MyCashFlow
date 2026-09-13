@@ -128,3 +128,30 @@ body {
         grid-template-columns: 1fr; /* uma coluna só */
     }
 }
+
+/* Ajuste específico para o card de filtro */
+.card-cadastro.filtro-mes {
+    max-width: 350px;        /* mesma largura do card de importação */
+    padding: 15px;
+}
+
+.filtro-form .linha-filtro {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filtro-form label {
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+.filtro-form select {
+    flex: 1;                 /* cada select ocupa metade da linha */
+}
+
+.filtro-form button {
+    height: 40px;            /* altura igual aos outros botões */
+    width: 100%;             /* ocupa toda a largura */
+    margin-top: 10px;
+}

@@ -1,0 +1,17 @@
+CREATE 
+TABLE corretora_taxas (
+id INT AUTO_INCREMENT PRIMARY KEY,
+corretora_id INT NOT NULL,
+nome_taxa VARCHAR(100) NOT NULL,
+percentual DECIMAL(10,5) NOT NULL,
+FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
+ON DELETE CASCADE
+);
+--------------------------------------------------------------
+CREATE TABLE corretora_taxas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    corretora_id INT NOT NULL,
+    nome_taxa VARCHAR(100) NOT NULL,
+    percentual DECIMAL(5,2) NOT NULL,
+    FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
+);

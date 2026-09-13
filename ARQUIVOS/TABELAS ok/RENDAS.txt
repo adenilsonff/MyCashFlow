@@ -1,0 +1,11 @@
+CREATE TABLE rendas (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(255) NOT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    data DATE NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
+    recebido TINYINT(1) NOT NULL DEFAULT 0,
+    porcentagem DECIMAL(10,2) NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (id)
+);

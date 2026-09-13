@@ -1,0 +1,154 @@
+/* Carteiras de Ações — padrão visual do MyCashFlow. */
+body.av-body { margin:0; font-family:Arial,sans-serif; background:#ecf0f1; min-height:100vh; display:flex; flex-direction:column; }
+.av-page { box-sizing:border-box; width:100%; max-width:1700px; margin:0 auto; padding:20px; flex:1; color:#2c3e50; }
+.av-page *, .av-dialog * { box-sizing:border-box; }
+.av-back { display:inline-block; margin-bottom:14px; color:#596b77; font-size:13px; text-decoration:none; }
+.av-back:hover { text-decoration:underline; }
+.av-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:18px; }
+.av-top h1 { font-size:24px; margin:0 0 5px; }
+.av-top p { margin:0; color:#596b77; line-height:1.5; }
+.av-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.av-page button, .av-dialog button, .av-button { padding:9px 12px; border:1px solid #ccd5da; border-radius:6px; background:#fff; color:#2c3e50; cursor:pointer; font:inherit; text-decoration:none; display:inline-block; }
+.av-page button:hover, .av-dialog button:hover, .av-button:hover { background:#edf2f5; }
+.av-page .av-primary, .av-dialog .av-primary { background:#2c3e50; border-color:#2c3e50; color:white; }
+.av-primary:hover { background:#34495e!important; }
+.av-page :focus-visible, .av-dialog :focus-visible { outline:3px solid #2781b4; outline-offset:2px; }
+.av-dialog button:disabled { opacity:.5; cursor:not-allowed; }
+.av-card { background:white; border:1px solid #dde3e7; border-radius:10px; overflow:hidden; }
+.av-summary { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:16px; border-bottom:1px solid #e0e5e8; }
+.av-summary h2 { margin:0; font-size:18px; }
+.av-summary small { display:block; margin-top:5px; color:#586b75; }
+.av-summary-value { text-align:right; }
+.av-summary-value span { display:block; color:#586b75; font-size:13px; }
+.av-summary-value strong { display:block; font-size:24px; margin-top:5px; font-variant-numeric:tabular-nums; }
+.av-scroll { overflow-x:auto; }
+.av-page .tabela-acoes, .av-dialog .tabela-acoes { width:100%; border-collapse:collapse; text-align:left; }
+.tabela-acoes th, .tabela-acoes td { padding:12px; border-bottom:1px solid #e5e9ec; }
+.tabela-acoes th { background:#2c3e50; color:white; font-size:13px; }
+.tabela-acoes td { font-size:14px; font-variant-numeric:tabular-nums; }
+.av-page .tabela-acoes { min-width:790px; }
+.av-page .tabela-acoes th:nth-child(n+3), .av-page .tabela-acoes td:nth-child(n+3) { text-align:right; }
+.tabela-acoes td { white-space:nowrap; }
+.tabela-acoes tbody tr:nth-child(even) { background:#f8fafb; }
+.av-page .tabela-acoes tbody tr:last-child { background:#f4f6f7; font-weight:bold; }
+.tabela-acoes img { width:30px; height:30px; object-fit:contain; vertical-align:middle; }
+.av-logo { display:inline-flex; width:34px; height:34px; align-items:center; justify-content:center; vertical-align:middle; }
+.av-logo-fallback { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border:1px solid #d5e0e7; border-radius:7px; background:#edf2f5; color:#34495e; font-size:9px; font-weight:bold; letter-spacing:.2px; }
+.av-logo [hidden] { display:none!important; }
+.av-positive { color:#217547; }
+.av-negative { color:#a52626; }
+.av-note { font-size:13px; line-height:1.5; color:#586b75; margin:0; padding:12px 16px; }
+.av-notice { margin:0; padding:12px 16px; background:#fff8e8; color:#795812; font-size:14px; line-height:1.5; }
+.av-alert, .av-success { padding:12px 16px; border-radius:6px; font-size:14px; line-height:1.5; margin:0 0 16px; }
+.av-alert { background:#fff6f6; border:1px solid #dca9a9; color:#a52626; }
+.av-success { background:#eff8f3; border:1px solid #bddbc9; color:#217547; }
+.av-empty { text-align:center!important; padding:32px!important; white-space:normal!important; font-weight:normal; color:#596b77; }
+.av-cambio {
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px 24px;
+    width:fit-content;
+    max-width:100%;
+    padding:16px 20px;
+    margin-bottom:16px;
+    background:linear-gradient(135deg, #f0f9ff, #e0f7fa);
+    border:1px solid #c5e5eb;
+    border-radius:10px;
+    font-size:13px;
+}
+.av-cambio > strong { grid-column:1 / -1; color:#004d61; font-size:15px; }
+.av-cambio span { white-space:nowrap; color:#1267a8; }
+.av-cambio span:nth-of-type(2) { color:#217547; }
+.av-cambio b { display:block; margin:5px 0 0; font-size:20px; font-variant-numeric:tabular-nums; }
+.av-cambio small { grid-column:1 / -1; color:#586b75; }
+.av-dialog { box-sizing:border-box; padding:0; width:calc(100% - 32px); max-width:520px; max-height:calc(100dvh - 32px); border:1px solid #ccd5da; border-radius:10px; color:#2c3e50; background:white; overflow:auto; box-shadow:0 12px 40px #0003; }
+.av-dialog::backdrop { background:rgba(25,40,52,.55); }
+.av-dialog-wide { max-width:1000px; }
+.av-dialog-top { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 20px; border-bottom:1px solid #e0e5e8; }
+.av-dialog-top h2 { margin:0; font-size:20px; }
+.av-dialog-top p { margin:5px 0 0; font-size:13px; color:#596b77; }
+.av-dialog-top button { font-size:22px; padding:2px 10px; }
+.av-dialog-content { padding:20px; }
+.av-dialog .form-acoes { display:flex; flex-direction:column; gap:10px; }
+.av-dialog label { font-size:13px; font-weight:bold; }
+.av-dialog input { width:100%; min-width:0; padding:10px; border:1px solid #ccd5da; border-radius:6px; font:inherit; color:#2c3e50; background:white; }
+.av-dialog .acao-buttons { display:flex; gap:10px; margin:5px 0; }
+.av-dialog .btn-acao { flex:1; }
+.av-dialog .btn-acao.compra { background:#e0f7e9; color:#2e7d32; border-color:#b8dfc5; font-weight:bold; }
+.av-dialog .btn-acao.venda { background:#fde0e0; color:#c62828; border-color:#efbaba; font-weight:bold; }
+.av-dialog .btn-acao.compra:hover { background:#ccebd8; }
+.av-dialog .btn-acao.venda:hover { background:#f8cccc; }
+.av-dialog .btn-acao.compra.active { background:#e0f2e8; color:#217547; border-color:#217547; box-shadow:inset 0 0 0 1px #217547; }
+.av-dialog .btn-acao.venda.active { background:#fdecec; color:#a52626; border-color:#a52626; box-shadow:inset 0 0 0 1px #a52626; }
+.av-form-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:8px; padding-top:16px; border-top:1px solid #e0e5e8; }
+#previa-operacao { padding:10px 12px; margin:0; border-radius:6px; background:#edf2f5; color:#586b75; font-size:13px; line-height:1.5; }
+.av-search { margin-bottom:18px; }
+.av-search > label { display:block; margin-bottom:8px; }
+.av-search > div { display:flex; align-items:center; gap:8px; }
+.av-search input { flex:1; }
+.av-dialog-wide .tabela-acoes { min-width:680px; }
+@media(max-width:900px) {
+    .av-body > nav { box-sizing:border-box; width:100%; justify-content:flex-start; overflow-x:auto; gap:6px; }
+    .av-body > nav a { flex:0 0 auto; white-space:nowrap; }
+}
+@media(max-width:600px) {
+    .av-cambio { gap:12px 18px; padding:14px 16px; }
+    .av-cambio b { font-size:18px; }
+    .av-page { padding:16px 12px; }
+    .av-top h1 { font-size:22px; }
+    .av-actions { width:100%; }
+    .av-actions button { flex:1; }
+    .av-summary-value { text-align:left; }
+    .av-summary { align-items:flex-start; }
+    .av-dialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); }
+    .av-dialog-content { padding:16px; }
+    .av-search > div { flex-wrap:wrap; }
+    .av-search input { flex-basis:100%; }
+}
+.av-quote-info { font-size: 11px; white-space: normal; max-width: 230px; margin-top: 6px; color: #536579; } .av-quote-info summary { cursor: pointer; }
+.av-metrics { display: flex; flex-wrap: wrap; gap: 22px 32px; justify-content: flex-end; }
+.av-metrics small, .av-return-percent { display: block; font-size: 12px; margin-top: 5px; }
+@media (max-width: 760px) { .av-metrics { justify-content: flex-start; width: 100%; } .av-metrics .av-summary-value { text-align: left; } }
+
+/* Largura e margens iguais às da página Day Trade. */
+@media (max-width: 1400px) { .av-page { padding: 15px; } }
+@media (max-width: 700px) { .av-page { padding: 10px; } }
+@media (max-width: 400px) { .av-page { padding: 8px; } }
+/* Tipografia e paleta da página Day Trade. */
+.av-top { background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,.15); }
+.av-top h1, .av-summary h2 { font-size:1.2rem; color:#2c3e50; font-weight:bold; }
+.av-top p { font-size:.95rem; }
+.av-card { border:0; border-radius:12px; padding:20px; box-shadow:0 4px 8px rgba(0,0,0,.15); }
+.av-summary { padding:0 0 20px; margin-bottom:15px; }
+.av-summary-value strong { font-size:1.2rem; }
+.av-summary-value span { font-size:.85rem; }
+.av-actions button { background:#2c3e50; color:#fff; font-size:.95rem; font-weight:bold; padding:10px; }
+.av-actions button:hover { background:#1a252f; }
+.av-page .tabela-acoes th, .av-dialog .tabela-acoes th {
+    padding:8px 6px; font-size:.76rem; background:#2c3e50; color:#fff; font-weight:bold;
+}
+.av-page .tabela-acoes td, .av-dialog .tabela-acoes td {
+    padding:8px 6px; font-size:.78rem; color:#000; border-bottom:1px solid #ddd;
+}
+.av-page .tabela-acoes tbody tr:nth-child(odd),
+.av-dialog .tabela-acoes tbody tr:nth-child(odd) { background:#fff; }
+.av-page .tabela-acoes tbody tr:nth-child(even),
+.av-dialog .tabela-acoes tbody tr:nth-child(even) { background:#f0f0f0; }
+.av-page .tabela-acoes tbody tr:hover,
+.av-dialog .tabela-acoes tbody tr:hover { background:#e5e9ec; }
+.av-page .tabela-acoes tbody tr:last-child { background:#e5e9ec; font-weight:bold; }
+.av-positive, .av-summary-value strong.av-positive { color:green; font-weight:bold; }
+.av-negative, .av-summary-value strong.av-negative { color:red; font-weight:bold; }
+.av-return-percent { font-size:.75rem; }
+@media(max-width:1400px) {
+    .av-page .tabela-acoes td, .av-dialog .tabela-acoes td { font-size:.74rem; padding:7px 5px; }
+    .av-page .tabela-acoes th, .av-dialog .tabela-acoes th { font-size:.72rem; padding:7px 5px; }
+}
+@media(max-width:1100px) {
+    .av-card, .av-top { padding:15px; }
+    .av-top h1, .av-summary h2 { font-size:1.05rem; }
+}
+
+
+
+

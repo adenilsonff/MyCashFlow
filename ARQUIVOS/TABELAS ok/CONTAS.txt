@@ -1,0 +1,11 @@
+CREATE TABLE contas (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(255) NOT NULL,
+    tipo VARCHAR(20) NOT NULL,
+    categoria VARCHAR(20) NOT NULL,
+    vencimento DATE NOT NULL,
+    paga TINYINT(1) NOT NULL DEFAULT 0,
+    valor DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (id)
+);

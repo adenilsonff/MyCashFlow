@@ -1,0 +1,31 @@
+CREATE TABLE usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    status_assinatura ENUM('ativo','inativo') DEFAULT 'ativo',
+    data_expiracao DATE NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+2. Tabela cliente (dados cadastrais)
+CREATE TABLE clientes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,              -- vínculo com a tabela usuario
+    nome VARCHAR(100) NOT NULL,
+    documento VARCHAR(20),                -- CPF ou RG
+    endereco VARCHAR(200),
+    telefone VARCHAR(20),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+);
+
+
+CREATE TABLE recuperacao_senha (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    data_expiracao DATETIME NOT NULL,
+    utilizado TINYINT(1) NOT NULL DEFAULT 0,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);

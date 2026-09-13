@@ -1,3 +1,188 @@
+DROP TABLE IF EXISTS cartoes;
+DROP TABLE IF EXISTS compras;
+DROP TABLE IF EXISTS ofx_importacoes;
+
+
+CREATE TABLE compras (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    /*
+     * Nome que veio originalmente do OFX.
+     * Nunca deve ser alterado pelo usuário.
+     */
+    nome_original VARCHAR(150) NOT NULL,
+
+    /*
+     * Nome exibido no sistema.
+     * O usuário poderá alterar livremente.
+     */
+    nome VARCHAR(150) NOT NULL,
+
+    /*
+     * Categoria definida pelo usuário.
+     */
+    categoria ENUM('pessoal','conjunta','unica')
+        NOT NULL DEFAULT 'unica',
+
+    /*
+     * Valor total conhecido da compra.
+     */
+    valor_total DECIMAL(10,2) NOT NULL,
+
+    /*
+     * Quantidade total de parcelas.
+     */
+    total_parcelas INT NOT NULL DEFAULT 1,
+
+    /*
+     * Data original da compra.
+     */
+    data_compra DATE NOT NULL,
+
+    /*
+     * Origem da informação.
+     * Neste novo sistema, inicialmente será OFX.
+     */
+    origem ENUM('ofx')
+        NOT NULL DEFAULT 'ofx',
+
+    /*
+     * Identificador da compra no OFX.
+     *
+     * NÃO é o FITID da parcela.
+     * Serve para relacionar as diferentes parcelas
+     * à mesma compra.
+     */
+    chave_compra_ofx VARCHAR(255) DEFAULT NULL,
+
+    /*
+     * Identificador OFX quando aplicável.
+     */
+    identificador_ofx VARCHAR(255) DEFAULT NULL,
+
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    /*
+     * Evita que a mesma compra OFX seja criada novamente.
+     */
+    UNIQUE KEY uk_chave_compra_ofx (chave_compra_ofx),
+
+    /*
+     * Evita duplicação de um identificador OFX.
+     */
+    UNIQUE KEY uk_identificador_ofx (identificador_ofx)
+);
+
+
+CREATE TABLE cartoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    /*
+     * Compra à qual esta parcela pertence.
+     */
+    compra_id INT NOT NULL,
+
+    /*
+     * Data da parcela/lancamento.
+     */
+    data DATE NOT NULL,
+
+    /*
+     * Valor daquela parcela.
+     */
+    valor DECIMAL(10,2) NOT NULL,
+
+    /*
+     * Número da parcela.
+     *
+     * Exemplo:
+     * 1/6 = parcela 1
+     * 2/6 = parcela 2
+     */
+    parcela INT NOT NULL DEFAULT 1,
+
+    /*
+     * Status de pagamento.
+     * 0 = Não paga
+     * 1 = Paga
+     */
+    paga TINYINT(1) NOT NULL DEFAULT 0,
+
+    /*
+     * FITID fornecido pelo banco.
+     *
+     * Identifica aquela transação específica
+     * dentro do OFX.
+     */
+    fitid VARCHAR(255) DEFAULT NULL,
+
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    /*
+     * Relacionamento com a compra.
+     *
+     * Se a compra for excluída,
+     * suas parcelas também serão.
+     */
+    CONSTRAINT fk_cartoes_compra
+        FOREIGN KEY (compra_id)
+        REFERENCES compras(id)
+        ON DELETE CASCADE,
+
+    /*
+     * Uma compra não pode possuir duas vezes
+     * a mesma parcela.
+     */
+    UNIQUE KEY uk_compra_parcela (compra_id, parcela),
+
+    /*
+     * O mesmo FITID não pode ser importado duas vezes.
+     */
+    UNIQUE KEY uk_fitid (fitid)
+);
+
+
+CREATE TABLE ofx_importacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    /*
+     * Nome original do arquivo enviado.
+     */
+    nome_arquivo VARCHAR(255) NOT NULL,
+
+    /*
+     * Hash SHA-256 do arquivo.
+     *
+     * Se o mesmo arquivo for enviado novamente,
+     * o sistema poderá identificar a duplicação.
+     */
+    hash_arquivo VARCHAR(64) NOT NULL,
+
+    /*
+     * Primeiro lançamento encontrado no OFX.
+     */
+    periodo_inicio DATE DEFAULT NULL,
+
+    /*
+     * Último lançamento encontrado no OFX.
+     */
+    periodo_fim DATE DEFAULT NULL,
+
+    /*
+     * Quantidade de transações processadas.
+     */
+    quantidade_transacoes INT NOT NULL DEFAULT 0,
+
+    importado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    /*
+     * Impede importar exatamente o mesmo arquivo
+     * duas vezes.
+     */
+    UNIQUE KEY uk_hash_arquivo (hash_arquivo)
+);
+
+-----------------------------------------------------------
 CREATE TABLE cartoes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,              -- Nome do cartão/conta
@@ -8,3 +193,4 @@ CREATE TABLE cartoes (
     paga TINYINT(1) NOT NULL DEFAULT 0,      -- Status (0 = não paga, 1 = paga)
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+

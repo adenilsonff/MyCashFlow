@@ -1,0 +1,37 @@
+CREATE TABLE corretoras (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+
+    PRIMARY KEY (id)
+);
+
+
+CREATE TABLE taxas (
+    id INT NOT NULL AUTO_INCREMENT,
+    corretora_id INT NOT NULL,
+    nome_taxa VARCHAR(100) NOT NULL,
+    taxa_valor DECIMAL(10,4) NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (id),
+
+    FOREIGN KEY (corretora_id)
+        REFERENCES corretoras(id)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE operacoes (
+    id INT NOT NULL AUTO_INCREMENT,
+    corretora_id INT NOT NULL,
+    data DATE NOT NULL,
+    acao VARCHAR(20) NOT NULL,
+    quantidade INT NOT NULL,
+    valor_compra DECIMAL(15,2) NOT NULL,
+    valor_venda DECIMAL(15,2) NOT NULL,
+
+    PRIMARY KEY (id),
+
+    FOREIGN KEY (corretora_id)
+        REFERENCES corretoras(id)
+        ON DELETE CASCADE
+);
