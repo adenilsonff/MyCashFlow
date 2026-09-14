@@ -1,0 +1,133 @@
+body {
+margin: 0;
+font-family: Arial, sans-serif;
+background-color: #ECF0F1;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+}
+
+.relatorios-layout {
+flex: 1;
+width: 100%;
+max-width: 1400px;
+margin: 0 auto;
+padding: 20px;
+box-sizing: border-box;
+}
+
+.cabecalho-relatorios {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 15px;
+margin-bottom: 20px;
+}
+
+.cabecalho-relatorios h1 {
+margin: 0;
+color: #2C3E50;
+font-size: 26px;
+}
+
+.cabecalho-relatorios p {
+margin: 5px 0 0;
+color: #6C757D;
+font-size: 14px;
+}
+
+.relatorios-grid {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 15px;
+}
+
+.card-relatorio {
+background: white;
+border: 1px solid #E5E7E9;
+border-radius: 8px;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+text-decoration: none;
+color: inherit;
+display: flex;
+flex-direction: column;
+min-height: 190px;
+overflow: hidden;
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-relatorio:hover {
+transform: translateY(-2px);
+box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+}
+
+.card-relatorio-conteudo {
+padding: 18px;
+flex: 1;
+}
+
+.card-relatorio-tipo {
+display: inline-block;
+margin-bottom: 10px;
+font-size: 12px;
+font-weight: bold;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+color: #6C757D;
+}
+
+.card-relatorio h2 {
+margin: 0 0 8px;
+font-size: 20px;
+color: #2C3E50;
+}
+
+.card-relatorio p {
+margin: 0;
+font-size: 14px;
+line-height: 1.5;
+color: #6C757D;
+}
+
+.card-relatorio-rodape {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 10px;
+padding: 13px 18px;
+border-top: 1px solid #E5E7E9;
+background: #F8F9FA;
+font-size: 14px;
+font-weight: bold;
+color: #2C3E50;
+}
+
+.card-relatorio-seta {
+font-size: 20px;
+line-height: 1;
+transition: transform 0.2s ease;
+}
+
+.card-relatorio:hover .card-relatorio-seta {
+transform: translateX(4px);
+}
+
+@media (max-width: 1000px) {
+.relatorios-grid {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+}
+
+@media (max-width: 700px) {
+.relatorios-layout {
+padding: 15px;
+}
+
+.relatorios-grid {
+grid-template-columns: 1fr;
+}
+
+.card-relatorio {
+min-height: 170px;
+}
+}

@@ -1,9 +1,12 @@
 <?php
 include __DIR__ . '/../../config.php';
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: ../../login.php"); // também sobe 2 níveis
+    header("Location: ../login/login.php");
     exit;
 }
 ?>
@@ -12,62 +15,62 @@ if (!isset($_SESSION['usuario_id'])) {
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatórios</title>
-    <!-- CSS relativo à pasta atual -->
-    <link rel="stylesheet" href="/MyCashFlow/assets/css/style-relatorios.css?v=1">
+    <link rel="stylesheet" href="/MyCashFlow/assets/css/relatorios/style-relatorios.css?v=2">
 </head>
+
 <body>
-    <?php include("../../includes/header.php"); ?>
-    <?php include("../../includes/menu.php"); ?>
 
-    <main class="relatorios-layout">
-        <div class="relatorios-container" style="margin-top:30px;">
-            
-            <!-- Card Despesas -->
-            <div class="card-cadastro" onclick="location.href='rel-despesas.php'" style="cursor:pointer;">
-                <h2>Despesas</h2>
-                <p>Controle de gastos gerais</p>
-            </div>
+<?php include("../../includes/header.php"); ?>
+<?php include("../../includes/menu.php"); ?>
 
-            <!-- Card Receitas -->
-            <div class="card-cadastro" onclick="location.href='rel-receitas.php'" style="cursor:pointer;">
-                <h2>Receitas</h2>
-                <p>Entradas de dinheiro</p>
-            </div>
+<main class="relatorios-layout">
 
-            <!-- Card Cartão de Crédito -->
-            <div class="card-cadastro" onclick="location.href='rel-cartao.php'" style="cursor:pointer;">
-                <h2>Cartão de Crédito</h2>
-                <p>Faturas e limite</p>
-            </div>
-
-            <!-- Card Extras -->
-            <div class="card-cadastro" onclick="location.href='rel-extras.php'" style="cursor:pointer;">
-                <h2>Extras</h2>
-                <p>Ganhos e custos não recorrentes</p>
-            </div>
-
-            <!-- Card Ações -->
-            <div class="card-cadastro" onclick="location.href='rel-acoes.php'" style="cursor:pointer;">
-                <h2>Ações</h2>
-                <p>Carteira de investimentos</p>
-            </div>
-
-            <!-- Card Dividendos -->
-            <div class="card-cadastro" onclick="location.href='rel-dividendos.php'" style="cursor:pointer;">
-                <h2>Dividendos</h2>
-                <p>Valores recebidos de dividendos</p>
-            </div>
-
-            <!-- Card Daytrade -->
-            <div class="card-cadastro" onclick="location.href='rel-daytrade.php'" style="cursor:pointer;">
-                <h2>Daytrade</h2>
-                <p>Operações diárias e resultados</p>
-            </div>
-
+    <div class="cabecalho-relatorios">
+        <div>
+            <h1>Relatórios</h1>
+            <p>
+                Consulte e analise suas informações financeiras de forma consolidada.
+            </p>
         </div>
-    </main>
+    </div>
 
-    <?php include("../../includes/footer.php"); ?>
+    <section class="relatorios-grid">
+
+        <a href="financeiro.php" class="card-relatorio">
+
+            <div class="card-relatorio-conteudo">
+                <span class="card-relatorio-tipo">
+                    Financeiro
+                </span>
+
+                <h2>
+                    Visão Financeira
+                </h2>
+
+                <p>
+                    Acompanhe receitas, despesas, saldos e a evolução financeira ao longo do ano.
+                </p>
+            </div>
+
+            <div class="card-relatorio-rodape">
+                <span>
+                    Abrir relatório
+                </span>
+
+                <span class="card-relatorio-seta">
+                    &rarr;
+                </span>
+            </div>
+
+        </a>
+
+    </section>
+
+</main>
+
+<?php include("../../includes/footer.php"); ?>
+
 </body>
 </html>
