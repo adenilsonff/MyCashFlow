@@ -1,24 +1,26 @@
 CREATE TABLE div_datacom (
-    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    id_acao INT(11) NOT NULL,
+    id INT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    ticker VARCHAR(10) NOT NULL,
+    tipo_ativo ENUM('acao','fii','etf','bdr') NOT NULL,
     datacom DATE NOT NULL,
-    datapag DATE NOT NULL,
-    valor DECIMAL(10,2) NOT NULL,
-    tipo ENUM('DIV', 'JCP') NOT NULL,
-    FOREIGN KEY (id_acao) REFERENCES acoes_nacionais(id)
-);
+    datapag DATE NULL DEFAULT NULL,
+    valor DECIMAL(15,8) NOT NULL,
+    tipo ENUM('DIV','JCP','REND') NOT NULL,
 
+    PRIMARY KEY (id),
 
+    INDEX idx_div_usuario (usuario_id),
+    INDEX idx_div_ticker (ticker),
+    INDEX idx_div_tipo_ativo (tipo_ativo),
+    INDEX idx_div_usuario_datacom (usuario_id, datacom),
+    INDEX idx_div_usuario_ticker (usuario_id, ticker),
 
-------------------------------------------------------------------------------
-ANTIGA
-
-
-CREATE TABLE div_datacom (
-    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    acao VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    datacom DATE NOT NULL,
-    datapag DATE NOT NULL,
-    valor DECIMAL(10,2) NOT NULL,
-    tipo ENUM('DIV', 'JCP') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL
-);
+    CONSTRAINT fk_div_datacom_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;

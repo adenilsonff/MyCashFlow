@@ -10,8 +10,14 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+$usuario_id = (int)$_SESSION['usuario_id'];
+
 $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date("n");
 $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date("Y");
+
+$tipoAtivoFiltro = isset($_GET['tipo_ativo'])
+    ? strtolower(trim($_GET['tipo_ativo']))
+    : '';
 
 if ($mes < 1 || $mes > 12) {
     $mes = (int)date("n");
@@ -21,8 +27,31 @@ if ($ano < 2000 || $ano > 2100) {
     $ano = (int)date("Y");
 }
 
-function voltarPagina($mes, $ano) {
-    header("Location: div_datacom.php?mes={$mes}&ano={$ano}");
+if (
+    $tipoAtivoFiltro !== '' &&
+    !in_array(
+        $tipoAtivoFiltro,
+        ['acao', 'fii', 'etf', 'bdr'],
+        true
+    )
+) {
+    $tipoAtivoFiltro = '';
+}
+
+function voltarPagina($mes, $ano, $tipoAtivoFiltro = '') {
+    $parametros = [
+        'mes' => $mes,
+        'ano' => $ano
+    ];
+
+    if ($tipoAtivoFiltro !== '') {
+        $parametros['tipo_ativo'] = $tipoAtivoFiltro;
+    }
+
+    header(
+        "Location: div_datacom.php?" .
+        http_build_query($parametros)
+    );
     exit;
 }
 
@@ -39,9 +68,22 @@ function normalizarValor($valor) {
 }
 
 function formatarValorProvento($valor) {
-    $valorFormatado = number_format((float)$valor, 8, ',', '');
-    $valorFormatado = rtrim($valorFormatado, '0');
-    $valorFormatado = rtrim($valorFormatado, ',');
+    $valorFormatado = number_format(
+        (float)$valor,
+        8,
+        ',',
+        ''
+    );
+
+    $valorFormatado = rtrim(
+        $valorFormatado,
+        '0'
+    );
+
+    $valorFormatado = rtrim(
+        $valorFormatado,
+        ','
+    );
 
     return $valorFormatado;
 }
@@ -51,101 +93,52 @@ function formatarData($data) {
         return 'A definir';
     }
 
-    return date("d/m/Y", strtotime($data));
+    return date(
+        "d/m/Y",
+        strtotime($data)
+    );
 }
 
-if (isset($_POST['nova_div'])) {
-    $ticker = strtoupper(trim($_POST['ticker'] ?? ''));
-    $datacom = trim($_POST['datacom'] ?? '');
-    $datapagInformada = trim($_POST['datapag'] ?? '');
-    $datapag = $datapagInformada !== '' ? $datapagInformada : null;
-    $valor = normalizarValor($_POST['valor'] ?? 0);
-    $tipo = strtoupper(trim($_POST['tipo'] ?? ''));
+function nomeTipoAtivo($tipo) {
+    $tipos = [
+        'acao' => 'Ação',
+        'fii' => 'FII',
+        'etf' => 'ETF',
+        'bdr' => 'BDR'
+    ];
 
-    if (
-        $ticker !== '' &&
-        $datacom !== '' &&
-        $valor > 0 &&
-        in_array($tipo, ['DIV', 'JCP'], true)
-    ) {
-        $stmt = $conn->prepare("
-            INSERT INTO div_datacom
-            (ticker, datacom, datapag, valor, tipo)
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        $stmt->bind_param(
-            "sssds",
-            $ticker,
-            $datacom,
-            $datapag,
-            $valor,
-            $tipo
+    return $tipos[$tipo] ?? $tipo;
+}
+
+function nomeTipoProvento($tipo) {
+    $tipos = [
+        'DIV' => 'Dividendo',
+        'JCP' => 'JCP',
+        'REND' => 'Rendimento'
+    ];
+
+    return $tipos[$tipo] ?? $tipo;
+}
+
+function tipoProventoValido(
+    $tipoAtivo,
+    $tipoProvento
+) {
+    $permitidos = [
+        'acao' => ['DIV', 'JCP'],
+        'fii' => ['REND'],
+        'etf' => ['DIV', 'REND'],
+        'bdr' => ['DIV']
+    ];
+
+    return
+        isset($permitidos[$tipoAtivo]) &&
+        in_array(
+            $tipoProvento,
+            $permitidos[$tipoAtivo],
+            true
         );
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    voltarPagina($mes, $ano);
 }
-
-if (isset($_POST['ajustar_valor'])) {
-    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-    $novoValor = normalizarValor($_POST['novo_valor'] ?? 0);
-
-    if ($id > 0 && $novoValor > 0) {
-        $stmt = $conn->prepare("
-            UPDATE div_datacom
-            SET valor = ?
-            WHERE id = ?
-        ");
-        $stmt->bind_param("di", $novoValor, $id);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    voltarPagina($mes, $ano);
-}
-
-if (isset($_POST['deletar_div'])) {
-    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-
-    if ($id > 0) {
-        $stmt = $conn->prepare("
-            DELETE FROM div_datacom
-            WHERE id = ?
-        ");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $stmt->close();
-    }
-
-    voltarPagina($mes, $ano);
-}
-
-$stmt = $conn->prepare("
-    SELECT
-        id,
-        ticker,
-        datacom,
-        datapag,
-        valor,
-        tipo
-    FROM div_datacom
-    WHERE MONTH(datacom) = ?
-      AND YEAR(datacom) = ?
-    ORDER BY datacom ASC, ticker ASC, id ASC
-");
-$stmt->bind_param("ii", $mes, $ano);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$divs = [];
-
-while ($row = $result->fetch_assoc()) {
-    $divs[] = $row;
-}
-
-$stmt->close();
 
 $meses = [
     1 => "Janeiro",
@@ -161,254 +154,1017 @@ $meses = [
     11 => "Novembro",
     12 => "Dezembro"
 ];
+
+if (isset($_POST['nova_div'])) {
+    $ticker = strtoupper(
+        trim($_POST['ticker'] ?? '')
+    );
+
+    $tipoAtivo = strtolower(
+        trim($_POST['tipo_ativo'] ?? '')
+    );
+
+    $datacom = trim(
+        $_POST['datacom'] ?? ''
+    );
+
+    $datapagInformada = trim(
+        $_POST['datapag'] ?? ''
+    );
+
+    $datapag =
+        $datapagInformada !== ''
+            ? $datapagInformada
+            : null;
+
+    $valor = normalizarValor(
+        $_POST['valor'] ?? 0
+    );
+
+    $tipo = strtoupper(
+        trim($_POST['tipo'] ?? '')
+    );
+
+    if (
+        $ticker !== '' &&
+        in_array(
+            $tipoAtivo,
+            ['acao', 'fii', 'etf', 'bdr'],
+            true
+        ) &&
+        $datacom !== '' &&
+        $valor > 0 &&
+        tipoProventoValido(
+            $tipoAtivo,
+            $tipo
+        )
+    ) {
+        $stmt = $conn->prepare("
+            INSERT INTO div_datacom
+            (
+                usuario_id,
+                ticker,
+                tipo_ativo,
+                datacom,
+                datapag,
+                valor,
+                tipo
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->bind_param(
+            "issssds",
+            $usuario_id,
+            $ticker,
+            $tipoAtivo,
+            $datacom,
+            $datapag,
+            $valor,
+            $tipo
+        );
+
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    voltarPagina(
+        $mes,
+        $ano,
+        $tipoAtivoFiltro
+    );
+}
+
+if (isset($_POST['ajustar_valor'])) {
+    $id = isset($_POST['id'])
+        ? (int)$_POST['id']
+        : 0;
+
+    $novoValor = normalizarValor(
+        $_POST['novo_valor'] ?? 0
+    );
+
+    if (
+        $id > 0 &&
+        $novoValor > 0
+    ) {
+        $stmt = $conn->prepare("
+            UPDATE div_datacom
+            SET valor = ?
+            WHERE id = ?
+              AND usuario_id = ?
+        ");
+
+        $stmt->bind_param(
+            "dii",
+            $novoValor,
+            $id,
+            $usuario_id
+        );
+
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    voltarPagina(
+        $mes,
+        $ano,
+        $tipoAtivoFiltro
+    );
+}
+
+if (isset($_POST['deletar_div'])) {
+    $id = isset($_POST['id'])
+        ? (int)$_POST['id']
+        : 0;
+
+    if ($id > 0) {
+        $stmt = $conn->prepare("
+            DELETE FROM div_datacom
+            WHERE id = ?
+              AND usuario_id = ?
+        ");
+
+        $stmt->bind_param(
+            "ii",
+            $id,
+            $usuario_id
+        );
+
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    voltarPagina(
+        $mes,
+        $ano,
+        $tipoAtivoFiltro
+    );
+}
+
+$sql = "
+    SELECT
+        id,
+        ticker,
+        tipo_ativo,
+        datacom,
+        datapag,
+        valor,
+        tipo
+    FROM div_datacom
+    WHERE usuario_id = ?
+      AND MONTH(datacom) = ?
+      AND YEAR(datacom) = ?
+";
+
+if ($tipoAtivoFiltro !== '') {
+    $sql .= "
+        AND tipo_ativo = ?
+    ";
+}
+
+$sql .= "
+    ORDER BY
+        datacom ASC,
+        ticker ASC,
+        id ASC
+";
+
+$stmt = $conn->prepare($sql);
+
+if ($tipoAtivoFiltro !== '') {
+    $stmt->bind_param(
+        "iiis",
+        $usuario_id,
+        $mes,
+        $ano,
+        $tipoAtivoFiltro
+    );
+} else {
+    $stmt->bind_param(
+        "iii",
+        $usuario_id,
+        $mes,
+        $ano
+    );
+}
+
+$stmt->execute();
+
+$result =
+    $stmt->get_result();
+
+$divs = [];
+
+while ($row = $result->fetch_assoc()) {
+    $divs[] = $row;
+}
+
+$stmt->close();
+
+$totalRegistros = count($divs);
+
+$tipoFiltroTexto =
+    $tipoAtivoFiltro !== ''
+        ? nomeTipoAtivo($tipoAtivoFiltro)
+        : 'Todos os tipos';
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Div DataCOM</title>
-    <link rel="stylesheet" href="../assets/css/style-divis.css?v=1">
+
+    <title>
+        Proventos - Data COM
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="../assets/css/style-divis.css?v=5"
+    >
 </head>
+
 <body>
     <?php include("../includes/header.php"); ?>
     <?php include("../includes/menu.php"); ?>
 
-    <main class="rendas-layout">
-        <div class="rendas-container">
-            <div class="card-cadastro-renda">
-                <h2>Cadastro da DataCOM</h2>
+    <main class="datacom-layout">
+        <div class="datacom-cabecalho">
+            <div>
+                <h1>Data COM</h1>
 
-                <form class="form-rendas" method="POST">
-                    <input type="hidden" name="nova_div" value="1">
-
-                    <input
-                        type="text"
-                        name="ticker"
-                        placeholder="Ex: PETR4, VBBR3..."
-                        maxlength="10"
-                        required
-                    >
-
-                    <label for="datacom">Data COM</label>
-
-                    <input
-                        type="date"
-                        id="datacom"
-                        name="datacom"
-                        required
-                    >
-
-                    <label for="datapag">Data de Pagamento</label>
-
-                    <input
-                        type="date"
-                        id="datapag"
-                        name="datapag"
-                    >
-
-                    <label for="valor">Valor por ação</label>
-
-                    <input
-                        type="number"
-                        step="0.00000001"
-                        min="0.00000001"
-                        id="valor"
-                        name="valor"
-                        placeholder="Ex: 0.41736422"
-                        required
-                    >
-
-                    <select name="tipo" required>
-                        <option value="DIV">DIV</option>
-                        <option value="JCP">JCP</option>
-                    </select>
-
-                    <button type="submit">Registrar</button>
-                </form>
+                <p>
+                    Cadastre e acompanhe os eventos que dão direito aos proventos.
+                </p>
             </div>
 
-            <div class="card-cadastro-renda">
-                <h2>Filtrar por Mês/Ano</h2>
-
-                <form method="GET" class="form-rendas">
-                    <select name="mes">
-                        <?php foreach ($meses as $numero => $nome) { ?>
-                            <option
-                                value="<?= $numero ?>"
-                                <?= $numero === $mes ? 'selected' : '' ?>
-                            >
-                                <?= $nome ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-
-                    <select name="ano">
-                        <?php for ($y = (int)date("Y") - 5; $y <= (int)date("Y") + 5; $y++) { ?>
-                            <option
-                                value="<?= $y ?>"
-                                <?= $y === $ano ? 'selected' : '' ?>
-                            >
-                                <?= $y ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-
-                    <button type="submit">Filtrar</button>
-                </form>
-            </div>
-
-            <div class="card-cadastro-renda">
-                <h2>Ajustar Valor do Dividendo</h2>
-
-                <form method="POST" class="form-rendas">
-                    <select name="id" required>
-                        <option value="">Selecione o Registro</option>
-
-                        <?php foreach ($divs as $d) { ?>
-                            <option value="<?= (int)$d['id'] ?>">
-                                <?= htmlspecialchars($d['ticker']) ?>
-                                -
-                                <?= formatarData($d['datacom']) ?>
-                                (
-                                <?= htmlspecialchars($d['tipo']) ?>
-                                -
-                                R$ <?= formatarValorProvento($d['valor']) ?>
-                                )
-                            </option>
-                        <?php } ?>
-                    </select>
-
-                    <input
-                        type="number"
-                        step="0.00000001"
-                        min="0.00000001"
-                        name="novo_valor"
-                        placeholder="Ex: 0.41736422"
-                        required
-                    >
-
-                    <button type="submit" name="ajustar_valor">
-                        Atualizar
-                    </button>
-                </form>
-            </div>
-
-            <div class="card-cadastro-renda">
-                <h2>Deletar DataCOM</h2>
-
-                <form
-                    method="POST"
-                    class="form-rendas"
-                    onsubmit="return confirm('Tem certeza que deseja excluir este registro?');"
+            <div class="datacom-acoes">
+                <button
+                    type="button"
+                    class="btn-datacom"
+                    onclick="abrirModal('modalCadastro')"
                 >
-                    <select name="id" required>
-                        <option value="">Selecione</option>
+                    + Cadastrar
+                </button>
 
-                        <?php foreach ($divs as $d) { ?>
-                            <option value="<?= (int)$d['id'] ?>">
-                                <?= htmlspecialchars($d['ticker']) ?>
-                                -
-                                <?= formatarData($d['datacom']) ?>
-                                (
-                                <?= htmlspecialchars($d['tipo']) ?>
-                                -
-                                R$ <?= formatarValorProvento($d['valor']) ?>
-                                )
-                            </option>
-                        <?php } ?>
-                    </select>
+                <button
+                    type="button"
+                    class="btn-datacom btn-secundario"
+                    onclick="abrirModal('modalFiltro')"
+                >
+                    Filtrar
+                </button>
 
-                    <button type="submit" name="deletar_div">
-                        Excluir
-                    </button>
-                </form>
+                <a
+                    href="dividendos.php"
+                    class="btn-datacom btn-secundario"
+                >
+                    Voltar
+                </a>
             </div>
         </div>
 
-        <div class="card-lista-renda">
-            <h2>
-                Lista DataCOM -
-                <?= $meses[$mes] ?>/<?= $ano ?>
-            </h2>
+        <div class="datacom-resumo">
+            <div class="datacom-card-resumo">
+                <span>Período</span>
 
-            <table class="tabela-rendas">
-                <thead>
-                    <tr>
-                        <th>Ação</th>
-                        <th>Data COM</th>
-                        <th>Data Pagamento</th>
-                        <th>Valor por Ação</th>
-                        <th>Tipo</th>
-                        <th>Tempo Restante</th>
-                    </tr>
-                </thead>
+                <strong>
+                    <?= htmlspecialchars(
+                        $meses[$mes]
+                    ) ?>/<?= $ano ?>
+                </strong>
+            </div>
 
-                <tbody>
-                    <?php if (!empty($divs)) { ?>
-                        <?php foreach ($divs as $d) { ?>
-                            <?php
-                            $dataCom = new DateTime($d['datacom']);
-                            $dataCom->setTime(23, 59, 59);
+            <div class="datacom-card-resumo">
+                <span>
+                    Proventos cadastrados
+                </span>
 
-                            $hoje = new DateTime();
-                            $hoje->setTime(0, 0, 0);
+                <strong>
+                    <?= $totalRegistros ?>
+                </strong>
 
-                            $segundosRestantes =
-                                $dataCom->getTimestamp() -
-                                $hoje->getTimestamp();
+                <small>
+                    <?= htmlspecialchars(
+                        $tipoFiltroTexto
+                    ) ?>
+                </small>
+            </div>
+        </div>
 
-                            if ($segundosRestantes <= 0) {
-                                $tempoRestante = "------";
-                            } else {
-                                $diasRestantes =
-                                    (int)ceil($segundosRestantes / 86400);
+        <div class="datacom-lista">
+            <div class="datacom-lista-cabecalho">
+                <div>
+                    <h2>
+                        Proventos cadastrados
+                    </h2>
 
-                                $tempoRestante =
-                                    $diasRestantes === 1
-                                    ? "1 dia"
-                                    : "{$diasRestantes} dias";
-                            }
-                            ?>
+                    <p>
+                        <?= htmlspecialchars(
+                            $meses[$mes]
+                        ) ?>/<?= $ano ?>
+                        ·
+                        <?= htmlspecialchars(
+                            $tipoFiltroTexto
+                        ) ?>
+                    </p>
+                </div>
+            </div>
+
+            <div class="datacom-tabela-wrapper">
+                <table class="datacom-tabela">
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Tipo</th>
+                            <th>Data COM</th>
+                            <th>Pagamento</th>
+                            <th>Valor por Unidade</th>
+                            <th>Provento</th>
+                            <th>Tempo Restante</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <?php if (!empty($divs)) { ?>
+
+                            <?php foreach ($divs as $d) { ?>
+
+                                <?php
+                                $dataCom =
+                                    new DateTime(
+                                        $d['datacom']
+                                    );
+
+                                $dataCom->setTime(
+                                    23,
+                                    59,
+                                    59
+                                );
+
+                                $hoje =
+                                    new DateTime();
+
+                                $hoje->setTime(
+                                    0,
+                                    0,
+                                    0
+                                );
+
+                                $segundosRestantes =
+                                    $dataCom->getTimestamp() -
+                                    $hoje->getTimestamp();
+
+                                if (
+                                    $segundosRestantes <= 0
+                                ) {
+                                    $tempoRestante =
+                                        "------";
+                                } else {
+                                    $diasRestantes =
+                                        (int)ceil(
+                                            $segundosRestantes /
+                                            86400
+                                        );
+
+                                    $tempoRestante =
+                                        $diasRestantes === 1
+                                            ? "1 dia"
+                                            : "{$diasRestantes} dias";
+                                }
+                                ?>
+
+                                <tr>
+                                    <td class="datacom-ativo">
+                                        <?= htmlspecialchars(
+                                            $d['ticker']
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="datacom-tipo tipo-ativo-<?= htmlspecialchars(
+                                                $d['tipo_ativo']
+                                            ) ?>"
+                                        >
+                                            <?= htmlspecialchars(
+                                                nomeTipoAtivo(
+                                                    $d['tipo_ativo']
+                                                )
+                                            ) ?>
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <?= formatarData(
+                                            $d['datacom']
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= formatarData(
+                                            $d['datapag']
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        R$
+                                        <?= formatarValorProvento(
+                                            $d['valor']
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            nomeTipoProvento(
+                                                $d['tipo']
+                                            )
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <?= htmlspecialchars(
+                                            $tempoRestante
+                                        ) ?>
+                                    </td>
+
+                                    <td>
+                                        <div class="datacom-acoes-linha">
+                                            <button
+                                                type="button"
+                                                class="btn-linha editar"
+                                                onclick="abrirAjuste(
+                                                    <?= (int)$d['id'] ?>,
+                                                    '<?= htmlspecialchars(
+                                                        $d['ticker'],
+                                                        ENT_QUOTES
+                                                    ) ?>',
+                                                    '<?= htmlspecialchars(
+                                                        nomeTipoAtivo(
+                                                            $d['tipo_ativo']
+                                                        ),
+                                                        ENT_QUOTES
+                                                    ) ?>',
+                                                    '<?= htmlspecialchars(
+                                                        formatarValorProvento(
+                                                            $d['valor']
+                                                        ),
+                                                        ENT_QUOTES
+                                                    ) ?>'
+                                                )"
+                                            >
+                                                Editar
+                                            </button>
+
+                                            <form
+                                                method="POST"
+                                                class="form-excluir"
+                                                onsubmit="return confirm('Tem certeza que deseja excluir este registro?');"
+                                            >
+                                                <input
+                                                    type="hidden"
+                                                    name="id"
+                                                    value="<?= (int)$d['id'] ?>"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    name="deletar_div"
+                                                    class="btn-linha excluir"
+                                                >
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                            <?php } ?>
+
+                        <?php } else { ?>
 
                             <tr>
-                                <td>
-                                    <?= htmlspecialchars($d['ticker']) ?>
-                                </td>
-
-                                <td>
-                                    <?= formatarData($d['datacom']) ?>
-                                </td>
-
-                                <td>
-                                    <?= formatarData($d['datapag']) ?>
-                                </td>
-
-                                <td>
-                                    R$ <?= formatarValorProvento($d['valor']) ?>
-                                </td>
-
-                                <td>
-                                    <?= htmlspecialchars($d['tipo']) ?>
-                                </td>
-
-                                <td>
-                                    <?= $tempoRestante ?>
+                                <td
+                                    colspan="8"
+                                    class="datacom-vazio"
+                                >
+                                    Nenhum provento cadastrado para este período e tipo de ativo.
                                 </td>
                             </tr>
+
                         <?php } ?>
-                    <?php } else { ?>
-                        <tr>
-                            <td colspan="6">
-                                Nenhum dividendo cadastrado para este período.
-                            </td>
-                        </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 
+    <div
+        class="modal-datacom"
+        id="modalCadastro"
+    >
+        <div class="modal-datacom-conteudo">
+            <div class="modal-datacom-cabecalho">
+                <h2>
+                    Cadastrar Data COM
+                </h2>
+
+                <button
+                    type="button"
+                    class="modal-fechar"
+                    onclick="fecharModal('modalCadastro')"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <form
+                method="POST"
+                class="form-datacom"
+            >
+                <input
+                    type="hidden"
+                    name="nova_div"
+                    value="1"
+                >
+
+                <label for="tipo_ativo">
+                    Tipo de Ativo
+                </label>
+
+                <select
+                    name="tipo_ativo"
+                    id="tipo_ativo"
+                    required
+                >
+                    <option value="acao">
+                        Ação
+                    </option>
+
+                    <option value="fii">
+                        FII
+                    </option>
+
+                    <option value="etf">
+                        ETF
+                    </option>
+
+                    <option value="bdr">
+                        BDR
+                    </option>
+                </select>
+
+                <label for="ticker">
+                    Ativo
+                </label>
+
+                <input
+                    type="text"
+                    name="ticker"
+                    id="ticker"
+                    placeholder="Ex: PETR4, HGLG11, BOVA11..."
+                    maxlength="10"
+                    required
+                >
+
+                <label for="datacom">
+                    Data COM
+                </label>
+
+                <input
+                    type="date"
+                    name="datacom"
+                    id="datacom"
+                    required
+                >
+
+                <label for="datapag">
+                    Data de Pagamento
+                </label>
+
+                <input
+                    type="date"
+                    name="datapag"
+                    id="datapag"
+                >
+
+                <label for="valor">
+                    Valor por Unidade
+                </label>
+
+                <input
+                    type="number"
+                    step="0.00000001"
+                    min="0.00000001"
+                    name="valor"
+                    id="valor"
+                    placeholder="Ex: 0.41736422"
+                    required
+                >
+
+                <label for="tipo">
+                    Tipo de Provento
+                </label>
+
+                <select
+                    name="tipo"
+                    id="tipo"
+                    required
+                ></select>
+
+                <button
+                    type="submit"
+                    class="btn-datacom"
+                >
+                    Registrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div
+        class="modal-datacom"
+        id="modalFiltro"
+    >
+        <div class="modal-datacom-conteudo modal-menor">
+            <div class="modal-datacom-cabecalho">
+                <h2>
+                    Filtrar proventos
+                </h2>
+
+                <button
+                    type="button"
+                    class="modal-fechar"
+                    onclick="fecharModal('modalFiltro')"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <form
+                method="GET"
+                class="form-datacom"
+            >
+                <label for="filtro_mes">
+                    Mês da Data COM
+                </label>
+
+                <select
+                    name="mes"
+                    id="filtro_mes"
+                    required
+                >
+                    <?php foreach (
+                        $meses
+                        as $numero => $nome
+                    ) { ?>
+
+                        <option
+                            value="<?= $numero ?>"
+                            <?= $numero === $mes
+                                ? 'selected'
+                                : '' ?>
+                        >
+                            <?= htmlspecialchars(
+                                $nome
+                            ) ?>
+                        </option>
+
+                    <?php } ?>
+                </select>
+
+                <label for="filtro_ano">
+                    Ano
+                </label>
+
+                <select
+                    name="ano"
+                    id="filtro_ano"
+                    required
+                >
+                    <?php
+                    for (
+                        $y =
+                            (int)date("Y") - 5;
+                        $y <=
+                            (int)date("Y") + 5;
+                        $y++
+                    ) {
+                    ?>
+                        <option
+                            value="<?= $y ?>"
+                            <?= $y === $ano
+                                ? 'selected'
+                                : '' ?>
+                        >
+                            <?= $y ?>
+                        </option>
+                    <?php } ?>
+                </select>
+
+                <label for="filtro_tipo_ativo">
+                    Tipo de Ativo
+                </label>
+
+                <select
+                    name="tipo_ativo"
+                    id="filtro_tipo_ativo"
+                >
+                    <option
+                        value=""
+                        <?= $tipoAtivoFiltro === ''
+                            ? 'selected'
+                            : '' ?>
+                    >
+                        Todos os tipos
+                    </option>
+
+                    <option
+                        value="acao"
+                        <?= $tipoAtivoFiltro === 'acao'
+                            ? 'selected'
+                            : '' ?>
+                    >
+                        Ação
+                    </option>
+
+                    <option
+                        value="fii"
+                        <?= $tipoAtivoFiltro === 'fii'
+                            ? 'selected'
+                            : '' ?>
+                    >
+                        FII
+                    </option>
+
+                    <option
+                        value="etf"
+                        <?= $tipoAtivoFiltro === 'etf'
+                            ? 'selected'
+                            : '' ?>
+                    >
+                        ETF
+                    </option>
+
+                    <option
+                        value="bdr"
+                        <?= $tipoAtivoFiltro === 'bdr'
+                            ? 'selected'
+                            : '' ?>
+                    >
+                        BDR
+                    </option>
+                </select>
+
+                <button
+                    type="submit"
+                    class="btn-datacom"
+                >
+                    Filtrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div
+        class="modal-datacom"
+        id="modalAjuste"
+    >
+        <div class="modal-datacom-conteudo modal-menor">
+            <div class="modal-datacom-cabecalho">
+                <h2>
+                    Ajustar valor
+                </h2>
+
+                <button
+                    type="button"
+                    class="modal-fechar"
+                    onclick="fecharModal('modalAjuste')"
+                >
+                    &times;
+                </button>
+            </div>
+
+            <form
+                method="POST"
+                class="form-datacom"
+            >
+                <input
+                    type="hidden"
+                    name="id"
+                    id="ajuste_id"
+                >
+
+                <label for="ajuste_ativo">
+                    Ativo
+                </label>
+
+                <input
+                    type="text"
+                    id="ajuste_ativo"
+                    readonly
+                >
+
+                <label for="novo_valor">
+                    Novo Valor por Unidade
+                </label>
+
+                <input
+                    type="number"
+                    step="0.00000001"
+                    min="0.00000001"
+                    name="novo_valor"
+                    id="novo_valor"
+                    required
+                >
+
+                <button
+                    type="submit"
+                    name="ajustar_valor"
+                    class="btn-datacom"
+                >
+                    Atualizar
+                </button>
+            </form>
+        </div>
+    </div>
+
     <?php include("../includes/footer.php"); ?>
+
+    <script>
+        const tipoAtivo =
+            document.getElementById(
+                'tipo_ativo'
+            );
+
+        const tipoProvento =
+            document.getElementById(
+                'tipo'
+            );
+
+        const tiposPermitidos = {
+            acao: [
+                {
+                    valor: 'DIV',
+                    nome: 'Dividendo'
+                },
+                {
+                    valor: 'JCP',
+                    nome: 'JCP'
+                }
+            ],
+
+            fii: [
+                {
+                    valor: 'REND',
+                    nome: 'Rendimento'
+                }
+            ],
+
+            etf: [
+                {
+                    valor: 'DIV',
+                    nome: 'Dividendo'
+                },
+                {
+                    valor: 'REND',
+                    nome: 'Rendimento'
+                }
+            ],
+
+            bdr: [
+                {
+                    valor: 'DIV',
+                    nome: 'Dividendo'
+                }
+            ]
+        };
+
+        function atualizarTiposProvento() {
+            const tipoSelecionado =
+                tipoAtivo.value;
+
+            const opcoes =
+                tiposPermitidos[
+                    tipoSelecionado
+                ] || [];
+
+            tipoProvento.innerHTML = '';
+
+            opcoes.forEach(
+                function(opcao) {
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        opcao.valor;
+
+                    option.textContent =
+                        opcao.nome;
+
+                    tipoProvento.appendChild(
+                        option
+                    );
+                }
+            );
+        }
+
+        function abrirModal(id) {
+            document
+                .getElementById(id)
+                .classList
+                .add('ativo');
+
+            document
+                .body
+                .classList
+                .add('modal-aberto');
+        }
+
+        function fecharModal(id) {
+            document
+                .getElementById(id)
+                .classList
+                .remove('ativo');
+
+            document
+                .body
+                .classList
+                .remove('modal-aberto');
+        }
+
+        function abrirAjuste(
+            id,
+            ticker,
+            tipo,
+            valor
+        ) {
+            document.getElementById(
+                'ajuste_id'
+            ).value = id;
+
+            document.getElementById(
+                'ajuste_ativo'
+            ).value =
+                ticker + ' - ' + tipo;
+
+            document.getElementById(
+                'novo_valor'
+            ).value =
+                valor.replace(',', '.');
+
+            abrirModal('modalAjuste');
+        }
+
+        document
+            .querySelectorAll(
+                '.modal-datacom'
+            )
+            .forEach(
+                function(modal) {
+                    modal.addEventListener(
+                        'click',
+                        function(event) {
+                            if (
+                                event.target ===
+                                modal
+                            ) {
+                                fecharModal(
+                                    modal.id
+                                );
+                            }
+                        }
+                    );
+                }
+            );
+
+        document.addEventListener(
+            'keydown',
+            function(event) {
+                if (
+                    event.key ===
+                    'Escape'
+                ) {
+                    document
+                        .querySelectorAll(
+                            '.modal-datacom.ativo'
+                        )
+                        .forEach(
+                            function(modal) {
+                                fecharModal(
+                                    modal.id
+                                );
+                            }
+                        );
+                }
+            }
+        );
+
+        atualizarTiposProvento();
+    </script>
 </body>
 </html>

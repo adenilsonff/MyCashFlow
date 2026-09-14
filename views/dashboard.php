@@ -12,6 +12,9 @@ exit;
 }
 
 include __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/mercado_api.php';
+
+$usuario_id = (int)$_SESSION['usuario_id'];
 
 $mesAtual = (int)date('n');
 $anoAtual = (int)date('Y');
@@ -47,6 +50,169 @@ $nomesMesesCurtos = [
 ];
 
 $nomeMesAtual = $nomesMeses[$mesAtual];
+
+function dashboardResumoCusto(array $operacoes, $nacional) {
+usort(
+$operacoes,
+function ($a, $b) {
+return strcmp($a['data'], $b['data']) ?:
+($a['id'] <=> $b['id']);
+}
+);
+
+$posicoes = [];
+
+foreach ($operacoes as $op) {
+$ticker = strtoupper(trim($op['ticker']));
+
+if ($nacional) {
+$ticker = preg_replace('/\.SA$/', '', $ticker);
+}
+
+$tipoAtivo = $op['tipo_ativo'] ?? '';
+$chave = $ticker . '|' . $tipoAtivo;
+
+if (!isset($posicoes[$chave])) {
+$posicoes[$chave] = [
+'quantidade' => '0',
+'custo' => '0',
+'medio' => '0'
+];
+}
+
+$p = &$posicoes[$chave];
+
+$quantidade = ltrim(
+(string)$op['quantidade'],
+'-'
+);
+
+$preco = (string)$op['valor_unitario'];
+
+$tipoOperacao = $op['tipo_operacao'] ?? '';
+
+$tiposAtivoValidos = $nacional
+? ['acao', 'fii', 'etf', 'bdr']
+: ['stock', 'etf', 'reit', 'adr'];
+
+if (
+!in_array(
+$tipoAtivo,
+$tiposAtivoValidos,
+true
+) ||
+!in_array(
+$tipoOperacao,
+['compra', 'venda'],
+true
+) ||
+bccomp(
+$quantidade,
+'0',
+8
+) <= 0 ||
+bccomp(
+$preco,
+'0',
+8
+) <= 0 ||
+(
+$tipoOperacao === 'compra' &&
+bccomp(
+(string)$op['quantidade'],
+'0',
+8
+) < 0
+)
+) {
+throw new DomainException(
+'Operação inválida no histórico de ' .
+$ticker . '.'
+);
+}
+
+if ($tipoOperacao === 'compra') {
+$p['custo'] = bcadd(
+$p['custo'],
+bcmul(
+$quantidade,
+$preco,
+24
+),
+24
+);
+
+$p['quantidade'] = bcadd(
+$p['quantidade'],
+$quantidade,
+8
+);
+
+$p['medio'] = bcdiv(
+$p['custo'],
+$p['quantidade'],
+24
+);
+
+} else {
+if (
+bccomp(
+$quantidade,
+$p['quantidade'],
+8
+) > 0
+) {
+throw new DomainException(
+'Venda acima do saldo no histórico de ' .
+$ticker .
+' em ' .
+date(
+'d/m/Y',
+strtotime($op['data'])
+) .
+'.'
+);
+}
+
+$p['quantidade'] = bcsub(
+$p['quantidade'],
+$quantidade,
+8
+);
+
+$p['custo'] = bcmul(
+$p['quantidade'],
+$p['medio'],
+24
+);
+
+if (
+bccomp(
+$p['quantidade'],
+'0',
+8
+) === 0
+) {
+$p['custo'] = '0';
+$p['medio'] = '0';
+}
+}
+
+unset($p);
+}
+
+$total = '0';
+
+foreach ($posicoes as $p) {
+$total = bcadd(
+$total,
+$p['custo'],
+24
+);
+}
+
+return $total;
+}
 
 $sqlReceitas = "
 SELECT
@@ -134,18 +300,138 @@ $totalDayTrade = (float)$dayTrade['resultado'];
 $totalDarf = (float)$dayTrade['darf'];
 $totalOperacoes = (int)$dayTrade['operacoes'];
 
-$sqlInvestimentos = "
+$totalNacional = null;
+$totalInternacional = null;
+$totalInvestimentos = null;
+$cotacaoDolarInvestimentos = null;
+
+if (extension_loaded('bcmath')) {
+try {
+$stmt = $conn->prepare("
 SELECT
-COALESCE((SELECT SUM(quantidade * valor_unitario) FROM acoes_nacionais), 0) AS total_nacional,
-COALESCE((SELECT SUM(quantidade * valor_unitario) FROM acoes_internacionais), 0) AS total_internacional
-";
+id,
+ticker,
+tipo_ativo,
+quantidade,
+valor_unitario,
+data,
+tipo_operacao
+FROM investimentos_nacionais
+WHERE usuario_id = ?
+ORDER BY data, id
+");
 
-$resultInvestimentos = $conn->query($sqlInvestimentos);
-$investimentos = $resultInvestimentos->fetch_assoc();
+$stmt->bind_param(
+'i',
+$usuario_id
+);
 
-$totalNacional = (float)$investimentos['total_nacional'];
-$totalInternacional = (float)$investimentos['total_internacional'];
-$totalInvestimentos = $totalNacional + $totalInternacional;
+$stmt->execute();
+
+$operacoesNacionais = $stmt
+->get_result()
+->fetch_all(MYSQLI_ASSOC);
+
+$stmt->close();
+
+$totalNacional = dashboardResumoCusto(
+$operacoesNacionais,
+true
+);
+
+} catch (Throwable $e) {
+error_log(
+'MyCashFlow dashboard investimentos nacionais: ' .
+$e->getMessage()
+);
+
+$totalNacional = null;
+}
+
+try {
+$stmt = $conn->prepare("
+SELECT
+id,
+ticker,
+tipo_ativo,
+quantidade,
+valor_unitario,
+data,
+tipo_operacao
+FROM investimentos_internacionais
+WHERE usuario_id = ?
+ORDER BY data, id
+");
+
+$stmt->bind_param(
+'i',
+$usuario_id
+);
+
+$stmt->execute();
+
+$operacoesInternacionais = $stmt
+->get_result()
+->fetch_all(MYSQLI_ASSOC);
+
+$stmt->close();
+
+$totalInternacional = dashboardResumoCusto(
+$operacoesInternacionais,
+false
+);
+
+} catch (Throwable $e) {
+error_log(
+'MyCashFlow dashboard investimentos internacionais: ' .
+$e->getMessage()
+);
+
+$totalInternacional = null;
+}
+
+if (
+$totalNacional !== null &&
+$totalInternacional !== null
+) {
+if (
+bccomp(
+$totalInternacional,
+'0',
+24
+) === 0
+) {
+$totalInvestimentos = $totalNacional;
+
+} else {
+try {
+$cambio = mercadoApi()->fx();
+$cotacaoDolarInvestimentos =
+$cambio['USD']['price'] ?? null;
+
+if ($cotacaoDolarInvestimentos !== null) {
+$totalInvestimentos = bcadd(
+$totalNacional,
+bcmul(
+$totalInternacional,
+(string)$cotacaoDolarInvestimentos,
+24
+),
+24
+);
+}
+
+} catch (Throwable $e) {
+error_log(
+'MyCashFlow dashboard câmbio investimentos: ' .
+$e->getMessage()
+);
+
+$cotacaoDolarInvestimentos = null;
+}
+}
+}
+}
 
 $inicioGrafico = new DateTime('first day of this month');
 $inicioGrafico->modify('-5 months');
@@ -411,7 +697,7 @@ R$ <?php echo number_format($totalDayTrade, 2, ',', '.'); ?>
 </div>
 </a>
 
-<a href="/MyCashFlow/views/acoes.php" class="card-link">
+<a href="/MyCashFlow/views/investimentos.php" class="card-link">
 <div class="card">
 <div class="card-topo">
 <h3>Investimentos</h3>
@@ -419,22 +705,45 @@ R$ <?php echo number_format($totalDayTrade, 2, ',', '.'); ?>
 </div>
 
 <p class="valor-principal">
-R$ <?php echo number_format($totalInvestimentos, 2, ',', '.'); ?>
+<?php
+echo $totalInvestimentos !== null
+? 'R$ ' . number_format($totalInvestimentos, 2, ',', '.')
+: 'Indisponível';
+?>
 </p>
 
 <div class="card-detalhes">
 <div>
 <span>Nacional</span>
-<strong>R$ <?php echo number_format($totalNacional, 2, ',', '.'); ?></strong>
+<strong>
+<?php
+echo $totalNacional !== null
+? 'R$ ' . number_format($totalNacional, 2, ',', '.')
+: 'Indisponível';
+?>
+</strong>
 </div>
 
 <div>
 <span>Internacional</span>
-<strong>R$ <?php echo number_format($totalInternacional, 2, ',', '.'); ?></strong>
+<strong>
+<?php
+echo $totalInternacional !== null
+? 'US$ ' . number_format($totalInternacional, 2, ',', '.')
+: 'Indisponível';
+?>
+</strong>
 </div>
 </div>
 
+<?php if ($cotacaoDolarInvestimentos !== null) { ?>
+<div class="card-rodape">
+Ver investimentos · US$ 1 = R$
+<?php echo number_format($cotacaoDolarInvestimentos, 4, ',', '.'); ?>
+</div>
+<?php } else { ?>
 <div class="card-rodape">Ver investimentos</div>
+<?php } ?>
 </div>
 </a>
 

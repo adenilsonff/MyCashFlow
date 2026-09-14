@@ -149,6 +149,25 @@ body.av-body { margin:0; font-family:Arial,sans-serif; background:#ecf0f1; min-h
     .av-top h1, .av-summary h2 { font-size:1.05rem; }
 }
 
+/* Cores por tipo de investimento internacional */
+.av-tipo-ativo {
+font-weight:bold;
+}
 
+.av-tipo-stock {
+color:#1f6fb2;
+}
+
+.av-tipo-etf {
+color:#a85d00;
+}
+
+.av-tipo-reit {
+color:#7b3fb3;
+}
+
+.av-tipo-adr {
+color:#2e7d32;
+}
 
 

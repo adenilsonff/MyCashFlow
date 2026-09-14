@@ -1,76 +1,102 @@
-/* Layout da página de Dividendos */
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #ECF0F1;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+margin: 0;
+font-family: Arial, sans-serif;
+background-color: #ECF0F1;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
 }
 
-/* Container principal */
-.acoes-layout {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 1200px;
-    margin: auto;
+.proventos-layout {
+flex: 1;
+width: 100%;
+max-width: 1400px;
+margin: 0 auto;
+padding: 20px;
+box-sizing: border-box;
 }
 
-.acoes-layout h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #2C3E50;
+.cabecalho-proventos {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 15px;
+margin-bottom: 20px;
 }
 
-/* Container flex para os cards */
-.acoes-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    width: 100%;
-    flex-wrap: wrap; /* permite quebrar linha em telas menores */
+.cabecalho-proventos h1 {
+margin: 0;
+color: #2C3E50;
+font-size: 26px;
 }
 
-/* Card de navegação */
-.card-cadastro {
-    width: 320px;
-    flex: 0 0 auto;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.cabecalho-proventos p {
+margin: 5px 0 0;
+color: #6C757D;
+font-size: 14px;
 }
 
-.card-cadastro h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #2C3E50;
+.proventos-container {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 15px;
 }
 
-.card-cadastro p {
-    font-size: 14px;
-    color: #666;
+.card-provento {
+background: white;
+border-radius: 10px;
+padding: 20px;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+text-decoration: none;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+min-height: 150px;
+box-sizing: border-box;
+transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Efeito hover */
-.card-cadastro:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0,0,0,0.3);
+.card-provento:hover {
+transform: translateY(-3px);
+box-shadow: 0 5px 14px rgba(0, 0, 0, 0.16);
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .acoes-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    .card-cadastro {
-        width: 100%;
-    }
+.card-provento-conteudo h2 {
+margin: 0 0 10px;
+font-size: 20px;
+color: #2C3E50;
+}
+
+.card-provento-conteudo p {
+margin: 0;
+font-size: 14px;
+line-height: 1.5;
+color: #6C757D;
+}
+
+.card-provento-acao {
+margin-top: 18px;
+font-size: 14px;
+font-weight: bold;
+color: #2C3E50;
+}
+
+@media (max-width: 900px) {
+.proventos-container {
+grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 600px) {
+.proventos-layout {
+padding: 15px;
+}
+
+.cabecalho-proventos h1 {
+font-size: 22px;
+}
+
+.card-provento {
+min-height: auto;
+}
 }
