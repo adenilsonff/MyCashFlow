@@ -1,17 +1,14 @@
-CREATE 
-TABLE corretora_taxas (
-id INT AUTO_INCREMENT PRIMARY KEY,
-corretora_id INT NOT NULL,
-nome_taxa VARCHAR(100) NOT NULL,
-percentual DECIMAL(10,5) NOT NULL,
-FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
-ON DELETE CASCADE
-);
---------------------------------------------------------------
-CREATE TABLE corretora_taxas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    corretora_id INT NOT NULL,
-    nome_taxa VARCHAR(100) NOT NULL,
-    percentual DECIMAL(5,2) NOT NULL,
-    FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
-);
+CREATE TABLE `corretora_taxas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corretora_id` int(11) NOT NULL,
+  `nome_taxa` varchar(100) NOT NULL,
+  `percentual` decimal(10,5) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `corretora_id` (`corretora_id`),
+  CONSTRAINT `corretora_taxas_ibfk_1`
+    FOREIGN KEY (`corretora_id`)
+    REFERENCES `corretoras` (`id`)
+    ON DELETE CASCADE
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;

@@ -1,89 +1,23 @@
-CREATE TABLE operacoes (
-id INT AUTO_INCREMENT PRIMARY KEY,
-corretora_id INT NOT NULL,
-data DATE NOT NULL,
-acao VARCHAR(20) NOT NULL,
-quantidade INT NOT NULL,
-
-valor_compra DECIMAL(15,2) NULL,
-valor_venda DECIMAL(15,2) NULL,
-
-total_compra DECIMAL(15,2) NOT NULL DEFAULT 0,
-total_venda DECIMAL(15,2) NOT NULL DEFAULT 0,
-valor_operacao DECIMAL(15,2) NOT NULL DEFAULT 0,
-lucro_bruto DECIMAL(15,2) NOT NULL DEFAULT 0,
-
-taxas DECIMAL(15,2) NOT NULL DEFAULT 0,
-
-deducao_1 DECIMAL(15,2) NOT NULL DEFAULT 0,
-imposto_20 DECIMAL(15,2) NOT NULL DEFAULT 0,
-lucro_desc DECIMAL(15,2) NOT NULL DEFAULT 0,
-darf DECIMAL(15,2) NOT NULL DEFAULT 0,
-lucro_final DECIMAL(15,2) NOT NULL DEFAULT 0,
-
-criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
-ON DELETE CASCADE
-);
-
-
---------------------------------------------------------
-CREATE TABLE operacoes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    corretora_id INT NOT NULL,
-    data DATE NOT NULL,
-    acao VARCHAR(20) NOT NULL,
-    quantidade INT NOT NULL,
-    valor_compra DECIMAL(15,2) NOT NULL,
-    valor_venda DECIMAL(15,2) NOT NULL,
-
-    -- campos calculados
-    total_compra DECIMAL(15,2) NOT NULL,
-    total_venda DECIMAL(15,2) NOT NULL,
-    valor_operacao DECIMAL(15,2) NOT NULL,
-    lucro_bruto DECIMAL(15,2) NOT NULL,
-
-    taxa_liquidacao DECIMAL(15,2) NOT NULL,
-    taxa_emolumentos DECIMAL(15,2) NOT NULL,
-    taxas DECIMAL(15,2) NOT NULL,
-
-    deducao_1 DECIMAL(15,2) NOT NULL,
-    lucro_desc DECIMAL(15,2) NOT NULL,
-    darf DECIMAL(15,2) NOT NULL,
-    lucro_final DECIMAL(15,2) NOT NULL,
-
-    -- controle
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
-----------------------------------------
-
-CREATE TABLE operacoes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    corretora_id INT NOT NULL,
-    data DATE NOT NULL,
-    acao VARCHAR(20) NOT NULL,
-    quantidade INT NOT NULL,
-    valor_compra DECIMAL(10,2) NOT NULL,
-    valor_venda DECIMAL(10,2) NOT NULL,
-    media DECIMAL(10,2),          -- preço médio
-    meta DECIMAL(10,2),           -- meta de preço
-    percentual DECIMAL(10,2),     -- % de variação
-    taxas DECIMAL(10,2),          -- soma das taxas aplicadas
-    deducao_1 DECIMAL(10,2),      -- dedução 1% (se aplicável)
-    total_compra DECIMAL(10,2),   -- total da compra
-    total_venda DECIMAL(10,2),    -- total da venda
-    valor_operacao DECIMAL(10,2), -- valor da operação
-    lucro_bruto DECIMAL(10,2),    -- lucro antes das taxas
-    lucro_desc DECIMAL(10,2),     -- lucro após descontos
-    total DECIMAL(10,2),          -- total final
-    darf DECIMAL(10,2),           -- imposto DARF
-    lucro DECIMAL(10,2),          -- lucro líquido
-    FOREIGN KEY (corretora_id) REFERENCES corretoras(id)
-);
-
-
-
-
+CREATE TABLE `operacoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corretora_id` int(11) NOT NULL,
+  `data` date NOT NULL,
+  `acao` varchar(20) NOT NULL,
+  `quantidade` int(11) NOT NULL,
+  `valor_compra` decimal(15,2) DEFAULT NULL,
+  `valor_venda` decimal(15,2) DEFAULT NULL,
+  `total_compra` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `total_venda` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `valor_operacao` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_bruto` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `taxas` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `deducao_1` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `imposto_20` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_desc` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `darf` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_final` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `corretora_id` (`corretora_id`),
+  CONSTRAINT `operacoes_ibfk_1` FOREIGN KEY (`corretora_id`) REFERENCES `corretoras` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

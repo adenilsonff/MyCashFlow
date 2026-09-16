@@ -12,6 +12,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 require_once __DIR__ . '/../includes/mercado_api.php';
+require_once __DIR__ . '/../includes/carteiras_posicoes.php';
 
 $usuario_id = (int)$_SESSION['usuario_id'];
 
@@ -76,9 +77,7 @@ function carteiraLogos($ticker, $atual, array $historico) {
     return array_slice($urls, 0, 5);
 }
 
-function acoesTicker($ticker) {
-    return preg_replace('/\.SA$/', '', strtoupper(trim($ticker)));
-}
+
 
 function nomeTipoAtivo($tipo) {
     $tipos = [
@@ -91,92 +90,7 @@ function nomeTipoAtivo($tipo) {
     return $tipos[$tipo] ?? $tipo;
 }
 
-function acoesConsolidar(array $operacoes) {
-    usort($operacoes, function ($a, $b) {
-        return strcmp($a['data'], $b['data']) ?: ($a['id'] <=> $b['id']);
-    });
 
-    $posicoes = [];
-
-    foreach ($operacoes as $op) {
-        $ticker = acoesTicker($op['ticker']);
-        $tipoAtivo = $op['tipo_ativo'] ?? '';
-        $chave = $ticker . '|' . $tipoAtivo;
-
-        if (!isset($posicoes[$chave])) {
-            $posicoes[$chave] = [
-                'ticker' => $ticker,
-                'tipo_ativo' => $tipoAtivo,
-                'quantidade_total' => 0,
-                'total_investido' => 0.0,
-                'valor_medio_ponderado' => 0.0,
-                'logo' => null
-            ];
-        }
-
-        $p = &$posicoes[$chave];
-        $q = abs((int)$op['quantidade']);
-        $preco = (float)$op['valor_unitario'];
-        $tipoOperacao = $op['tipo_operacao'] ?? '';
-
-        if (
-            $q === 0 ||
-            $preco <= 0 ||
-            !is_finite($preco) ||
-            !in_array($tipoOperacao, ['compra', 'venda'], true) ||
-            !in_array($tipoAtivo, ['acao', 'fii', 'etf', 'bdr'], true) ||
-            ($tipoOperacao === 'compra' && $op['quantidade'] < 0)
-        ) {
-            throw new DomainException(
-                "Operação inválida no histórico de " . $ticker . "."
-            );
-        }
-
-        if ($tipoOperacao === 'compra') {
-            $p['total_investido'] += $q * $preco;
-            $p['quantidade_total'] += $q;
-            $p['valor_medio_ponderado'] =
-                $p['total_investido'] / $p['quantidade_total'];
-        } else {
-            if ($q > $p['quantidade_total']) {
-                throw new DomainException(
-                    "Venda de " . $q . " unidades de " . $ticker .
-                    " em " . date('d/m/Y', strtotime($op['data'])) .
-                    " excede a posição disponível (" .
-                    $p['quantidade_total'] . " unidades)."
-                );
-            }
-
-            $p['quantidade_total'] -= $q;
-            $p['total_investido'] =
-                $p['quantidade_total'] * $p['valor_medio_ponderado'];
-
-            if ($p['quantidade_total'] === 0) {
-                $p['total_investido'] = 0.0;
-                $p['valor_medio_ponderado'] = 0.0;
-            }
-        }
-
-        if (
-            !empty($op['logo']) &&
-            filter_var($op['logo'], FILTER_VALIDATE_URL) &&
-            strtolower(parse_url($op['logo'], PHP_URL_SCHEME) ?? '') === 'https'
-        ) {
-            $p['logo'] = $op['logo'];
-        }
-
-        unset($p);
-    }
-
-    ksort($posicoes);
-
-    return array_filter(
-        $posicoes,
-        function ($p) {
-            return $p['quantidade_total'] > 0;
-        }
-    );
-}
 
 function getDadosAcao($ticker) {
     $ticker = strtoupper(trim($ticker));

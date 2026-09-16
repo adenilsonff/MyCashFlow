@@ -1,0 +1,368 @@
+.daytrade-rel-layout {
+max-width: 1400px;
+margin: 0 auto;
+padding: 24px;
+}
+
+.daytrade-rel-cabecalho {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 20px;
+margin-bottom: 24px;
+}
+
+.daytrade-rel-cabecalho h1 {
+margin: 0 0 6px;
+color: #2C3E50;
+font-size: 30px;
+}
+
+.daytrade-rel-cabecalho p {
+margin: 0;
+color: #6C757D;
+font-size: 15px;
+}
+
+.daytrade-rel-acoes {
+display: flex;
+align-items: end;
+gap: 12px;
+flex-wrap: wrap;
+}
+
+.daytrade-rel-filtro {
+display: flex;
+align-items: end;
+gap: 10px;
+flex-wrap: wrap;
+}
+
+.daytrade-rel-campo {
+display: flex;
+flex-direction: column;
+gap: 5px;
+}
+
+.daytrade-rel-campo label {
+font-size: 13px;
+font-weight: 600;
+color: #2C3E50;
+}
+
+.daytrade-rel-campo select {
+min-width: 140px;
+height: 38px;
+border: 1px solid #D5D8DC;
+border-radius: 6px;
+padding: 0 10px;
+background: #FFFFFF;
+color: #2C3E50;
+}
+
+.daytrade-rel-filtrar,
+.daytrade-rel-imprimir {
+height: 38px;
+border: 0;
+border-radius: 6px;
+padding: 0 16px;
+background: #2C3E50;
+color: #FFFFFF;
+cursor: pointer;
+font-weight: 600;
+}
+
+.daytrade-rel-filtrar:hover,
+.daytrade-rel-imprimir:hover {
+background: #1A252F;
+}
+
+.daytrade-rel-secao {
+background: #FFFFFF;
+border: 1px solid #E5E7E9;
+border-radius: 10px;
+padding: 20px;
+margin-bottom: 24px;
+}
+
+.daytrade-rel-titulo {
+margin-bottom: 20px;
+}
+
+.daytrade-rel-titulo h2 {
+margin: 0 0 5px;
+color: #2C3E50;
+font-size: 22px;
+}
+
+.daytrade-rel-titulo span {
+color: #6C757D;
+font-size: 14px;
+}
+
+.daytrade-rel-resumo {
+display: grid;
+grid-template-columns: repeat(5, minmax(0, 1fr));
+gap: 14px;
+}
+
+.daytrade-rel-card {
+background: #F7F9FA;
+border: 1px solid #E5E7E9;
+border-radius: 8px;
+padding: 15px;
+min-width: 0;
+}
+
+.daytrade-rel-card span {
+display: block;
+margin-bottom: 8px;
+color: #6C757D;
+font-size: 13px;
+}
+
+.daytrade-rel-card strong {
+display: block;
+color: #2C3E50;
+font-size: 20px;
+line-height: 1.2;
+}
+
+.resultado-positivo {
+color: #2E7D32 !important;
+}
+
+.resultado-negativo {
+color: #C62828 !important;
+}
+
+.resultado-neutro {
+color: #6C757D !important;
+}
+
+.daytrade-rel-aviso {
+margin: 0 0 15px;
+padding: 10px 12px;
+border: 1px solid #F0C36D;
+border-radius: 6px;
+background: #FFF8E1;
+color: #7A5B00;
+font-size: 13px;
+}
+
+.daytrade-rel-grafico {
+margin: 18px 0 0;
+padding: 16px;
+border: 1px solid #E5E7E9;
+border-radius: 8px;
+background: #FFFFFF;
+}
+
+.daytrade-rel-grafico-wrapper {
+position: relative;
+width: 100%;
+height: 320px;
+}
+
+.daytrade-rel-tabela-wrapper {
+width: 100%;
+overflow-x: auto;
+}
+
+.daytrade-rel-tabela {
+width: 100%;
+border-collapse: collapse;
+min-width: 1000px;
+font-size: 14px;
+}
+
+.daytrade-rel-tabela-detalhes {
+min-width: 1500px;
+}
+
+.daytrade-rel-tabela th,
+.daytrade-rel-tabela td {
+padding: 10px 12px;
+border-bottom: 1px solid #E5E7E9;
+text-align: right;
+white-space: nowrap;
+}
+
+.daytrade-rel-tabela th:first-child,
+.daytrade-rel-tabela td:first-child {
+text-align: left;
+}
+
+.daytrade-rel-tabela-detalhes th:nth-child(2),
+.daytrade-rel-tabela-detalhes td:nth-child(2),
+.daytrade-rel-tabela-detalhes th:nth-child(3),
+.daytrade-rel-tabela-detalhes td:nth-child(3) {
+text-align: left;
+}
+
+.daytrade-rel-tabela thead th {
+background: #F7F9FA;
+color: #2C3E50;
+font-weight: 700;
+}
+
+.daytrade-rel-tabela tbody td {
+color: #2C3E50;
+}
+
+.daytrade-rel-tabela tbody tr:hover {
+background: #FAFBFC;
+}
+
+.daytrade-rel-tabela tfoot td {
+background: #F7F9FA;
+font-weight: 700;
+color: #2C3E50;
+}
+
+.mes-atual {
+background: #F4F8FB;
+}
+
+.indicador-mes-atual {
+display: inline-block;
+margin-left: 6px;
+padding: 2px 6px;
+border-radius: 10px;
+background: #2C3E50;
+color: #FFFFFF;
+font-size: 10px;
+font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+.daytrade-rel-resumo {
+grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.daytrade-rel-cabecalho {
+align-items: flex-start;
+}
+}
+
+@media (max-width: 900px) {
+.daytrade-rel-resumo {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+}
+
+@media (max-width: 800px) {
+.daytrade-rel-cabecalho {
+flex-direction: column;
+align-items: stretch;
+}
+
+.daytrade-rel-acoes {
+align-items: stretch;
+}
+
+.daytrade-rel-filtro {
+width: 100%;
+}
+
+.daytrade-rel-campo {
+flex: 1 1 150px;
+}
+
+.daytrade-rel-campo select {
+width: 100%;
+}
+
+.daytrade-rel-filtrar,
+.daytrade-rel-imprimir {
+flex: 1 1 auto;
+}
+}
+
+@media (max-width: 700px) {
+.daytrade-rel-layout {
+padding: 16px;
+}
+
+.daytrade-rel-filtro {
+flex-direction: column;
+align-items: stretch;
+}
+
+.daytrade-rel-campo,
+.daytrade-rel-campo select,
+.daytrade-rel-filtrar,
+.daytrade-rel-imprimir {
+width: 100%;
+}
+
+.daytrade-rel-resumo {
+grid-template-columns: 1fr;
+}
+
+.daytrade-rel-secao {
+padding: 14px;
+}
+
+.daytrade-rel-cabecalho h1 {
+font-size: 25px;
+}
+
+.daytrade-rel-grafico-wrapper {
+height: 260px;
+}
+}
+
+@media print {
+header,
+nav,
+footer,
+.daytrade-rel-acoes {
+display: none !important;
+}
+
+body {
+background: #FFFFFF !important;
+}
+
+.daytrade-rel-layout {
+max-width: none;
+padding: 0;
+}
+
+.daytrade-rel-cabecalho {
+margin-bottom: 16px;
+}
+
+.daytrade-rel-secao {
+border: 0;
+box-shadow: none;
+page-break-inside: avoid;
+padding: 10px 0;
+margin-bottom: 15px;
+}
+
+.daytrade-rel-card,
+.daytrade-rel-grafico {
+break-inside: avoid;
+}
+
+.daytrade-rel-tabela-wrapper {
+overflow: visible;
+}
+
+.daytrade-rel-tabela,
+.daytrade-rel-tabela-detalhes {
+min-width: 0;
+font-size: 9px;
+}
+
+.daytrade-rel-tabela th,
+.daytrade-rel-tabela td {
+padding: 5px;
+}
+
+.daytrade-rel-grafico-wrapper {
+height: 260px;
+}
+}

@@ -1,0 +1,549 @@
+.saldos-layout {
+max-width: 1400px;
+margin: 0 auto;
+padding: 24px;
+}
+
+.saldos-cabecalho {
+display: flex;
+justify-content: space-between;
+align-items: center;
+gap: 20px;
+margin-bottom: 24px;
+}
+
+.saldos-cabecalho h1 {
+margin: 0 0 6px;
+color: #2C3E50;
+font-size: 30px;
+}
+
+.saldos-cabecalho p {
+margin: 0;
+color: #6C757D;
+font-size: 15px;
+}
+
+.saldos-acoes {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+}
+
+.saldos-btn,
+.saldos-btn-secundario,
+.saldos-btn-perigo,
+.saldos-btn-tabela {
+min-height: 38px;
+border: 0;
+border-radius: 6px;
+padding: 0 16px;
+cursor: pointer;
+font-weight: 600;
+}
+
+.saldos-btn {
+background: #2C3E50;
+color: #FFFFFF;
+}
+
+.saldos-btn:hover {
+background: #1A252F;
+}
+
+.saldos-btn:disabled {
+opacity: .45;
+cursor: not-allowed;
+}
+
+.saldos-btn-secundario {
+background: #E9ECEF;
+color: #2C3E50;
+}
+
+.saldos-btn-secundario:hover {
+background: #DDE1E4;
+}
+
+.saldos-btn-perigo {
+background: #FFEBEE;
+color: #C62828;
+}
+
+.saldos-btn-perigo:hover {
+background: #FFCDD2;
+}
+
+.saldos-secao {
+background: #FFFFFF;
+border: 1px solid #E5E7E9;
+border-radius: 10px;
+padding: 20px;
+margin-bottom: 24px;
+}
+
+.saldos-titulo {
+margin-bottom: 20px;
+}
+
+.saldos-titulo h2 {
+margin: 0 0 5px;
+color: #2C3E50;
+font-size: 22px;
+}
+
+.saldos-titulo span {
+color: #6C757D;
+font-size: 14px;
+}
+
+.saldos-resumo {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 14px;
+max-width: 600px;
+}
+
+.saldos-card {
+background: #F7F9FA;
+border: 1px solid #E5E7E9;
+border-radius: 8px;
+padding: 15px;
+}
+
+.saldos-card span {
+display: block;
+margin-bottom: 8px;
+color: #6C757D;
+font-size: 13px;
+}
+
+.saldos-card strong {
+display: block;
+color: #2C3E50;
+font-size: 20px;
+line-height: 1.2;
+}
+
+.saldos-card-total strong {
+font-size: 24px;
+}
+
+.positivo {
+color: #2E7D32 !important;
+}
+
+.negativo {
+color: #C62828 !important;
+}
+
+.neutro {
+color: #6C757D !important;
+}
+
+.saldos-contas-grid {
+display: grid;
+grid-template-columns: repeat(3, minmax(0, 1fr));
+gap: 14px;
+}
+
+.saldos-conta {
+border: 1px solid #E5E7E9;
+border-radius: 8px;
+padding: 16px;
+background: #FDFEFE;
+}
+
+.saldos-conta.inativa {
+opacity: .68;
+background: #F7F9FA;
+}
+
+.saldos-conta-topo {
+display: flex;
+justify-content: space-between;
+gap: 12px;
+align-items: flex-start;
+}
+
+.saldos-identificacao {
+display: flex;
+align-items: flex-start;
+gap: 12px;
+min-width: 0;
+}
+
+.saldos-logo {
+width: 46px;
+height: 46px;
+min-width: 46px;
+border: 1px solid #E5E7E9;
+border-radius: 10px;
+background: #FFFFFF;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+}
+
+.saldos-logo img {
+width: 34px;
+height: 34px;
+object-fit: contain;
+}
+
+.saldos-logo span {
+display: flex;
+align-items: center;
+justify-content: center;
+width: 100%;
+height: 100%;
+margin: 0;
+background: #F1F3F5;
+color: #2C3E50;
+font-size: 14px;
+font-weight: 700;
+}
+
+.saldos-conta h3 {
+margin: 0 0 4px;
+font-size: 17px;
+color: #2C3E50;
+word-break: break-word;
+}
+
+.saldos-conta-topo span {
+color: #6C757D;
+font-size: 13px;
+}
+
+.saldos-instituicao {
+display: block;
+font-weight: 600;
+color: #2C3E50 !important;
+margin-bottom: 2px;
+}
+
+.saldos-status-inativa {
+padding: 3px 7px;
+border-radius: 10px;
+background: #E9ECEF;
+font-weight: 600;
+white-space: nowrap;
+}
+
+.saldos-conta-valor {
+display: block;
+margin: 18px 0 12px;
+font-size: 24px;
+}
+
+.saldos-conta-detalhes {
+display: flex;
+justify-content: space-between;
+gap: 10px;
+flex-wrap: wrap;
+color: #6C757D;
+font-size: 12px;
+}
+
+.saldos-conta-acoes {
+display: flex;
+align-items: center;
+gap: 7px;
+flex-wrap: wrap;
+margin-top: 15px;
+}
+
+.saldos-conta-acoes form {
+margin: 0;
+}
+
+.saldos-conta-acoes .saldos-btn-secundario,
+.saldos-conta-acoes .saldos-btn-perigo {
+min-height: 32px;
+padding: 0 11px;
+font-size: 12px;
+}
+
+.saldos-vazio {
+padding: 18px;
+border: 1px dashed #D5D8DC;
+border-radius: 8px;
+color: #6C757D;
+background: #FAFBFC;
+}
+
+.saldos-tabela-wrapper {
+width: 100%;
+overflow-x: auto;
+}
+
+.saldos-tabela {
+width: 100%;
+border-collapse: collapse;
+min-width: 900px;
+font-size: 14px;
+}
+
+.saldos-tabela th,
+.saldos-tabela td {
+padding: 10px 12px;
+border-bottom: 1px solid #E5E7E9;
+text-align: left;
+white-space: nowrap;
+color: #2C3E50;
+}
+
+.saldos-tabela th:nth-last-child(2),
+.saldos-tabela td:nth-last-child(2) {
+text-align: right;
+}
+
+.saldos-tabela th:last-child,
+.saldos-tabela td:last-child {
+text-align: right;
+}
+
+.saldos-tabela thead th {
+background: #F7F9FA;
+font-weight: 700;
+}
+
+.saldos-tabela tbody tr:hover {
+background: #FAFBFC;
+}
+
+.saldos-tabela-acoes {
+display: flex;
+justify-content: flex-end;
+align-items: center;
+gap: 6px;
+}
+
+.saldos-tabela-acoes form {
+margin: 0;
+}
+
+.saldos-btn-tabela {
+min-height: 30px;
+padding: 0 10px;
+background: #E9ECEF;
+color: #2C3E50;
+font-size: 12px;
+}
+
+.saldos-btn-tabela:hover {
+background: #DDE1E4;
+}
+
+.saldos-btn-tabela.perigo {
+background: #FFEBEE;
+color: #C62828;
+}
+
+.saldos-btn-tabela.perigo:hover {
+background: #FFCDD2;
+}
+
+.saldos-sem-acao {
+color: #ADB5BD;
+}
+
+.saldos-mensagem {
+margin-bottom: 20px;
+padding: 11px 14px;
+border-radius: 7px;
+font-size: 14px;
+}
+
+.saldos-mensagem.sucesso {
+background: #E8F5E9;
+border: 1px solid #A5D6A7;
+color: #2E7D32;
+}
+
+.saldos-mensagem.erro {
+background: #FFEBEE;
+border: 1px solid #EF9A9A;
+color: #C62828;
+}
+
+.saldos-modal {
+display: none;
+position: fixed;
+z-index: 1000;
+inset: 0;
+background: rgba(0, 0, 0, .45);
+align-items: center;
+justify-content: center;
+padding: 20px;
+}
+
+.saldos-modal-conteudo {
+position: relative;
+width: 100%;
+max-width: 480px;
+max-height: 90vh;
+overflow-y: auto;
+background: #FFFFFF;
+border-radius: 10px;
+padding: 24px;
+box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+}
+
+.saldos-modal-conteudo h2 {
+margin: 0 0 20px;
+color: #2C3E50;
+font-size: 22px;
+}
+
+.saldos-modal-fechar {
+position: absolute;
+top: 10px;
+right: 14px;
+border: 0;
+background: transparent;
+font-size: 28px;
+color: #6C757D;
+cursor: pointer;
+}
+
+.saldos-form {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+
+.saldos-form label {
+margin-top: 4px;
+font-size: 13px;
+font-weight: 600;
+color: #2C3E50;
+}
+
+.saldos-form input,
+.saldos-form select {
+width: 100%;
+height: 40px;
+box-sizing: border-box;
+border: 1px solid #D5D8DC;
+border-radius: 6px;
+padding: 0 10px;
+background: #FFFFFF;
+color: #2C3E50;
+}
+
+.saldos-form input:focus,
+.saldos-form select:focus {
+outline: none;
+border-color: #85929E;
+}
+
+.saldos-form .saldos-btn {
+margin-top: 12px;
+}
+
+.saldos-outra-instituicao {
+display: none;
+margin-top: 8px;
+}
+
+.saldos-outra-instituicao label {
+display: block;
+margin-bottom: 8px;
+}
+
+.saldos-aviso {
+margin: 2px 0 4px;
+padding: 9px 10px;
+border-radius: 6px;
+background: #FFF8E1;
+border: 1px solid #FFE082;
+color: #795548;
+font-size: 12px;
+line-height: 1.4;
+}
+
+.saldos-transferencia-info {
+padding: 10px 12px;
+margin-bottom: 5px;
+border-radius: 6px;
+background: #F7F9FA;
+border: 1px solid #E5E7E9;
+color: #2C3E50;
+font-size: 13px;
+font-weight: 600;
+}
+
+@media (max-width: 1000px) {
+.saldos-contas-grid {
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+}
+
+@media (max-width: 800px) {
+.saldos-cabecalho {
+flex-direction: column;
+align-items: stretch;
+}
+
+.saldos-acoes {
+width: 100%;
+}
+
+.saldos-acoes .saldos-btn {
+flex: 1 1 160px;
+}
+}
+
+@media (max-width: 700px) {
+.saldos-layout {
+padding: 16px;
+}
+
+.saldos-cabecalho h1 {
+font-size: 25px;
+}
+
+.saldos-secao {
+padding: 14px;
+}
+
+.saldos-resumo,
+.saldos-contas-grid {
+grid-template-columns: 1fr;
+}
+
+.saldos-acoes {
+flex-direction: column;
+}
+
+.saldos-acoes .saldos-btn {
+width: 100%;
+}
+
+.saldos-conta-detalhes {
+flex-direction: column;
+}
+
+.saldos-conta-acoes {
+align-items: stretch;
+}
+
+.saldos-conta-acoes form {
+display: flex;
+}
+
+.saldos-conta-acoes button {
+flex: 1;
+}
+
+.saldos-modal {
+padding: 12px;
+}
+
+.saldos-modal-conteudo {
+padding: 20px;
+}
+}

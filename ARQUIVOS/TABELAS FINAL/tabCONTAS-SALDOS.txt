@@ -1,0 +1,80 @@
+CREATE TABLE `contas_financeiras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `instituicao` varchar(100) DEFAULT NULL,
+  `icone` varchar(255) DEFAULT NULL,
+  `tipo` enum('corrente','poupanca','carteira','corretora','outros') NOT NULL,
+  `saldo_inicial` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `data_saldo_inicial` date NOT NULL,
+  `ativa` tinyint(1) NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_cf_usuario` (`usuario_id`),
+  KEY `idx_cf_usuario_ativa` (`usuario_id`,`ativa`),
+  CONSTRAINT `fk_cf_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+----------------------------
+
+CREATE TABLE movimentacoes_financeiras (
+    id INT NOT NULL AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    conta_id INT NOT NULL,
+
+    tipo ENUM(
+        'entrada',
+        'saida',
+        'transferencia_entrada',
+        'transferencia_saida'
+    ) NOT NULL,
+
+    data DATE NOT NULL,
+    descricao VARCHAR(150) NOT NULL,
+    valor DECIMAL(15,2) NOT NULL,
+
+    transferencia_id CHAR(36) DEFAULT NULL,
+
+    origem_modulo ENUM(
+        'manual',
+        'receita',
+        'despesa',
+        'cartao',
+        'provento',
+        'investimento',
+        'daytrade'
+    ) NOT NULL DEFAULT 'manual',
+
+    origem_id INT DEFAULT NULL,
+
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    INDEX idx_mf_usuario (usuario_id),
+    INDEX idx_mf_conta (conta_id),
+    INDEX idx_mf_usuario_data (usuario_id, data),
+    INDEX idx_mf_conta_data (conta_id, data),
+    INDEX idx_mf_transferencia (transferencia_id),
+    INDEX idx_mf_origem (usuario_id, origem_modulo, origem_id),
+
+    CONSTRAINT fk_mf_usuario
+        FOREIGN KEY (usuario_id)
+        REFERENCES usuarios(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_mf_conta
+        FOREIGN KEY (conta_id)
+        REFERENCES contas_financeiras(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT chk_mf_valor_positivo
+        CHECK (valor > 0)
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_general_ci;

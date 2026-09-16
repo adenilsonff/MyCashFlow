@@ -1,0 +1,30 @@
+nav { flex-wrap: wrap; gap: 8px 12px; }
+.patrimonio-layout { box-sizing: border-box; width: 100%; max-width: 1400px; margin: 0 auto; padding: 24px; flex: 1; color: #2c3e50; }
+.patrimonio-layout h1 { font-size: 30px; margin: 0 0 8px; }
+.patrimonio-intro, .patrimonio-nota { color: #52616b; line-height: 1.6; }
+.patrimonio-resumo { display: grid; grid-template-columns: 1.3fr 1fr 1fr; background: white; border-radius: 10px; overflow: hidden; margin: 24px 0; box-shadow: 0 2px 8px #0000000d; }
+.patrimonio-resumo section { padding: 24px; min-width: 0; }
+.patrimonio-resumo h2 { font-size: 15px; margin: 0 0 12px; }
+.patrimonio-resumo strong { font-size: clamp(20px, 2.4vw, 30px); overflow-wrap: anywhere; }
+.patrimonio-resumo .patrimonio-destaque { background: #2c3e50; color: white; }
+.patrimonio-secao { margin: 24px 0; padding: 24px; background: white; border: 1px solid #dde3e6; border-radius: 10px; }
+.patrimonio-secao-topo { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.patrimonio-secao h2 { font-size: 21px; margin: 0; }
+.patrimonio-secao a { color: #24577d; font-weight: bold; }
+.patrimonio-secao p { font-size: 14px; line-height: 1.6; }
+.patrimonio-tabela { overflow-x: auto; margin-top: 16px; }
+.patrimonio-layout table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.patrimonio-layout caption { text-align: left; font-weight: bold; padding: 12px 0; }
+.patrimonio-layout th, .patrimonio-layout td { text-align: left; padding: 14px 12px; border-bottom: 1px solid #e7ecef; vertical-align: top; }
+.patrimonio-layout thead { background: #f3f6f8; }
+.patrimonio-layout .numero { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.patrimonio-layout small { display: block; max-width: 380px; margin-top: 7px; color: #52616b; font-size: 12px; font-weight: normal; line-height: 1.5; }
+.patrimonio-aviso { border-left: 4px solid #aa7418; background: #fff5dc; color: #63460f; padding: 14px 18px; line-height: 1.5; }
+.patrimonio-nota { font-size: 13px; }
+@media (max-width: 760px) {
+    .patrimonio-layout { padding: 16px; }
+    .patrimonio-resumo { grid-template-columns: 1fr; }
+    .patrimonio-resumo section { padding: 20px; }
+    .patrimonio-secao { padding: 16px; }
+    .patrimonio-layout table { min-width: 620px; }
+}
