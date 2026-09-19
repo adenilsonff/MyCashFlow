@@ -144,6 +144,12 @@ final class MercadoApi {
         $q['logo']=$this->logo($d['logourl'] ?? null);
         $q['market_time']=$this->stamp($d['regularMarketTime'] ?? null);
         $q['fetched_at']=$this->now(); $q['error']='';
+        foreach (['change'=>'regularMarketChange','change_percent'=>'regularMarketChangePercent',
+            'volume'=>'regularMarketVolume'] as $field=>$key) {
+            $v=$d[$key] ?? null;
+            $q[$field]=is_numeric($v) && is_finite((float)$v)
+                && ($field!=='volume' || $v>=0)?(float)$v:null;
+        }
         return $q;
     }
     public function stocks(array $symbols,$currency) {
@@ -152,12 +158,13 @@ final class MercadoApi {
             $s=strtoupper(trim((string)$s));
             return $currency==='BRL'?preg_replace('/\.SA$/','',$s):$s;
         },$symbols)));
+        $defaults=['change'=>null,'change_percent'=>null,'volume'=>null];
         $result=[]; $pending=[];
         foreach ($symbols as $s) {
-            if (!preg_match('/^[A-Z0-9][A-Z0-9.-]{0,19}$/D',$s)) { $result[$s]=$this->blank($s,$currency); continue; }
+            if (!preg_match('/^[A-Z0-9][A-Z0-9.-]{0,19}$/D',$s)) { $result[$s]=$this->blank($s,$currency)+$defaults; continue; }
             $e=$this->read('stock:'.$currency.':'.$s);
             if ($this->due($e)) $pending[]=$s;
-            else $result[$s]=$this->expose($e,$s,$currency);
+            else $result[$s]=$this->expose($e,$s,$currency)+$defaults;
         }
         if (!$pending) return $result;
         $plan=$this->read('batch-limit');
@@ -184,7 +191,7 @@ final class MercadoApi {
                 }
                 foreach ($group as $s) {
                     $q=isset($items[$s])?$this->stockItem($items[$s],$s,$currency):null;
-                    $result[$s]=$this->save('stock:'.$currency.':'.$s,$q,$this->reason($r),$s,$currency);
+                    $result[$s]=$this->save('stock:'.$currency.':'.$s,$q,$this->reason($r),$s,$currency)+$defaults;
                 }
             }
             $pending=$retry;

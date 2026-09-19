@@ -2,12 +2,14 @@ CREATE TABLE contas (
     id INT(11) NOT NULL AUTO_INCREMENT,
     nome VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     valor DECIMAL(10,2) NOT NULL,
-    tipo ENUM('unica','mensal') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    tipo ENUM('unica','parcelada','recorrente') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     vencimento DATE NOT NULL,
     paga TINYINT(1) NULL DEFAULT 0,
     porcentagem DECIMAL(5,2) NULL DEFAULT NULL,
     dias_restantes INT(11) NULL DEFAULT NULL,
     categoria VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pessoal',
     grupo_recorrencia VARCHAR(36) NULL DEFAULT NULL,
+    parcela_atual INT(11) NULL DEFAULT NULL,
+    total_parcelas INT(11) NULL DEFAULT NULL,
     PRIMARY KEY (id)
 );

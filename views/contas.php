@@ -93,80 +93,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vencimentoInformado = $_POST['vencimento'] ?? '';
         $valor = normalizarValor($_POST['valor'] ?? 0);
 
+        $totalParcelas = $tipo === 'parcelada'
+            ? filter_var($_POST['total_parcelas'] ?? '', FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1, 'max_range' => 2147483647]
+            ])
+            : null;
+        $vencimento = is_string($vencimentoInformado)
+            ? DateTime::createFromFormat('!Y-m-d', $vencimentoInformado)
+            : false;
+
         if (
             $nome !== '' &&
-            in_array($tipo, ['unica', 'mensal'], true) &&
+            in_array($tipo, ['unica', 'parcelada', 'recorrente'], true) &&
             in_array($categoria, ['pessoal', 'conjunta'], true) &&
-            $vencimentoInformado !== '' &&
-            $valor >= 0
+            $vencimento && $vencimento->format('Y-m-d') === $vencimentoInformado &&
+            (int)$vencimento->format('Y') >= 1000 &&
+            is_finite($valor) && $valor >= 0 &&
+            ($tipo !== 'parcelada' || $totalParcelas !== false)
         ) {
-            $vencimento = new DateTime($vencimentoInformado);
+            $quantidade = $tipo === 'parcelada' ? $totalParcelas : ($tipo === 'recorrente' ? 12 : 1);
+            $diaOriginal = (int)$vencimento->format('d');
+            $mesOriginal = (int)$vencimento->format('m');
+            $anoOriginal = (int)$vencimento->format('Y');
 
-            if ($tipo === 'mensal') {
-                $grupoRecorrencia = gerarGrupoRecorrencia();
+            if ($quantidade > (9999 - $anoOriginal) * 12 + (12 - $mesOriginal) + 1) {
+                voltarContas($mes, $ano, $categoriaFiltro);
+            }
 
-                $diaOriginal = (int)$vencimento->format('d');
-                $mesOriginal = (int)$vencimento->format('m');
-                $anoOriginal = (int)$vencimento->format('Y');
+            $grupoRecorrencia = $tipo === 'unica' ? null : gerarGrupoRecorrencia();
+            if (!$conn->begin_transaction()) {
+                throw new RuntimeException('Não foi possível iniciar o cadastro.');
+            }
+            try {
+                $stmt = $conn->prepare("
+                    INSERT INTO contas
+                    (nome, tipo, categoria, vencimento, paga, valor, grupo_recorrencia, parcela_atual, total_parcelas)
+                    VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)
+                ");
+                if (!$stmt) {
+                    throw new RuntimeException('Não foi possível preparar o cadastro.');
+                }
+                $dataFormatada = '';
+                $parcelaAtual = null;
+                $stmt->bind_param("ssssdsii", $nome, $tipo, $categoria, $dataFormatada,
+                    $valor, $grupoRecorrencia, $parcelaAtual, $totalParcelas);
 
-                for ($i = 0; $i < 12; $i++) {
-                    $primeiroDia = new DateTime(
-                        sprintf('%04d-%02d-01', $anoOriginal, $mesOriginal)
-                    );
-
+                for ($i = 0; $i < $quantidade; $i++) {
+                    $primeiroDia = new DateTime(sprintf('%04d-%02d-01', $anoOriginal, $mesOriginal));
                     if ($i > 0) {
                         $primeiroDia->modify("+$i month");
                     }
-
-                    $ultimoDia = (int)$primeiroDia->format('t');
-                    $dia = min($diaOriginal, $ultimoDia);
-
-                    $dataFormatada = sprintf(
-                        '%04d-%02d-%02d',
-                        (int)$primeiroDia->format('Y'),
-                        (int)$primeiroDia->format('m'),
-                        $dia
-                    );
-
-                    $stmt = $conn->prepare("
-                        INSERT INTO contas
-                        (nome, tipo, categoria, vencimento, paga, valor, grupo_recorrencia)
-                        VALUES (?, ?, ?, ?, 0, ?, ?)
-                    ");
-
-                    $stmt->bind_param(
-                        "ssssds",
-                        $nome,
-                        $tipo,
-                        $categoria,
-                        $dataFormatada,
-                        $valor,
-                        $grupoRecorrencia
-                    );
-
-                    $stmt->execute();
-                    $stmt->close();
+                    $dia = min($diaOriginal, (int)$primeiroDia->format('t'));
+                    $dataFormatada = sprintf('%04d-%02d-%02d',
+                        (int)$primeiroDia->format('Y'), (int)$primeiroDia->format('m'), $dia);
+                    $parcelaAtual = $tipo === 'parcelada' ? $i + 1 : null;
+                    if (!$stmt->execute()) {
+                        throw new RuntimeException('Não foi possível cadastrar os lançamentos.');
+                    }
                 }
-            } else {
-                $dataFormatada = $vencimento->format('Y-m-d');
-
-                $stmt = $conn->prepare("
-                    INSERT INTO contas
-                    (nome, tipo, categoria, vencimento, paga, valor, grupo_recorrencia)
-                    VALUES (?, ?, ?, ?, 0, ?, NULL)
-                ");
-
-                $stmt->bind_param(
-                    "ssssd",
-                    $nome,
-                    $tipo,
-                    $categoria,
-                    $dataFormatada,
-                    $valor
-                );
-
-                $stmt->execute();
                 $stmt->close();
+                if (!$conn->commit()) {
+                    throw new RuntimeException('Não foi possível concluir o cadastro.');
+                }
+            } catch (Throwable $e) {
+                $conn->rollback();
+                throw $e;
             }
         }
 
@@ -192,79 +183,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         voltarContas($mes, $ano, $categoriaFiltro);
     }
 
-    if (isset($_POST['ajustar_valor'])) {
+    if (isset($_POST['ajustar_valor']) || isset($_POST['deletar_conta'])) {
         $id = (int)($_POST['id'] ?? 0);
-        $novoValor = normalizarValor($_POST['novo_valor'] ?? 0);
+        $ajustar = isset($_POST['ajustar_valor']);
+        $novoValor = $ajustar ? normalizarValor($_POST['novo_valor'] ?? 0) : 0;
+        $alcance = $_POST['alcance'] ?? 'somente';
 
-        if ($id > 0 && $novoValor >= 0) {
-            $stmt = $conn->prepare("
-                UPDATE contas
-                SET valor = ?
-                WHERE id = ?
-            ");
-
-            $stmt->bind_param("di", $novoValor, $id);
-            $stmt->execute();
-            $stmt->close();
-        }
-
-        voltarContas($mes, $ano, $categoriaFiltro);
-    }
-
-    if (isset($_POST['deletar_conta'])) {
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id > 0) {
+        if ($id > 0 && is_finite($novoValor) && $novoValor >= 0 &&
+            in_array($alcance, ['somente', 'proximos'], true)) {
             $stmt = $conn->prepare("
                 SELECT tipo, vencimento, grupo_recorrencia
-                FROM contas
-                WHERE id = ?
-                LIMIT 1
+                FROM contas WHERE id = ? LIMIT 1
             ");
-
             $stmt->bind_param("i", $id);
             $stmt->execute();
-            $resultadoConta = $stmt->get_result();
-            $contaExcluir = $resultadoConta->fetch_assoc();
+            $contaSelecionada = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
-            if ($contaExcluir) {
-                if (
-                    $contaExcluir['tipo'] === 'mensal' &&
-                    !empty($contaExcluir['grupo_recorrencia'])
-                ) {
-                    $grupoRecorrencia = $contaExcluir['grupo_recorrencia'];
-                    $vencimento = $contaExcluir['vencimento'];
+            if ($contaSelecionada) {
+                $aplicarProximos = $alcance === 'proximos' &&
+                    in_array($contaSelecionada['tipo'], ['parcelada', 'recorrente'], true) &&
+                    !empty($contaSelecionada['grupo_recorrencia']);
 
-                    $stmt = $conn->prepare("
-                        DELETE FROM contas
-                        WHERE grupo_recorrencia = ?
-                        AND vencimento >= ?
-                    ");
-
-                    $stmt->bind_param(
-                        "ss",
-                        $grupoRecorrencia,
-                        $vencimento
-                    );
-
-                    $stmt->execute();
-                    $stmt->close();
+                if ($aplicarProximos) {
+                    $grupoRecorrencia = $contaSelecionada['grupo_recorrencia'];
+                    $vencimento = $contaSelecionada['vencimento'];
+                    $tipoSelecionado = $contaSelecionada['tipo'];
+                    if ($ajustar) {
+                        $stmt = $conn->prepare("
+                            UPDATE contas SET valor = ?
+                            WHERE grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
+                        ");
+                        $stmt->bind_param("dsss", $novoValor, $grupoRecorrencia, $vencimento, $tipoSelecionado);
+                    } else {
+                        $stmt = $conn->prepare("
+                            DELETE FROM contas
+                            WHERE grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
+                        ");
+                        $stmt->bind_param("sss", $grupoRecorrencia, $vencimento, $tipoSelecionado);
+                    }
+                } elseif ($ajustar) {
+                    $stmt = $conn->prepare("UPDATE contas SET valor = ? WHERE id = ?");
+                    $stmt->bind_param("di", $novoValor, $id);
                 } else {
-                    $stmt = $conn->prepare("
-                        DELETE FROM contas
-                        WHERE id = ?
-                    ");
-
+                    $stmt = $conn->prepare("DELETE FROM contas WHERE id = ?");
                     $stmt->bind_param("i", $id);
-                    $stmt->execute();
-                    $stmt->close();
                 }
+                $stmt->execute();
+                $stmt->close();
             }
         }
-
         voltarContas($mes, $ano, $categoriaFiltro);
     }
+
 }
 
 $sql = "
@@ -276,7 +247,9 @@ $sql = "
         vencimento,
         paga,
         valor,
-        grupo_recorrencia
+        grupo_recorrencia,
+        parcela_atual,
+        total_parcelas
     FROM contas
     WHERE MONTH(vencimento) = ?
     AND YEAR(vencimento) = ?
@@ -465,11 +438,11 @@ if ($categoriaFiltro === 'pessoal') {
                             ? ((float)$c['valor'] / $total) * 100
                             : 0;
 
-                        $mensal = $c['tipo'] === 'mensal';
-
-                        $mensagemExclusao = $mensal
-                            ? 'Tem certeza que deseja excluir esta conta mensal e todos os lançamentos futuros desta recorrência? Os meses anteriores serão mantidos.'
-                            : 'Tem certeza que deseja excluir esta conta?';
+                        $temSerie = in_array($c['tipo'], ['parcelada', 'recorrente'], true);
+                        $rotuloTipo = $c['tipo'] === 'recorrente' ? 'Recorrente' : 'Única';
+                        if ($c['tipo'] === 'parcelada') {
+                            $rotuloTipo = 'Parcelada ' . (int)$c['parcela_atual'] . '/' . (int)$c['total_parcelas'];
+                        }
                     ?>
                         <tr class="<?= $classeLinha ?>">
                             <td class="nome-conta">
@@ -477,7 +450,7 @@ if ($categoriaFiltro === 'pessoal') {
                             </td>
 
                             <td>
-                                <?= $mensal ? 'Mensal' : 'Única' ?>
+                                <?= htmlspecialchars($rotuloTipo) ?>
                             </td>
 
                             <td>
@@ -582,38 +555,24 @@ if ($categoriaFiltro === 'pessoal') {
                                                 2,
                                                 '.',
                                                 ''
-                                            ) ?>'
+                                            ) ?>',
+                                            <?= $temSerie ? 'true' : 'false' ?>
                                         )"
                                     >
                                         Ajustar
                                     </button>
 
-                                    <form
-                                        method="POST"
-                                        class="form-excluir"
-                                        onsubmit="return confirm(<?= htmlspecialchars(
-                                            json_encode(
-                                                $mensagemExclusao,
-                                                JSON_UNESCAPED_UNICODE
-                                            ),
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ) ?>);"
+                                    <button
+                                        type="button"
+                                        class="btn-acao btn-excluir"
+                                        onclick="abrirExclusao(
+                                            <?= (int)$c['id'] ?>,
+                                            <?= htmlspecialchars(json_encode($c['nome'], JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8') ?>,
+                                            <?= $temSerie ? 'true' : 'false' ?>
+                                        )"
                                     >
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?= (int)$c['id'] ?>"
-                                        >
-
-                                        <button
-                                            type="submit"
-                                            name="deletar_conta"
-                                            class="btn-acao btn-excluir"
-                                        >
-                                            Excluir
-                                        </button>
-                                    </form>
+                                        Excluir
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -685,10 +644,15 @@ if ($categoriaFiltro === 'pessoal') {
                         Única
                     </option>
 
-                    <option value="mensal">
-                        Mensal
-                    </option>
+                    <option value="parcelada">Parcelada</option>
+                    <option value="recorrente">Recorrente</option>
                 </select>
+            </label>
+
+            <label id="campo-parcelas" style="display: none;">
+                Quantidade de parcelas
+                <input type="number" name="total_parcelas" id="total-parcelas" min="1" step="1" disabled>
+                <small>O valor informado será aplicado a cada parcela.</small>
             </label>
 
             <div
@@ -886,12 +850,46 @@ if ($categoriaFiltro === 'pessoal') {
                 >
             </label>
 
+            <label id="ajuste-alcance-campo" style="display: none;">
+                Aplicar alteração a
+                <select name="alcance" id="ajuste-alcance" disabled>
+                    <option value="somente">Somente este lançamento</option>
+                    <option value="proximos">Este lançamento e os próximos</option>
+                </select>
+            </label>
+
             <button
                 type="submit"
                 class="btn-padrao"
             >
                 Atualizar
             </button>
+        </form>
+    </div>
+</div>
+
+<div class="modal" id="modal-excluir">
+    <div class="modal-conteudo modal-pequeno">
+        <div class="modal-cabecalho">
+            <h2>Excluir despesa</h2>
+            <button type="button" class="fechar-modal" onclick="fecharModal('modal-excluir')">&times;</button>
+        </div>
+        <form method="POST" class="form-modal">
+            <input type="hidden" name="deletar_conta" value="1">
+            <input type="hidden" name="id" id="exclusao-id">
+            <div class="conta-selecionada" id="exclusao-nome"></div>
+            <p>Tem certeza que deseja excluir esta despesa?</p>
+            <label id="exclusao-alcance-campo" style="display: none;">
+                Excluir
+                <select name="alcance" id="exclusao-alcance" disabled>
+                    <option value="somente">Somente este lançamento</option>
+                    <option value="proximos">Este lançamento e os próximos</option>
+                </select>
+            </label>
+
+
+            <button type="submit" class="btn-padrao btn-excluir">Excluir</button>
+            <button type="button" class="btn-padrao btn-secundario" onclick="fecharModal('modal-excluir')">Cancelar</button>
         </form>
     </div>
 </div>
@@ -907,11 +905,26 @@ function fecharModal(id) {
     document.getElementById(id).classList.remove('ativo');
 }
 
-function abrirAjuste(id, nome, valor) {
+function configurarAlcance(prefixo, temSerie) {
+    document.getElementById(prefixo + '-alcance-campo').style.display = temSerie ? '' : 'none';
+    const campo = document.getElementById(prefixo + '-alcance');
+    campo.value = 'somente';
+    campo.disabled = !temSerie;
+}
+
+function abrirExclusao(id, nome, temSerie) {
+    document.getElementById('exclusao-id').value = id;
+    document.getElementById('exclusao-nome').textContent = nome;
+    configurarAlcance('exclusao', temSerie);
+    abrirModal('modal-excluir');
+}
+
+function abrirAjuste(id, nome, valor, temSerie) {
     document.getElementById('ajuste-id').value = id;
     document.getElementById('ajuste-nome').textContent = nome;
     document.getElementById('ajuste-valor').value = valor;
 
+    configurarAlcance('ajuste', temSerie);
     abrirModal('modal-ajustar');
 }
 
@@ -937,7 +950,12 @@ const tipoConta = document.getElementById('tipo-conta');
 const avisoMensal = document.getElementById('aviso-mensal');
 
 function atualizarAvisoMensal() {
-    if (tipoConta.value === 'mensal') {
+    const parcelada = tipoConta.value === 'parcelada';
+    document.getElementById('campo-parcelas').style.display = parcelada ? '' : 'none';
+    const parcelas = document.getElementById('total-parcelas');
+    parcelas.required = parcelada;
+    parcelas.disabled = !parcelada;
+    if (tipoConta.value === 'recorrente') {
         avisoMensal.classList.add('visivel');
     } else {
         avisoMensal.classList.remove('visivel');

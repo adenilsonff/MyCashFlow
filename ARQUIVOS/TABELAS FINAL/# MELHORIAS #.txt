@@ -1,0 +1,187 @@
+Sim. Eu organizaria a evolução em etapas, com uma entrega verificável em cada uma. O foco seria transformar o MyCashFlow em um sistema integrado, confiável e capaz de explicar os próprios resultados, com evidências para apresentar no TCC.
+Não precisamos implementar todas as ideias. A prioridade é concluir bem o núcleo abaixo.
+1. Definir o objetivo e limitar o escopo
+Objetivo sugerido:
+Desenvolver e avaliar um sistema de controle financeiro pessoal que integre movimentações e investimentos, preserve a separação dos dados por usuário e identifique inconsistências nas informações financeiras.
+
+O que fazer
+- Alinhar esse objetivo com o orientador e os critérios do curso.
+- Documentar quais módulos fazem parte da versão apresentada.
+- Separar funcionalidades existentes, melhorias previstas e trabalhos futuros.
+- Manter o Patrimônio com o conceito atual: contas consideradas + investimentos nacionais + internacionais em reais.
+Entrega: documento curto de escopo e requisitos.
+Concluído quando: cada requisito puder ser associado a uma funcionalidade e a um teste.
+2. Preparar um ambiente seguro de desenvolvimento e testes
+Antes de mudar tabelas ou integrar módulos:
+- Fazer backup do banco e dos arquivos.
+- Testar a restauração em uma cópia.
+- Criar uma base com dados fictícios.
+- Criar dois usuários de teste.
+- Registrar a versão atual no Git, preservando as alterações existentes.
+Não utilizar seus dados reais na apresentação ou em testes de exclusão e migração.
+Entrega: ambiente de testes reproduzível.
+Concluído quando: for possível restaurar a versão inicial e repetir os testes.
+3. Corrigir a separação dos dados por usuário
+Esta é a primeira melhoria técnica obrigatória.
+Na inspeção, identificamos que os módulos antigos ainda não têm a mesma separação existente em Saldos e Investimentos.
+O que fazer
+1. Definir o proprietário de cada registro.
+2. Planejar a migração das tabelas necessárias.
+3. Atribuir os registros antigos ao proprietário correto, sem adivinhar.
+4. Filtrar consultas, alterações e exclusões.
+5. Aplicar a mesma proteção na Home, nos relatórios e nas páginas auxiliares.
+6. Padronizar autenticação e proteção das ações de escrita.
+A migração deve ser revisada antes de executar qualquer SQL.
+Entrega: isolamento consistente entre usuários.
+Concluído quando: o usuário A não conseguir consultar nem alterar registros do usuário B, inclusive tentando acessar diretamente um endereço ou ID.
+Valor para o TCC: requisito de segurança comprovado por testes.
+4. Documentar as regras financeiras
+Criar um pequeno dicionário de conceitos e regras:
+Conceito	Definição que precisa ficar clara
+Receita prevista	Valor esperado, ainda não necessariamente recebido
+Receita recebida	Recebimento confirmado
+Despesa prevista	Compromisso ainda não necessariamente pago
+Saldo de conta	Saldo inicial mais movimentações consideradas
+Transferência	Redistribuição entre contas
+Custo da posição	Custo associado aos ativos ainda mantidos
+Valor de mercado	Quantidade atual multiplicada pela cotação
+Patrimônio financeiro	Disponibilidades mais investimentos considerados
+
+
+Também definir:
+- Como datas futuras são tratadas.
+- Quando uma operação afeta o saldo.
+- Como pagamentos parciais serão tratados — ou deixados fora do escopo.
+- Como arredondamentos são feitos.
+- O que acontece quando faltam cotações.
+Entrega: regras documentadas e exemplos numéricos.
+Concluído quando: dois módulos que exibem o mesmo conceito produzirem o mesmo resultado para os mesmos dados.
+5. Integrar um fluxo financeiro completo
+Começaria por Despesas, evitando integrar tudo de uma vez.
+Fluxo proposto
+Cadastrar despesa → confirmar pagamento → selecionar conta → gerar saída → atualizar saldo → refletir no patrimônio.
+Regras necessárias
+- Confirmar duas vezes não pode gerar duas saídas.
+- Uma falha deve impedir que apenas metade da operação seja salva.
+- O pagamento deve ficar vinculado à movimentação correspondente.
+- Estornar o pagamento deve preservar a rastreabilidade.
+- Lançamentos antigos precisam de uma regra de transição para evitar duplicidade.
+Entrega: pagamento integrado à conta financeira.
+Concluído quando: uma despesa de R$ 200 reduzir o saldo da conta escolhida em exatamente R$ 200 e puder ser estornada corretamente.
+Depois de validar esse fluxo, aplicar o mesmo princípio a Receitas.
+Valor para o TCC: demonstra integração, transações de banco e consistência dos dados.
+6. Criar rastreabilidade dos valores
+Cada número importante deve permitir responder: “Como o sistema chegou a esse valor?”
+Melhorias propostas
+- Na conta, mostrar as movimentações que formaram o saldo.
+- Na movimentação, indicar a origem: manual, despesa, receita ou transferência.
+- No pagamento, disponibilizar acesso à movimentação vinculada.
+- No patrimônio, manter a composição por conta e ativo.
+- Nos investimentos, mostrar posição, cotação, moeda, fonte e horário.
+- Registrar alterações relevantes com data, usuário e motivo, sem guardar senhas ou dados desnecessários.
+Entrega: navegação entre o resumo e seus registros de origem.
+Concluído quando: o usuário conseguir conferir um valor sem precisar abrir o banco de dados.
+7. Implementar o Painel de Consistência Financeira
+Este seria o principal diferencial da apresentação.
+Começaria com poucas verificações confiáveis:
+Verificação	Comportamento esperado
+Cotação ausente	Identificar o ativo e os totais afetados
+Cotação antiga	Informar que a atualização está pendente
+Pagamento integrado sem movimentação correspondente	Apontar a inconsistência
+Movimentação vinculada com valor diferente	Mostrar os dois valores para conferência
+Transferência com vínculo incompleto	Sinalizar que precisa de revisão
+
+
+Cada aviso deve apresentar
+- O problema encontrado.
+- O registro afetado.
+- O impacto no resultado.
+- Um caminho para conferência ou correção.
+Não corrigir automaticamente situações ambíguas. Por exemplo, uma API indisponível não comprova que o ticker está errado.
+Entrega: painel com verificações e mensagens explicáveis.
+Concluído quando: erros preparados na base fictícia forem identificados, e os avisos desaparecerem após a correção.
+8. Melhorar o cadastro e a correção dos investimentos
+O caso HGLG mostrou uma oportunidade concreta.
+O que melhorar
+- Normalizar letras e espaços do ticker.
+- Quando houver cobertura, mostrar nome, tipo e moeda do ativo antes da confirmação.
+- Diferenciar formato inválido, ativo não localizado e falha temporária da API.
+- Permitir correção controlada de cadastro, preservando o histórico e recalculando a posição.
+- Explicar claramente por que determinado total está indisponível.
+Entrega: cadastro que reduz erros e orienta a correção.
+Concluído quando: o usuário conseguir compreender e resolver um caso semelhante ao de HGLG, sem precisar descobrir o problema sozinho.
+9. Acrescentar conciliação simples como melhoria opcional
+Esta seria minha primeira ideia adicional, caso haja tempo.
+Conciliação significa comparar o saldo calculado com um saldo de referência informado pelo usuário.
+Exemplo:
+Informação	Valor
+Saldo calculado pelo sistema na data	R$ 1.500,00
+Saldo informado a partir do extrato	R$ 1.450,00
+Diferença a conferir	R$ 50,00
+
+
+A comparação precisa usar a mesma conta e a mesma data. O sistema deve apontar a diferença, sem criar um ajuste automaticamente.
+Entrega: conferência de saldo por conta e data.
+Valor para o TCC: permite avaliar se o sistema ajuda a localizar divergências.
+10. Finalizar a experiência das telas
+Antes de acrescentar novos módulos:
+- Resolver os links incompletos de Extras e Configuração.
+- Padronizar botões, mensagens e nomes.
+- Distinguir telas vazias de falhas de carregamento.
+- Conferir as principais telas no celular.
+- Verificar contraste, rótulos dos campos e navegação por teclado.
+- Padronizar os redirecionamentos ao login.
+- Oferecer uma exportação simples dos dados relevantes, se couber no prazo.
+Entrega: percurso de uso sem telas abandonadas ou mensagens confusas.
+Concluído quando: outra pessoa conseguir realizar as tarefas principais sem orientação constante.
+11. Montar os testes que serão apresentados no TCC
+Criar uma matriz com requisito, cenário, resultado esperado, resultado obtido e evidência.
+Cenários prioritários
+1. Um usuário não acessa registros de outro.
+2. Pagar uma despesa atualiza a conta correta.
+3. Repetir a confirmação não duplica a saída.
+4. Estornar o pagamento recompõe o saldo.
+5. Transferir entre duas contas consideradas conserva a soma.
+6. Uma venda parcial deixa a posição correta.
+7. Uma venda total remove a posição da composição.
+8. O investimento internacional é convertido uma única vez.
+9. Uma cotação ausente não é tratada como zero.
+10. O painel identifica inconsistências preparadas.
+11. Um backup pode ser restaurado.
+Usar testes automatizados para regras e consultas importantes, complementados por testes das telas.
+Entrega: resultados reproduzíveis, não apenas capturas de tela.
+12. Avaliar com usuários e preparar a defesa
+Com orientação do professor sobre participação, consentimento e tratamento dos dados, propor tarefas como:
+- Cadastrar uma conta.
+- Registrar e pagar uma despesa.
+- Conferir a origem do saldo.
+- Identificar por que um total está indisponível.
+- Localizar uma divergência.
+Medir
+- Conclusão da tarefa.
+- Tempo gasto.
+- Erros cometidos.
+- Necessidade de ajuda.
+- Clareza percebida das mensagens.
+Se possível, comparar uma tarefa antes e depois da melhoria, usando condições semelhantes. Uma amostra pequena fornece indícios de usabilidade, sem provar eficácia para todos os públicos.
+Entrega: avaliação, discussão dos resultados e limitações.
+Roteiro sugerido para a apresentação
+1. Mostrar o problema.
+2. Explicar o objetivo e o escopo.
+3. Apresentar brevemente arquitetura e banco.
+4. Demonstrar um pagamento integrado.
+5. Mostrar sua repercussão no saldo e no patrimônio.
+6. Introduzir uma inconsistência na base de teste e mostrar sua identificação.
+7. Apresentar os testes e a avaliação com usuários.
+8. Encerrar com limitações e trabalhos futuros.
+O que eu priorizaria se o prazo estiver curto
+Prioridade	Entrega
+Essencial	Isolamento por usuário e proteção das operações
+Essencial	Pagamento de despesa integrado à conta, com prevenção de duplicidade
+Diferencial principal	Painel de consistência com poucas regras bem testadas
+Essencial para a defesa	Documentação, testes e demonstração reproduzível
+Se houver tempo	Receitas integradas, conciliação e exportação
+Trabalho futuro	Open Finance, aplicativos nativos, IA, renda fixa e apuração fiscal completa
+
+
+Eu começaria pela etapa 3, depois de preparar o escopo e o ambiente de testes. A combinação de segurança, integração e explicação dos resultados dá ao trabalho uma contribuição técnica clara, sem depender de aumentar excessivamente o sistema.
