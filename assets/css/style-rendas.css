@@ -357,3 +357,9 @@ padding: 9px 8px;
 font-size: 13px;
 }
 }
+.filtro-classificacao { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 15px; color: #2C3E50; }
+.filtro-classificacao select { padding: 10px; max-width: 100%; border: 1px solid #CDD3D8; border-radius: 6px; background: white; font: inherit; }
+.renda-classificacao { display: block; margin-top: 5px; font-size: 12px; color: #526577; }
+.aviso-filtro { font-size: 13px; color: #526577; line-height: 1.5; }
+.form-rendas label { font-size: 14px; color: #2C3E50; }
+.modal-rendas .modal-conteudo { max-height: calc(100dvh - 24px); overflow-y: auto; }

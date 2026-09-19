@@ -1,29 +1,4 @@
 <?php
-// Página de Rendas - Estrutura base
-?>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Contas</title>
-    <link rel="stylesheet" href="../assets/css/style-extra.css?v=1">
-</head>
-<body>
-    <?php include("../includes/header.php"); ?>
-    <?php include("../includes/menu.php"); ?>
-    <!-- Cabeçalho / Menu -->
-    <header>
-        
-    </header>
-
-    <!-- Conteúdo principal -->
-    <main class="rendas-layout">
-        
-    </main>
-
-    <!-- Rodapé -->
-    <footer>
-        <p>MyCashFlow © 2026 - Sistema de Finanças Pessoais</p>
-    </footer>
-</body>
-</html>
+// Mantém o endereço antigo como atalho para o cadastro unificado.
+header('Location: rendas.php?classificacao=extra');
+exit;

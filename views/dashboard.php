@@ -531,7 +531,7 @@ include __DIR__ . '/../includes/menu.php';
 
 <div class="dashboard-cabecalho">
 <div>
-<h2>Home</h2>
+<h2>Início</h2>
 <p>Visão financeira de <?php echo $nomeMesAtual . '/' . $anoAtual; ?></p>
 </div>
 

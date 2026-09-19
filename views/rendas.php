@@ -10,6 +10,10 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+$filtroClassificacao = in_array($_GET['classificacao'] ?? '', ['regular', 'extra'], true)
+    ? $_GET['classificacao'] : '';
+$rotulosClassificacao = ['' => 'Todas as receitas', 'regular' => 'Rendas regulares', 'extra' => 'Rendas extras'];
+
 $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date("n");
 $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date("Y");
 
@@ -21,9 +25,9 @@ if ($ano < 2000 || $ano > 2100) {
     $ano = (int)date("Y");
 }
 
-function voltarRendas($mes, $ano)
+function voltarRendas($mes, $ano, $classificacao)
 {
-    header("Location: rendas.php?mes=" . (int)$mes . "&ano=" . (int)$ano);
+    header("Location: rendas.php?mes=" . (int)$mes . "&ano=" . (int)$ano . "&classificacao=" . urlencode($classificacao));
     exit;
 }
 
@@ -58,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dataInformada = $_POST['data'] ?? '';
         $valor = isset($_POST['valor']) ? (float)$_POST['valor'] : 0;
         $tipo = ($_POST['tipoRenda'] ?? '') === 'mensal' ? 'mensal' : 'unica';
+        $classificacao = ($_POST['classificacao'] ?? '') === 'extra' ? 'extra' : 'regular';
 
         if ($nome !== '' && $descricao !== '' && $dataInformada !== '' && $valor >= 0) {
             $dataInicial = DateTime::createFromFormat('Y-m-d', $dataInformada);
@@ -68,8 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $conn->prepare("
                         INSERT INTO rendas
-                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem)
-                        VALUES (?, ?, ?, ?, 'mensal', ?, 0, 0)
+                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem, classificacao)
+                        VALUES (?, ?, ?, ?, 'mensal', ?, 0, 0, ?)
                     ");
 
                     for ($i = 0; $i < 12; $i++) {
@@ -77,12 +82,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $dataFormatada = $dataRecebimento->format("Y-m-d");
 
                         $stmt->bind_param(
-                            "sssds",
+                            "sssdss",
                             $nome,
                             $descricao,
                             $dataFormatada,
                             $valor,
-                            $grupoRecorrencia
+                            $grupoRecorrencia,
+                            $classificacao
                         );
 
                         $stmt->execute();
@@ -94,16 +100,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $conn->prepare("
                         INSERT INTO rendas
-                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem)
-                        VALUES (?, ?, ?, ?, 'unica', NULL, 0, 0)
+                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem, classificacao)
+                        VALUES (?, ?, ?, ?, 'unica', NULL, 0, 0, ?)
                     ");
 
                     $stmt->bind_param(
-                        "sssd",
+                        "sssds",
                         $nome,
                         $descricao,
                         $dataFormatada,
-                        $valor
+                        $valor,
+                        $classificacao
                     );
 
                     $stmt->execute();
@@ -112,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        voltarRendas($mes, $ano);
+        voltarRendas($mes, $ano, $filtroClassificacao);
     }
 
     if (isset($_POST['atualizar_recebido'])) {
@@ -131,26 +138,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->close();
         }
 
-        voltarRendas($mes, $ano);
+        voltarRendas($mes, $ano, $filtroClassificacao);
     }
 
     if (isset($_POST['ajustar_valor'])) {
         $id = (int)($_POST['id'] ?? 0);
         $novoValor = isset($_POST['novo_valor']) ? (float)$_POST['novo_valor'] : 0;
 
+        $classificacao = ($_POST['classificacao'] ?? '') === 'extra' ? 'extra' : 'regular';
+
         if ($id > 0 && $novoValor >= 0) {
             $stmt = $conn->prepare("
                 UPDATE rendas
-                SET valor = ?
+                SET valor = ?, classificacao = ?
                 WHERE id = ?
             ");
 
-            $stmt->bind_param("di", $novoValor, $id);
+            $stmt->bind_param("dsi", $novoValor, $classificacao, $id);
             $stmt->execute();
             $stmt->close();
         }
 
-        voltarRendas($mes, $ano);
+        voltarRendas($mes, $ano, $filtroClassificacao);
     }
 
     if (isset($_POST['deletar_renda'])) {
@@ -202,7 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        voltarRendas($mes, $ano);
+        voltarRendas($mes, $ano, $filtroClassificacao);
     }
 }
 
@@ -216,7 +225,8 @@ $sql = "
         tipo,
         grupo_recorrencia,
         recebido,
-        porcentagem
+        porcentagem,
+        classificacao
     FROM rendas
     WHERE MONTH(data) = ?
     AND YEAR(data) = ?
@@ -233,6 +243,9 @@ $total = 0;
 $totalRecebido = 0;
 
 while ($row = $result->fetch_assoc()) {
+    if ($filtroClassificacao !== '' && $row['classificacao'] !== $filtroClassificacao) {
+        continue;
+    }
     $rendas[] = $row;
     $total += (float)$row['valor'];
 
@@ -266,7 +279,7 @@ $meses = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receitas</title>
-    <link rel="stylesheet" href="../assets/css/style-rendas.css?v=2">
+    <link rel="stylesheet" href="../assets/css/style-rendas.css?v=<?= filemtime(__DIR__ . "/../assets/css/style-rendas.css") ?>">
 </head>
 <body>
 
@@ -278,7 +291,7 @@ $meses = [
     <div class="cabecalho-rendas">
         <div>
             <h1>Receitas</h1>
-            <p><?= htmlspecialchars($meses[$mes - 1]) ?>/<?= $ano ?></p>
+            <p><?= htmlspecialchars($meses[$mes - 1]) ?>/<?= $ano ?> · <?= $rotulosClassificacao[$filtroClassificacao] ?></p>
         </div>
 
         <div class="acoes-rendas">
@@ -291,6 +304,21 @@ $meses = [
             </button>
         </div>
     </div>
+
+    <form method="GET" class="filtro-classificacao">
+        <input type="hidden" name="mes" value="<?= $mes ?>">
+        <input type="hidden" name="ano" value="<?= $ano ?>">
+        <label for="filtro-classificacao">Mostrar</label>
+        <select id="filtro-classificacao" name="classificacao">
+            <?php foreach ($rotulosClassificacao as $chave => $rotulo): ?>
+            <option value="<?= $chave ?>" <?= $filtroClassificacao === $chave ? 'selected' : '' ?>><?= $rotulo ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit" class="btn-padrao">Filtrar</button>
+    </form>
+    <?php if ($filtroClassificacao !== ''): ?>
+    <p class="aviso-filtro">Os totais e percentuais abaixo consideram apenas <?= strtolower($rotulosClassificacao[$filtroClassificacao]) ?> do período.</p>
+    <?php endif; ?>
 
     <div class="resumo-rendas">
 
@@ -359,6 +387,7 @@ $meses = [
 
                             <td>
                                 <?= htmlspecialchars($r['nome']) ?>
+                                <span class="renda-classificacao"><?= $r['classificacao'] === 'extra' ? 'Renda extra' : 'Regular' ?></span>
                             </td>
 
                             <td>
@@ -432,7 +461,7 @@ $meses = [
                                         class="btn-acao btn-ajustar"
                                         data-id="<?= (int)$r['id'] ?>"
                                         data-nome="<?= htmlspecialchars($r['nome'], ENT_QUOTES) ?>"
-                                        data-valor="<?= number_format($r['valor'], 2, '.', '') ?>"
+                                        data-valor="<?= number_format($r['valor'], 2, '.', '') ?>" data-classificacao="<?= htmlspecialchars($r['classificacao'], ENT_QUOTES) ?>"
                                     >
                                         Ajustar
                                     </button>
@@ -539,7 +568,14 @@ $meses = [
                 required
             >
 
-            <select name="tipoRenda" required>
+            <label for="nova-classificacao">Classificação</label>
+            <select id="nova-classificacao" name="classificacao" required>
+                <option value="regular" <?= $filtroClassificacao !== 'extra' ? 'selected' : '' ?>>Regular</option>
+                <option value="extra" <?= $filtroClassificacao === 'extra' ? 'selected' : '' ?>>Renda extra (bico)</option>
+            </select>
+
+            <label for="nova-frequencia">Frequência</label>
+            <select id="nova-frequencia" name="tipoRenda" required>
                 <option value="unica">
                     Única
                 </option>
@@ -589,6 +625,7 @@ $meses = [
         <h2>Pesquisar Receitas</h2>
 
         <form method="GET" class="form-rendas">
+            <input type="hidden" name="classificacao" value="<?= $filtroClassificacao ?>">
 
             <select name="mes">
 
@@ -664,6 +701,12 @@ $meses = [
             >
 
             <div id="ajuste-nome" class="nome-renda-ajuste"></div>
+            <label for="ajuste-classificacao">Classificação</label>
+            <select id="ajuste-classificacao" name="classificacao" required>
+                <option value="regular">Regular</option>
+                <option value="extra">Renda extra (bico)</option>
+            </select>
+            <p class="aviso-filtro">A alteração se aplica somente a este lançamento.</p>
 
             <input
                 type="number"
@@ -714,6 +757,7 @@ document.querySelectorAll('.modal-rendas').forEach(function(modal) {
 document.querySelectorAll('.btn-ajustar').forEach(function(botao) {
     botao.addEventListener('click', function() {
         document.getElementById('ajuste-id').value = this.dataset.id;
+        document.getElementById('ajuste-classificacao').value = this.dataset.classificacao;
         document.getElementById('ajuste-valor').value = this.dataset.valor;
         document.getElementById('ajuste-nome').textContent = this.dataset.nome;
 

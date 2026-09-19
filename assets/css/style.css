@@ -103,3 +103,80 @@ footer {
         width: 90%;
     }
 }
+/* Navegação compartilhada: o link abre a página e a seta abre os atalhos. */
+#mcf-menu {
+    box-sizing: border-box;
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px 12px;
+    overflow: visible;
+    position: relative;
+    z-index: 100;
+}
+#mcf-menu .mcf-menu-item { position: relative; }
+#mcf-menu .mcf-menu-row { display: flex; align-items: stretch; border-radius: 5px; }
+#mcf-menu a { display: block; white-space: nowrap; }
+#mcf-menu .mcf-menu-toggle {
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+}
+#mcf-menu .mcf-menu-row > a { display: flex; align-items: center; }
+#mcf-menu .mcf-menu-active > .mcf-menu-row,
+#mcf-menu a[aria-current="page"],
+#mcf-menu .mcf-menu-toggle:hover,
+#mcf-menu .mcf-menu-toggle[aria-expanded="true"] { background: #2C3E50; }
+#mcf-menu a[aria-current="page"] { text-decoration: underline; text-underline-offset: 4px; }
+#mcf-menu :focus-visible { outline: 2px solid white; outline-offset: -3px; }
+#mcf-menu .mcf-submenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 100%;
+    padding: 6px;
+    background: #34495E;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.2);
+    z-index: 1;
+}
+#mcf-menu .mcf-submenu[hidden] { display: none; }
+#mcf-menu .mcf-submenu a { padding: 12px 15px; }
+@media (max-width: 768px) {
+    #mcf-menu { flex-direction: column; align-items: stretch; gap: 4px; }
+    #mcf-menu .mcf-menu-row > a { flex: 1; min-height: 28px; }
+    #mcf-menu .mcf-submenu { position: static; margin-left: 15px; min-width: 0; box-shadow: none; border-left: 2px solid #60798f; }
+    #mcf-menu .mcf-submenu a { white-space: normal; }
+}
+
+/* Controles distintos para abrir a página, os atalhos e o menu móvel. */
+#mcf-menu .mcf-menu-toggle {
+    border-left: 1px solid rgba(255,255,255,.3);
+    background: rgba(255,255,255,.07);
+    border-radius: 0 5px 5px 0;
+}
+#mcf-mobile-toggle { display: none; }
+@media (max-width: 768px) {
+    #mcf-mobile-toggle:not([hidden]) {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        border: 0;
+        padding: 14px 18px;
+        min-height: 48px;
+        background: #34495E;
+        color: white;
+        font: bold 16px Arial, sans-serif;
+        text-align: left;
+        cursor: pointer;
+    }
+    #mcf-mobile-toggle:focus-visible { outline: 2px solid white; outline-offset: -4px; }
+    #mcf-menu.mcf-enhanced:not(.mcf-mobile-open) { display: none; }
+}
