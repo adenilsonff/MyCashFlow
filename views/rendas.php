@@ -55,67 +55,102 @@ function criarDataRecorrente(DateTime $dataInicial, $mesesAdicionar)
     return $data;
 }
 
+function normalizarValor($valor)
+{
+    $valor = trim((string)$valor);
+    $valor = str_replace(['R$', ' '], '', $valor);
+
+    if (strpos($valor, ',') !== false) {
+        $valor = str_replace('.', '', $valor);
+        $valor = str_replace(',', '.', $valor);
+    }
+
+    return (float)$valor;
+}
+
+function gerarGrupoRecorrencia()
+{
+    try {
+        return bin2hex(random_bytes(16));
+    } catch (Exception $e) {
+        return uniqid('rec_', true);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['nova_renda'])) {
         $nome = trim($_POST['nome'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
-        $dataInformada = $_POST['data'] ?? '';
-        $valor = isset($_POST['valor']) ? (float)$_POST['valor'] : 0;
-        $tipo = ($_POST['tipoRenda'] ?? '') === 'mensal' ? 'mensal' : 'unica';
-        $classificacao = ($_POST['classificacao'] ?? '') === 'extra' ? 'extra' : 'regular';
+        $tipo = $_POST['tipoRenda'] ?? '';
+        $classificacao = $_POST['classificacao'] ?? '';
+        $dataInformado = $_POST['data'] ?? '';
+        $valor = normalizarValor($_POST['valor'] ?? 0);
 
-        if ($nome !== '' && $descricao !== '' && $dataInformada !== '' && $valor >= 0) {
-            $dataInicial = DateTime::createFromFormat('Y-m-d', $dataInformada);
+        $totalParcelas = $tipo === 'parcelada'
+            ? filter_var($_POST['total_parcelas'] ?? '', FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 1, 'max_range' => 2147483647]
+            ])
+            : null;
+        $data = is_string($dataInformado)
+            ? DateTime::createFromFormat('!Y-m-d', $dataInformado)
+            : false;
 
-            if ($dataInicial && $dataInicial->format('Y-m-d') === $dataInformada) {
-                if ($tipo === 'mensal') {
-                    $grupoRecorrencia = bin2hex(random_bytes(16));
+        if (
+            $nome !== '' && $descricao !== '' &&
+            in_array($tipo, ['unica', 'parcelada', 'recorrente'], true) &&
+            in_array($classificacao, ['regular', 'extra'], true) &&
+            $data && $data->format('Y-m-d') === $dataInformado &&
+            (int)$data->format('Y') >= 1000 &&
+            is_finite($valor) && $valor >= 0 &&
+            ($tipo !== 'parcelada' || $totalParcelas !== false)
+        ) {
+            $quantidade = $tipo === 'parcelada' ? $totalParcelas : ($tipo === 'recorrente' ? 12 : 1);
+            $diaOriginal = (int)$data->format('d');
+            $mesOriginal = (int)$data->format('m');
+            $anoOriginal = (int)$data->format('Y');
 
-                    $stmt = $conn->prepare("
-                        INSERT INTO rendas
-                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem, classificacao)
-                        VALUES (?, ?, ?, ?, 'mensal', ?, 0, 0, ?)
-                    ");
+            if ($quantidade > (9999 - $anoOriginal) * 12 + (12 - $mesOriginal) + 1) {
+                voltarRendas($mes, $ano, $filtroClassificacao);
+            }
 
-                    for ($i = 0; $i < 12; $i++) {
-                        $dataRecebimento = criarDataRecorrente($dataInicial, $i);
-                        $dataFormatada = $dataRecebimento->format("Y-m-d");
-
-                        $stmt->bind_param(
-                            "sssdss",
-                            $nome,
-                            $descricao,
-                            $dataFormatada,
-                            $valor,
-                            $grupoRecorrencia,
-                            $classificacao
-                        );
-
-                        $stmt->execute();
-                    }
-
-                    $stmt->close();
-                } else {
-                    $dataFormatada = $dataInicial->format("Y-m-d");
-
-                    $stmt = $conn->prepare("
-                        INSERT INTO rendas
-                        (nome, descricao, data, valor, tipo, grupo_recorrencia, recebido, porcentagem, classificacao)
-                        VALUES (?, ?, ?, ?, 'unica', NULL, 0, 0, ?)
-                    ");
-
-                    $stmt->bind_param(
-                        "sssds",
-                        $nome,
-                        $descricao,
-                        $dataFormatada,
-                        $valor,
-                        $classificacao
-                    );
-
-                    $stmt->execute();
-                    $stmt->close();
+            $grupoRecorrencia = $tipo === 'unica' ? null : gerarGrupoRecorrencia();
+            if (!$conn->begin_transaction()) {
+                throw new RuntimeException('Não foi possível iniciar o cadastro.');
+            }
+            try {
+                $stmt = $conn->prepare("
+                    INSERT INTO rendas
+                    (nome, descricao, tipo, classificacao, data, recebido, valor, grupo_recorrencia, parcela_atual, total_parcelas)
+                    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                ");
+                if (!$stmt) {
+                    throw new RuntimeException('Não foi possível preparar o cadastro.');
                 }
+                $dataFormatada = '';
+                $parcelaAtual = null;
+                $stmt->bind_param("sssssdsii", $nome, $descricao, $tipo, $classificacao, $dataFormatada,
+                    $valor, $grupoRecorrencia, $parcelaAtual, $totalParcelas);
+
+                for ($i = 0; $i < $quantidade; $i++) {
+                    $primeiroDia = new DateTime(sprintf('%04d-%02d-01', $anoOriginal, $mesOriginal));
+                    if ($i > 0) {
+                        $primeiroDia->modify("+$i month");
+                    }
+                    $dia = min($diaOriginal, (int)$primeiroDia->format('t'));
+                    $dataFormatada = sprintf('%04d-%02d-%02d',
+                        (int)$primeiroDia->format('Y'), (int)$primeiroDia->format('m'), $dia);
+                    $parcelaAtual = $tipo === 'parcelada' ? $i + 1 : null;
+                    if (!$stmt->execute()) {
+                        throw new RuntimeException('Não foi possível cadastrar os lançamentos.');
+                    }
+                }
+                $stmt->close();
+                if (!$conn->commit()) {
+                    throw new RuntimeException('Não foi possível concluir o cadastro.');
+                }
+            } catch (Throwable $e) {
+                $conn->rollback();
+                throw $e;
             }
         }
 
@@ -141,78 +176,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         voltarRendas($mes, $ano, $filtroClassificacao);
     }
 
-    if (isset($_POST['ajustar_valor'])) {
+    if (isset($_POST['ajustar_valor']) || isset($_POST['deletar_renda'])) {
         $id = (int)($_POST['id'] ?? 0);
-        $novoValor = isset($_POST['novo_valor']) ? (float)$_POST['novo_valor'] : 0;
+        $ajustar = isset($_POST['ajustar_valor']);
+        $novoValor = $ajustar ? normalizarValor($_POST['novo_valor'] ?? 0) : 0;
+        $classificacao = $_POST['classificacao'] ?? '';
+        $alcance = $_POST['alcance'] ?? 'somente';
 
-        $classificacao = ($_POST['classificacao'] ?? '') === 'extra' ? 'extra' : 'regular';
-
-        if ($id > 0 && $novoValor >= 0) {
+        if ((!$ajustar || in_array($classificacao, ['regular', 'extra'], true)) && $id > 0 && is_finite($novoValor) && $novoValor >= 0 &&
+            in_array($alcance, ['somente', 'proximos'], true)) {
             $stmt = $conn->prepare("
-                UPDATE rendas
-                SET valor = ?, classificacao = ?
-                WHERE id = ?
+                SELECT tipo, data, grupo_recorrencia
+                FROM rendas WHERE id = ? LIMIT 1
             ");
-
-            $stmt->bind_param("dsi", $novoValor, $classificacao, $id);
-            $stmt->execute();
-            $stmt->close();
-        }
-
-        voltarRendas($mes, $ano, $filtroClassificacao);
-    }
-
-    if (isset($_POST['deletar_renda'])) {
-        $id = (int)($_POST['id'] ?? 0);
-
-        if ($id > 0) {
-            $stmt = $conn->prepare("
-                SELECT tipo, grupo_recorrencia, data
-                FROM rendas
-                WHERE id = ?
-                LIMIT 1
-            ");
-
             $stmt->bind_param("i", $id);
             $stmt->execute();
-            $resultado = $stmt->get_result();
-            $renda = $resultado->fetch_assoc();
+            $rendaSelecionada = $stmt->get_result()->fetch_assoc();
             $stmt->close();
 
-            if ($renda) {
-                if (
-                    $renda['tipo'] === 'mensal' &&
-                    !empty($renda['grupo_recorrencia'])
-                ) {
-                    $stmt = $conn->prepare("
-                        DELETE FROM rendas
-                        WHERE grupo_recorrencia = ?
-                        AND data >= ?
-                    ");
+            if ($rendaSelecionada) {
+                $aplicarProximos = $alcance === 'proximos' &&
+                    in_array($rendaSelecionada['tipo'], ['parcelada', 'recorrente'], true) &&
+                    !empty($rendaSelecionada['grupo_recorrencia']);
 
-                    $stmt->bind_param(
-                        "ss",
-                        $renda['grupo_recorrencia'],
-                        $renda['data']
-                    );
-
-                    $stmt->execute();
-                    $stmt->close();
+                if ($aplicarProximos) {
+                    $grupoRecorrencia = $rendaSelecionada['grupo_recorrencia'];
+                    $data = $rendaSelecionada['data'];
+                    $tipoSelecionado = $rendaSelecionada['tipo'];
+                    if ($ajustar) {
+                        $stmt = $conn->prepare("
+                            UPDATE rendas SET valor = ?
+                            WHERE grupo_recorrencia = ? AND data >= ? AND tipo = ?
+                        ");
+                        $stmt->bind_param("dsss", $novoValor, $grupoRecorrencia, $data, $tipoSelecionado);
+                    } else {
+                        $stmt = $conn->prepare("
+                            DELETE FROM rendas
+                            WHERE grupo_recorrencia = ? AND data >= ? AND tipo = ?
+                        ");
+                        $stmt->bind_param("sss", $grupoRecorrencia, $data, $tipoSelecionado);
+                    }
+                } elseif ($ajustar) {
+                    $stmt = $conn->prepare("UPDATE rendas SET valor = ? WHERE id = ?");
+                    $stmt->bind_param("di", $novoValor, $id);
                 } else {
-                    $stmt = $conn->prepare("
-                        DELETE FROM rendas
-                        WHERE id = ?
-                    ");
-
+                    $stmt = $conn->prepare("DELETE FROM rendas WHERE id = ?");
                     $stmt->bind_param("i", $id);
+                }
+                $stmt->execute();
+                $stmt->close();
+                if ($ajustar) {
+                    $stmt = $conn->prepare("UPDATE rendas SET classificacao = ? WHERE id = ?");
+                    $stmt->bind_param("si", $classificacao, $id);
                     $stmt->execute();
                     $stmt->close();
                 }
             }
         }
-
         voltarRendas($mes, $ano, $filtroClassificacao);
     }
+
 }
 
 $sql = "
@@ -224,6 +247,8 @@ $sql = "
         valor,
         tipo,
         grupo_recorrencia,
+        parcela_atual,
+        total_parcelas,
         recebido,
         porcentagem,
         classificacao
@@ -360,6 +385,7 @@ $meses = [
                 <thead>
                     <tr>
                         <th>Nome</th>
+                        <th>Tipo</th>
                         <th>Descrição</th>
                         <th>Data</th>
                         <th>Valor</th>
@@ -374,21 +400,29 @@ $meses = [
                 <?php if (empty($rendas)) { ?>
 
                     <tr>
-                        <td colspan="7" class="sem-registros">
+                        <td colspan="8" class="sem-registros">
                             Nenhuma receita encontrada neste período.
                         </td>
                     </tr>
 
                 <?php } else { ?>
 
-                    <?php foreach ($rendas as $r) { ?>
+                    <?php foreach ($rendas as $r) {
+                        $temSerie = in_array($r['tipo'], ['parcelada', 'recorrente'], true);
+                        $rotuloTipo = $r['tipo'] === 'recorrente' ? 'Recorrente' : 'Única';
+                        if ($r['tipo'] === 'parcelada') {
+                            $rotuloTipo = 'Parcelada ' . (int)$r['parcela_atual'] . '/' . (int)$r['total_parcelas'];
+                        }
+                    ?>
 
                         <tr class="<?= $r['recebido'] ? 'linha-recebida' : 'linha-nao-recebida' ?>">
 
                             <td>
                                 <?= htmlspecialchars($r['nome']) ?>
-                                <span class="renda-classificacao"><?= $r['classificacao'] === 'extra' ? 'Renda extra' : 'Regular' ?></span>
+                                <span class="renda-classificacao"><?= $r['classificacao'] === 'extra' ? 'Extra' : 'Regular' ?></span>
                             </td>
+
+                            <td><?= htmlspecialchars($rotuloTipo) ?></td>
 
                             <td>
                                 <?= htmlspecialchars($r['descricao']) ?>
@@ -459,6 +493,7 @@ $meses = [
                                     <button
                                         type="button"
                                         class="btn-acao btn-ajustar"
+                                        data-serie="<?= $temSerie ? '1' : '0' ?>"
                                         data-id="<?= (int)$r['id'] ?>"
                                         data-nome="<?= htmlspecialchars($r['nome'], ENT_QUOTES) ?>"
                                         data-valor="<?= number_format($r['valor'], 2, '.', '') ?>" data-classificacao="<?= htmlspecialchars($r['classificacao'], ENT_QUOTES) ?>"
@@ -466,37 +501,12 @@ $meses = [
                                         Ajustar
                                     </button>
 
-                                    <form
-                                        method="POST"
-                                        class="form-excluir"
-                                        onsubmit="return confirm(
-                                            '<?= $r['tipo'] === 'mensal'
-                                                ? 'Esta receita é mensal. O mês selecionado e todos os meses seguintes desta recorrência serão excluídos. Deseja continuar?'
-                                                : 'Tem certeza que deseja excluir esta receita?'
-                                            ?>'
-                                        );"
-                                    >
-
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?= (int)$r['id'] ?>"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="deletar_renda"
-                                            value="1"
-                                        >
-
-                                        <button
-                                            type="submit"
-                                            class="btn-acao btn-excluir"
-                                        >
-                                            Excluir
-                                        </button>
-
-                                    </form>
+                                    <button type="button" class="btn-acao btn-excluir"
+                                        data-excluir data-id="<?= (int)$r['id'] ?>"
+                                        data-nome="<?= htmlspecialchars($r['nome'], ENT_QUOTES) ?>"
+                                        data-serie="<?= $temSerie ? '1' : '0' ?>">
+                                        Excluir
+                                    </button>
 
                                 </div>
 
@@ -512,7 +522,7 @@ $meses = [
 
                 <tfoot>
                     <tr>
-                        <td colspan="3">
+                        <td colspan="4">
                             Total
                         </td>
 
@@ -571,19 +581,24 @@ $meses = [
             <label for="nova-classificacao">Classificação</label>
             <select id="nova-classificacao" name="classificacao" required>
                 <option value="regular" <?= $filtroClassificacao !== 'extra' ? 'selected' : '' ?>>Regular</option>
-                <option value="extra" <?= $filtroClassificacao === 'extra' ? 'selected' : '' ?>>Renda extra (bico)</option>
+                <option value="extra" <?= $filtroClassificacao === 'extra' ? 'selected' : '' ?>>Extra</option>
             </select>
 
-            <label for="nova-frequencia">Frequência</label>
+            <label for="nova-frequencia">Tipo</label>
             <select id="nova-frequencia" name="tipoRenda" required>
                 <option value="unica">
                     Única
                 </option>
 
-                <option value="mensal">
-                    Mensal
-                </option>
+                <option value="parcelada">Parcelada</option>
+                <option value="recorrente">Recorrente</option>
             </select>
+
+            <label id="parcelas-campo" hidden>
+                Quantidade de parcelas
+                <input type="number" name="total_parcelas" id="total-parcelas" min="1" step="1" disabled>
+            </label>
+            <p id="aviso-tipo" class="aviso-filtro" hidden></p>
 
             <input
                 type="date"
@@ -704,9 +719,9 @@ $meses = [
             <label for="ajuste-classificacao">Classificação</label>
             <select id="ajuste-classificacao" name="classificacao" required>
                 <option value="regular">Regular</option>
-                <option value="extra">Renda extra (bico)</option>
+                <option value="extra">Extra</option>
             </select>
-            <p class="aviso-filtro">A alteração se aplica somente a este lançamento.</p>
+            <p class="aviso-filtro">A classificação se aplica somente a este lançamento.</p>
 
             <input
                 type="number"
@@ -716,6 +731,14 @@ $meses = [
                 id="ajuste-valor"
                 required
             >
+
+            <label id="ajuste-alcance-campo" hidden>
+                Aplicar o valor a
+                <select name="alcance" id="ajuste-alcance" disabled>
+                    <option value="somente">Somente este lançamento</option>
+                    <option value="proximos">Este lançamento e os próximos</option>
+                </select>
+            </label>
 
             <button type="submit" class="btn-padrao">
                 Atualizar
@@ -727,9 +750,64 @@ $meses = [
 
 </div>
 
+<div id="modalExcluir" class="modal-rendas">
+    <div class="modal-conteudo">
+        <button type="button" class="modal-fechar" data-fechar>×</button>
+        <h2>Excluir Receita</h2>
+        <form method="POST" class="form-rendas">
+            <input type="hidden" name="deletar_renda" value="1">
+            <input type="hidden" name="id" id="exclusao-id">
+            <div id="exclusao-nome" class="nome-renda-ajuste"></div>
+            <p>Tem certeza que deseja excluir esta receita?</p>
+            <label id="exclusao-alcance-campo" hidden>
+                Excluir
+                <select name="alcance" id="exclusao-alcance" disabled>
+                    <option value="somente">Somente este lançamento</option>
+                    <option value="proximos">Este lançamento e os próximos</option>
+                </select>
+            </label>
+
+            <button type="submit" class="btn-padrao btn-excluir">Excluir</button>
+            <button type="button" class="btn-padrao" data-fechar>Cancelar</button>
+        </form>
+    </div>
+</div>
+
 <?php include("../includes/footer.php"); ?>
 
 <script>
+function configurarAlcance(prefixo, temSerie) {
+    document.getElementById(prefixo + '-alcance-campo').hidden = !temSerie;
+    const campo = document.getElementById(prefixo + '-alcance');
+    campo.value = 'somente';
+    campo.disabled = !temSerie;
+}
+
+function atualizarTipo() {
+    const tipo = document.getElementById('nova-frequencia').value;
+    const parcelada = tipo === 'parcelada';
+    document.getElementById('parcelas-campo').hidden = !parcelada;
+    const parcelas = document.getElementById('total-parcelas');
+    parcelas.required = parcelada;
+    parcelas.disabled = !parcelada;
+    const aviso = document.getElementById('aviso-tipo');
+    aviso.hidden = tipo === 'unica';
+    aviso.textContent = parcelada
+        ? 'O valor informado será aplicado a cada parcela mensal.'
+        : 'Serão criados 12 lançamentos mensais a partir da data informada.';
+}
+document.getElementById('nova-frequencia').addEventListener('change', atualizarTipo);
+atualizarTipo();
+
+document.querySelectorAll('[data-excluir]').forEach(function(botao) {
+    botao.addEventListener('click', function() {
+        document.getElementById('exclusao-id').value = this.dataset.id;
+        document.getElementById('exclusao-nome').textContent = this.dataset.nome;
+        configurarAlcance('exclusao', this.dataset.serie === '1');
+        document.getElementById('modalExcluir').classList.add('ativo');
+    });
+});
+
 document.querySelectorAll('[data-modal]').forEach(function(botao) {
     botao.addEventListener('click', function() {
         const modal = document.getElementById(this.dataset.modal);
@@ -761,6 +839,7 @@ document.querySelectorAll('.btn-ajustar').forEach(function(botao) {
         document.getElementById('ajuste-valor').value = this.dataset.valor;
         document.getElementById('ajuste-nome').textContent = this.dataset.nome;
 
+        configurarAlcance('ajuste', this.dataset.serie === '1');
         document.getElementById('modalAjustar').classList.add('ativo');
     });
 });

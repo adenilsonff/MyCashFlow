@@ -53,7 +53,7 @@ $stmt = $conn->prepare("
 
         SUM(
             CASE
-                WHEN tipo = 'mensal' THEN valor
+                WHEN tipo IN ('mensal', 'parcelada', 'recorrente') THEN valor
                 ELSE 0
             END
         ) AS mensal,
@@ -431,7 +431,7 @@ function formatarPercentual($valor)
 
             <div class="destaque-item">
 
-                <span>Receitas Mensais</span>
+                <span>Receitas Parceladas / Recorrentes</span>
 
                 <strong>
                     <?= formatarMoeda(
@@ -576,7 +576,7 @@ function formatarPercentual($valor)
 
                     <tr>
                         <th>Mês</th>
-                        <th>Mensal</th>
+                        <th>Parceladas / Recorrentes</th>
                         <th>Única</th>
                         <th>Recebido</th>
                         <th>A Receber</th>
