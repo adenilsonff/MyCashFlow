@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -13,7 +14,7 @@ if (!isset($_SESSION['usuario_id'])) {
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 require_once __DIR__ . '/../includes/mercado_api.php';
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 function resumoEscape($valor) {
     return htmlspecialchars(
@@ -316,14 +317,14 @@ if (!extension_loaded('bcmath')) {
     } catch (Throwable $e) {
         error_log(
             'MyCashFlow resumo nacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
 
         $resumo_erros[] =
             'Carteira nacional: ' .
             (
                 $e instanceof DomainException
-                    ? $e->getMessage()
+                    ? mcfMensagemErro($e)
                     : 'não foi possível carregar o custo das posições.'
             );
     }
@@ -367,14 +368,14 @@ if (!extension_loaded('bcmath')) {
     } catch (Throwable $e) {
         error_log(
             'MyCashFlow resumo internacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
 
         $resumo_erros[] =
             'Carteira internacional: ' .
             (
                 $e instanceof DomainException
-                    ? $e->getMessage()
+                    ? mcfMensagemErro($e)
                     : 'não foi possível carregar o custo das posições.'
             );
     }
@@ -396,7 +397,7 @@ if (!extension_loaded('bcmath')) {
         } catch (Throwable $e) {
             error_log(
                 'MyCashFlow resumo câmbio: ' .
-                $e->getMessage()
+                mcfMensagemErro($e)
             );
 
             $diagnostico_cambio =
@@ -436,6 +437,7 @@ if (!extension_loaded('bcmath')) {
     <?php include('../includes/menu.php'); ?>
 
     <main class="acoes-page">
+        <p><a href="investimentos_operacoes.php">Corrigir operações registradas</a> · <a data-mcf-own href="visao_conjunta.php?modulo=investimentos">Visão conjunta dos investimentos autorizados</a></p>
         <div class="acoes-top">
             <div>
                 <h1>Investimentos</h1>

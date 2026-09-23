@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -120,8 +121,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $conn->prepare("
                     INSERT INTO rendas
-                    (nome, descricao, tipo, classificacao, data, recebido, valor, grupo_recorrencia, parcela_atual, total_parcelas)
-                    VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+                    (usuario_id, nome, descricao, tipo, classificacao, data, recebido, valor, grupo_recorrencia, parcela_atual, total_parcelas)
+                    VALUES (@mcf_usuario_id, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
                 ");
                 if (!$stmt) {
                     throw new RuntimeException('Não foi possível preparar o cadastro.');
@@ -165,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("
                 UPDATE rendas
                 SET recebido = ?
-                WHERE id = ?
+                WHERE usuario_id = @mcf_usuario_id AND id = ?
             ");
 
             $stmt->bind_param("ii", $recebido, $id);
@@ -187,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             in_array($alcance, ['somente', 'proximos'], true)) {
             $stmt = $conn->prepare("
                 SELECT tipo, data, grupo_recorrencia
-                FROM rendas WHERE id = ? LIMIT 1
+                FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas WHERE id = ? LIMIT 1
             ");
             $stmt->bind_param("i", $id);
             $stmt->execute();
@@ -206,27 +207,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ajustar) {
                         $stmt = $conn->prepare("
                             UPDATE rendas SET valor = ?
-                            WHERE grupo_recorrencia = ? AND data >= ? AND tipo = ?
+                            WHERE usuario_id = @mcf_usuario_id AND grupo_recorrencia = ? AND data >= ? AND tipo = ?
                         ");
                         $stmt->bind_param("dsss", $novoValor, $grupoRecorrencia, $data, $tipoSelecionado);
                     } else {
                         $stmt = $conn->prepare("
                             DELETE FROM rendas
-                            WHERE grupo_recorrencia = ? AND data >= ? AND tipo = ?
+                            WHERE usuario_id = @mcf_usuario_id AND grupo_recorrencia = ? AND data >= ? AND tipo = ?
                         ");
                         $stmt->bind_param("sss", $grupoRecorrencia, $data, $tipoSelecionado);
                     }
                 } elseif ($ajustar) {
-                    $stmt = $conn->prepare("UPDATE rendas SET valor = ? WHERE id = ?");
+                    $stmt = $conn->prepare("UPDATE rendas SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
                     $stmt->bind_param("di", $novoValor, $id);
                 } else {
-                    $stmt = $conn->prepare("DELETE FROM rendas WHERE id = ?");
+                    $stmt = $conn->prepare("DELETE FROM rendas WHERE usuario_id = @mcf_usuario_id AND id = ?");
                     $stmt->bind_param("i", $id);
                 }
                 $stmt->execute();
                 $stmt->close();
                 if ($ajustar) {
-                    $stmt = $conn->prepare("UPDATE rendas SET classificacao = ? WHERE id = ?");
+                    $stmt = $conn->prepare("UPDATE rendas SET classificacao = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
                     $stmt->bind_param("si", $classificacao, $id);
                     $stmt->execute();
                     $stmt->close();
@@ -252,7 +253,7 @@ $sql = "
         recebido,
         porcentagem,
         classificacao
-    FROM rendas
+    FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
     WHERE MONTH(data) = ?
     AND YEAR(data) = ?
     ORDER BY data ASC, id ASC
@@ -470,7 +471,7 @@ $meses = [
                                         </option>
                                     </select>
 
-                                </form>
+                                <?= mcfCsrfField() ?></form>
 
                             </td>
 
@@ -619,7 +620,7 @@ $meses = [
                 Registrar
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 
@@ -744,7 +745,7 @@ $meses = [
                 Atualizar
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 
@@ -769,7 +770,7 @@ $meses = [
 
             <button type="submit" class="btn-padrao btn-excluir">Excluir</button>
             <button type="button" class="btn-padrao" data-fechar>Cancelar</button>
-        </form>
+        <?= mcfCsrfField() ?></form>
     </div>
 </div>
 

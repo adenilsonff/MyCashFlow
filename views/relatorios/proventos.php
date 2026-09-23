@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -12,7 +13,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 $anoAtual = (int)date('Y');
 $mesAtual = (int)date('n');
@@ -175,7 +176,7 @@ try {
 } catch (Throwable $e) {
     error_log(
         'MyCashFlow relatório proventos anos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -258,7 +259,7 @@ try {
 } catch (Throwable $e) {
     error_log(
         'MyCashFlow relatório proventos ativos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -394,7 +395,7 @@ try {
 
     error_log(
         'MyCashFlow relatório proventos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 

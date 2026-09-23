@@ -1,0 +1,333 @@
+views\analise.php:21: <label for="an-filter">Categoria</label><select id="an-filter"><option value="">Todos os ativos</option value="acao">Ações</option><option value="fii">FIIs</option><option value="etf">ETFs</option><option value="bdr">BDRs</option></select>
+views\analise.php:25: <label for="an-watch-type">Categoria</label><select id="an-watch-type" name="tipo_ativo"><option value="acao">Ação</option><option value="fii">FII</option><option value="etf">ETF</option><option value="bdr">BDR</option></select>
+views\analise.php:34: <label>Intervalo<select id="an-interval"><option value="1d">Diário</option><option value="1wk">Semanal</option><option value="1mo">Mensal</option><option value="1m">1 minuto · consultar acesso</option><option value="5m">5 minutos · consultar acesso</option><option value="15m">15 minutos · consultar acesso</option><option value="60m">60 minutos · consultar acesso</option></select></label>
+views\analise.php:35: <label>Histórico<select id="an-range"><option value="1mo">1 mês</option><option value="3mo" selected>3 meses</option><option value="5d">5 dias</option></select></label>
+views\analise.php:36: <label>Exibição<select id="an-style"><option value="candles">Candles</option><option value="line">Linha</option></select></label>
+views\analise.php:56: <label for="an-kind">Tipo</label><select id="an-kind" name="tipo"><option value="linha">Linha horizontal</option><option value="nota">Anotação</option></select>
+views\cartao.php:215: 'UPDATE cartoes
+views\cartao.php:250: $stmt = $conn->prepare('UPDATE compras SET categoria = ? WHERE usuario_id = @mcf_usuario_id AND id = ?');
+views\cartao.php:273: $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE id = ? FOR UPDATE');
+views\cartao.php:282: $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND data >= ? AND data < ? LIMIT 1');
+views\cartao.php:295: $stmt = $conn->prepare('DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?');
+views\cartao.php:304: $stmt = $conn->prepare('DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? AND NOT EXISTS (SELECT 1 FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?)');
+views\cartao.php:337: 'UPDATE cartoes SET paga = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
+views\cartao.php:375: 'UPDATE cartoes SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
+views\cartao.php:415: 'UPDATE compras SET categoria = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
+views\cartao.php:548: "SELECT GET_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id), 10) AS adquirido"
+views\cartao.php:563: 'SELECT * FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE id = ? FOR UPDATE',
+views\cartao.php:587: 'INSERT INTO cartao_nomes_recorrentes
+views\cartao.php:599: "SELECT id, nome, nome_original FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras
+views\cartao.php:614: 'UPDATE compras
+views\cartao.php:626: 'UPDATE compras
+views\cartao.php:636: 'DELETE FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id AND chave_descricao = ?',
+views\cartao.php:656: ccRows($conn, "SELECT RELEASE_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id))");
+views\cartao.php:677: $lock = ccRows($conn, "SELECT GET_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id), 10) AS adquirido");
+views\cartao.php:685: $registro = ccRows($conn, 'SELECT id FROM (SELECT * FROM ofx_importacoes WHERE usuario_id = @mcf_usuario_id) AS ofx_importacoes WHERE hash_arquivo = ? LIMIT 1', 's', [$hash]);
+views\cartao.php:751: 'SELECT DISTINCT c.* FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) c JOIN (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) p ON p.compra_id = c.id WHERE p.fitid = ? AND p.data >= ? AND p.data < ?',
+views\cartao.php:765: "SELECT * FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE data_compra = ? AND total_parcelas = ? AND origem = 'ofx'",
+views\cartao.php:773: $parcelas = ccRows($conn, 'SELECT data, parcela FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?', 'i', [(int) $c['id']]);
+views\cartao.php:812: 'SELECT nome_personalizado FROM (SELECT * FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id) AS cartao_nomes_recorrentes
+views\cartao.php:825: "INSERT INTO compras (usuario_id, nome, nome_original, categoria, valor_total, total_parcelas, data_compra, origem, identificador_ofx) VALUES (@mcf_usuario_id, ?, ?, 'pessoal', ?, ?, ?, 'ofx', ?)",
+views\cartao.php:836: 'SELECT id, data FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND parcela = ?',
+views\cartao.php:850: 'UPDATE cartoes SET valor = ?, fitid = ? WHERE usuario_id = @mcf_usuario_id AND id = ?',
+views\cartao.php:859: 'INSERT INTO cartoes (usuario_id, compra_id, data, valor, parcela, paga, fitid) VALUES (@mcf_usuario_id, ?, ?, ?, ?, 0, ?)',
+views\cartao.php:867: 'UPDATE compras SET valor_total = (SELECT COALESCE(SUM(valor),0) FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?) WHERE usuario_id = @mcf_usuario_id AND id = ?',
+views\cartao.php:876: 'INSERT INTO ofx_importacoes (usuario_id, nome_arquivo, hash_arquivo, periodo_inicio, periodo_fim, quantidade_transacoes) VALUES (@mcf_usuario_id, ?, ?, ?, ?, ?)',
+views\cartao.php:896: ccRows($conn, "SELECT RELEASE_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id))");
+views\cartao.php:995: 'SELECT
+views\cartao.php:1006: FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes
+views\cartao.php:1007: INNER JOIN (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras
+views\cartao.php:1032: 'SELECT chave_descricao FROM (SELECT * FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id) AS cartao_nomes_recorrentes'
+views\cartao.php:1329: .cc-dialog input:not([type=hidden]),.cc-dialog select {
+views\cartao.php:1444: <select id="cc-correspondencia" name="correspondencia" required>
+views\cartao.php:1463: </select>
+views\cartao.php:1698: <select name="mes" id="cc-mes">
+views\cartao.php:1704: </select>
+views\cartao.php:1720: <select name="filtro_categoria" id="cc-filtro-categoria">
+views\cartao.php:1732: </select>
+views\cartao.php:1776: <select name="categoria" id="cc-lote-cat">
+views\cartao.php:1782: </select>
+views\cartao.php:1851: <select id="cc-cat" name="categoria">
+views\cartao.php:1857: </select>
+views\configuracao.php:4: $s=$conn->prepare('SELECT email,status_assinatura,data_expiracao FROM usuarios WHERE id=?');
+views\contas.php:130: INSERT INTO contas
+views\contas.php:174: UPDATE contas
+views\contas.php:196: SELECT tipo, vencimento, grupo_recorrencia
+views\contas.php:197: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas WHERE id = ? LIMIT 1
+views\contas.php:215: UPDATE contas SET valor = ?
+views\contas.php:221: DELETE FROM contas
+views\contas.php:227: $stmt = $conn->prepare("UPDATE contas SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
+views\contas.php:230: $stmt = $conn->prepare("DELETE FROM contas WHERE usuario_id = @mcf_usuario_id AND id = ?");
+views\contas.php:243: SELECT
+views\contas.php:254: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\contas.php:494: <select
+views\contas.php:517: </select>
+views\contas.php:639: <select
+views\contas.php:650: </select>
+views\contas.php:668: <select name="categoria" required>
+views\contas.php:676: </select>
+views\contas.php:727: <select name="mes">
+views\contas.php:739: </select>
+views\contas.php:744: <select name="ano">
+views\contas.php:762: </select>
+views\contas.php:767: <select name="categoria">
+views\contas.php:797: </select>
+views\contas.php:856: <select name="alcance" id="ajuste-alcance" disabled>
+views\contas.php:859: </select>
+views\contas.php:885: <select name="alcance" id="exclusao-alcance" disabled>
+views\contas.php:888: </select>
+views\dashboard.php:219: SELECT
+views\dashboard.php:223: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\dashboard.php:238: SELECT
+views\dashboard.php:242: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\dashboard.php:260: SELECT
+views\dashboard.php:267: FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) c
+views\dashboard.php:268: INNER JOIN (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) cp ON cp.id = c.compra_id
+views\dashboard.php:286: SELECT
+views\dashboard.php:290: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\dashboard.php:312: SELECT
+views\dashboard.php:354: SELECT
+views\dashboard.php:466: SELECT
+views\dashboard.php:469: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\dashboard.php:489: SELECT
+views\dashboard.php:492: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\daytrade.php:37: SELECT id, nome
+views\daytrade.php:38: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade.php:53: SELECT nome
+views\daytrade.php:54: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade.php:97: SELECT
+views\daytrade.php:101: FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
+views\daytrade.php:144: SELECT
+views\daytrade.php:147: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\daytrade.php:361: <select id="editar_corretora_id">
+views\daytrade.php:383: </select>
+views\daytrade.php:731: <select
+views\daytrade.php:749: </select>
+views\daytrade.php:1142: const select =
+views\daytrade.php:1153: select.value;
+views\div_compra.php:336: SELECT
+views\div_compra.php:610: SELECT
+views\div_compra.php:976: SELECT
+views\div_compra.php:1526: <select
+views\div_compra.php:1570: </select>
+views\div_compra.php:1586: <select
+views\div_compra.php:1636: </select>
+views\div_compra.php:1652: <select
+views\div_compra.php:1748: </select>
+views\div_datacom.php:204: INSERT INTO div_datacom
+views\div_datacom.php:253: UPDATE div_datacom
+views\div_datacom.php:284: DELETE FROM div_datacom
+views\div_datacom.php:307: SELECT
+views\div_datacom.php:698: <select
+views\div_datacom.php:718: </select>
+views\div_datacom.php:772: <select
+views\div_datacom.php:776: ></select>
+views\div_datacom.php:815: <select
+views\div_datacom.php:837: </select>
+views\div_datacom.php:843: <select
+views\div_datacom.php:866: </select>
+views\div_datacom.php:872: <select
+views\div_datacom.php:920: </select>
+views\div_valor.php:148: SELECT
+views\div_valor.php:158: SELECT a.logo
+views\div_valor.php:170: SELECT COALESCE(
+views\div_valor.php:599: <select
+views\div_valor.php:621: </select>
+views\div_valor.php:627: <select
+views\div_valor.php:652: </select>
+views\div_valor.php:658: <select
+views\div_valor.php:706: </select>
+views\investimentos_internacionais.php:407: "SELECT GET_LOCK(
+views\investimentos_internacionais.php:425: SELECT
+views\investimentos_internacionais.php:480: INSERT INTO investimentos_internacionais
+views\investimentos_internacionais.php:536: "SELECT RELEASE_LOCK(
+views\investimentos_internacionais.php:573: SELECT
+views\investimentos_internacionais.php:702: SELECT
+views\investimentos_internacionais.php:1435: <select
+views\investimentos_internacionais.php:1475: </select>
+views\investimentos_nacionais.php:209: "SELECT GET_LOCK('mycashflow_investimentos_nacionais_registro', 10) AS adquirido"
+views\investimentos_nacionais.php:221: SELECT
+views\investimentos_nacionais.php:273: INSERT INTO investimentos_nacionais
+views\investimentos_nacionais.php:325: "SELECT RELEASE_LOCK('mycashflow_investimentos_nacionais_registro')"
+views\investimentos_nacionais.php:347: SELECT
+views\investimentos_nacionais.php:438: SELECT
+views\investimentos_nacionais.php:900: <select
+views\investimentos_nacionais.php:940: </select>
+views\investimentos.php:284: SELECT
+views\investimentos.php:335: SELECT
+views\rendas.php:123: INSERT INTO rendas
+views\rendas.php:167: UPDATE rendas
+views\rendas.php:190: SELECT tipo, data, grupo_recorrencia
+views\rendas.php:191: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas WHERE id = ? LIMIT 1
+views\rendas.php:209: UPDATE rendas SET valor = ?
+views\rendas.php:215: DELETE FROM rendas
+views\rendas.php:221: $stmt = $conn->prepare("UPDATE rendas SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
+views\rendas.php:224: $stmt = $conn->prepare("DELETE FROM rendas WHERE usuario_id = @mcf_usuario_id AND id = ?");
+views\rendas.php:230: $stmt = $conn->prepare("UPDATE rendas SET classificacao = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
+views\rendas.php:243: SELECT
+views\rendas.php:256: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\rendas.php:338: <select id="filtro-classificacao" name="classificacao">
+views\rendas.php:342: </select>
+views\rendas.php:455: <select
+views\rendas.php:472: </select>
+views\rendas.php:583: <select id="nova-classificacao" name="classificacao" required>
+views\rendas.php:586: </select>
+views\rendas.php:589: <select id="nova-frequencia" name="tipoRenda" required>
+views\rendas.php:596: </select>
+views\rendas.php:646: <select name="mes">
+views\rendas.php:659: </select>
+views\rendas.php:661: <select name="ano">
+views\rendas.php:679: </select>
+views\rendas.php:721: <select id="ajuste-classificacao" name="classificacao" required>
+views\rendas.php:724: </select>
+views\rendas.php:738: <select name="alcance" id="ajuste-alcance" disabled>
+views\rendas.php:741: </select>
+views\rendas.php:765: <select name="alcance" id="exclusao-alcance" disabled>
+views\rendas.php:768: </select>
+views\saldos.php:288: INSERT INTO contas_financeiras
+views\saldos.php:355: SELECT
+views\saldos.php:397: UPDATE contas_financeiras
+views\saldos.php:444: UPDATE contas_financeiras
+views\saldos.php:475: SELECT
+views\saldos.php:505: DELETE FROM contas_financeiras
+views\saldos.php:540: SELECT id, data_saldo_inicial
+views\saldos.php:565: INSERT INTO movimentacoes_financeiras
+views\saldos.php:622: SELECT
+views\saldos.php:662: UPDATE movimentacoes_financeiras
+views\saldos.php:698: DELETE FROM movimentacoes_financeiras
+views\saldos.php:758: SELECT id, nome, data_saldo_inicial
+views\saldos.php:829: INSERT INTO movimentacoes_financeiras
+views\saldos.php:916: SELECT
+views\saldos.php:988: UPDATE movimentacoes_financeiras
+views\saldos.php:1058: SELECT id, tipo
+views\saldos.php:1101: DELETE FROM movimentacoes_financeiras
+views\saldos.php:1158: SELECT
+views\saldos.php:1192: SELECT
+views\saldos.php:1838: <select id="tipo" name="tipo" class="saldos-tipo-conta" required>
+views\saldos.php:1844: </select>
+views\saldos.php:1850: <select id="instituicao" name="instituicao" class="saldos-instituicao-select">
+views\saldos.php:1860: </select>
+views\saldos.php:1923: <select id="editar_tipo" name="tipo" class="saldos-tipo-conta" required>
+views\saldos.php:1929: </select>
+views\saldos.php:1935: <select
+views\saldos.php:1938: class="saldos-instituicao-select"
+views\saldos.php:1949: </select>
+views\saldos.php:2017: <select id="mov_conta" name="conta_id" required>
+views\saldos.php:2030: </select>
+views\saldos.php:2034: <select id="tipo_movimentacao" name="tipo_movimentacao" required>
+views\saldos.php:2037: </select>
+views\saldos.php:2080: <select id="editar_mov_tipo" name="tipo_movimentacao" required>
+views\saldos.php:2083: </select>
+views\saldos.php:2132: <select id="conta_origem" name="conta_origem" required>
+views\saldos.php:2145: </select>
+views\saldos.php:2149: <select id="conta_destino" name="conta_destino" required>
+views\saldos.php:2162: </select>
+views\saldos.php:2252: const select = form.querySelector('.saldos-instituicao-select');
+views\saldos.php:2255: if (!tipo || !bloco || !select || !outra) {
+views\saldos.php:2267: select.value === 'outra'
+views\saldos.php:2274: const instituicao = form.querySelector('.saldos-instituicao-select');
+views\analise\api.php:32: $user=analiseRows($conn,'SELECT id FROM usuarios WHERE id=? AND status_assinatura=? AND data_expiracao>=CURRENT_DATE()', 'is',[$uid,'ativo']);
+views\analise\api.php:38: $ops=analiseRows($conn,'SELECT id,data,quantidade,valor_unitario,tipo_operacao FROM investimentos_nacionais
+views\analise\api.php:41: $marks=analiseRows($conn,'SELECT id,tipo,titulo,preco,cor,texto,versao FROM analise_marcacoes
+views\analise\api.php:51: analiseSql($conn,'INSERT INTO analise_acompanhamento (usuario_id,ticker,tipo_ativo) VALUES (?,?,?)
+views\analise\api.php:52: ON DUPLICATE KEY UPDATE ticker=VALUES(ticker)','iss',[$uid,$ticker,$tipoAtivo])->close();
+views\analise\api.php:56: analiseSql($conn,'DELETE FROM analise_acompanhamento WHERE usuario_id=? AND ticker=? AND tipo_ativo=?',
+views\analise\api.php:67: $stmt=analiseSql($conn,'INSERT INTO analise_marcacoes (usuario_id,ticker,tipo_ativo,tipo,titulo,preco,cor,texto) VALUES (?,?,?,?,?,?,?,?)',
+views\analise\api.php:70: $stmt=analiseSql($conn,'UPDATE analise_marcacoes SET tipo=?,titulo=?,preco=?,cor=?,texto=?,versao=versao+1
+views\analise\api.php:74: } else $stmt=analiseSql($conn,'DELETE FROM analise_marcacoes WHERE id=? AND usuario_id=? AND ticker=? AND tipo_ativo=? AND versao=?',
+views\daytrade\ajustar_operacao.php:82: SELECT id
+views\daytrade\ajustar_operacao.php:83: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\daytrade\ajustar_operacao.php:210: UPDATE operacoes
+views\daytrade\editar_corretora.php:67: SELECT id
+views\daytrade\editar_corretora.php:68: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade\editar_corretora.php:103: UPDATE corretoras
+views\daytrade\editar_corretora.php:170: INSERT INTO corretora_taxas
+views\daytrade\editar_corretora.php:250: UPDATE corretora_taxas
+views\daytrade\editar_corretora.php:314: DELETE FROM corretora_taxas
+views\daytrade\editar_corretora.php:370: SELECT
+views\daytrade\editar_corretora.php:373: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade\editar_corretora.php:407: SELECT
+views\daytrade\editar_corretora.php:411: FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
+views\daytrade\editar_operacao.php:21: SELECT
+views\daytrade\editar_operacao.php:32: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\daytrade\listar_operacoes.php:33: SELECT
+views\daytrade\listar_operacoes.php:49: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\daytrade\salvar_corretora.php:67: SELECT id
+views\daytrade\salvar_corretora.php:68: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade\salvar_corretora.php:97: INSERT INTO corretoras
+views\daytrade\salvar_corretora.php:120: INSERT INTO corretora_taxas
+views\daytrade\salvar_operacao.php:90: SELECT id
+views\daytrade\salvar_operacao.php:91: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\daytrade\salvar_operacao.php:136: SELECT
+views\daytrade\salvar_operacao.php:139: FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
+views\daytrade\salvar_operacao.php:296: INSERT INTO operacoes
+views\login\login.php:23: SELECT
+views\login\register.php:23: $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+views\login\register.php:45: INSERT INTO usuarios (
+views\relatorios\cartao.php:70: SELECT
+views\relatorios\cartao.php:98: FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) c
+views\relatorios\cartao.php:185: SELECT COUNT(DISTINCT compra_id) AS total
+views\relatorios\cartao.php:186: FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes
+views\relatorios\cartao.php:274: <select name="ano">
+views\relatorios\cartao.php:293: </select>
+views\relatorios\daytrade.php:125: SELECT DISTINCT YEAR(data) AS ano
+views\relatorios\daytrade.php:126: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
+views\relatorios\daytrade.php:166: SELECT
+views\relatorios\daytrade.php:169: FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
+views\relatorios\daytrade.php:212: SELECT
+views\relatorios\daytrade.php:231: FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) o
+views\relatorios\daytrade.php:232: INNER JOIN (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) c
+views\relatorios\daytrade.php:580: <select
+views\relatorios\daytrade.php:599: </select>
+views\relatorios\daytrade.php:607: <select
+views\relatorios\daytrade.php:632: </select>
+views\relatorios\financeiro.php:50: SELECT
+views\relatorios\financeiro.php:59: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\relatorios\financeiro.php:82: SELECT
+views\relatorios\financeiro.php:91: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\relatorios\financeiro.php:146: SELECT ano
+views\relatorios\financeiro.php:148: SELECT DISTINCT YEAR(data) AS ano
+views\relatorios\financeiro.php:149: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\relatorios\financeiro.php:153: SELECT DISTINCT YEAR(vencimento) AS ano
+views\relatorios\financeiro.php:154: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\relatorios\financeiro.php:255: <select
+views\relatorios\financeiro.php:275: </select>
+views\relatorios\gastos.php:53: SELECT
+views\relatorios\gastos.php:92: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\relatorios\gastos.php:202: SELECT DISTINCT
+views\relatorios\gastos.php:204: FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
+views\relatorios\gastos.php:307: <select
+views\relatorios\gastos.php:327: </select>
+views\relatorios\investimentos.php:474: SELECT
+views\relatorios\investimentos.php:513: SELECT
+views\relatorios\investimentos.php:858: SELECT
+views\relatorios\investimentos.php:938: SELECT
+views\relatorios\investimentos.php:1056: SELECT DISTINCT ano
+views\relatorios\investimentos.php:1058: SELECT
+views\relatorios\investimentos.php:1065: SELECT
+views\relatorios\investimentos.php:1212: <select
+views\relatorios\investimentos.php:1234: </select>
+views\relatorios\proventos.php:154: SELECT DISTINCT YEAR(datacom) AS ano
+views\relatorios\proventos.php:209: SELECT DISTINCT
+views\relatorios\proventos.php:285: SELECT
+views\relatorios\proventos.php:295: SELECT SUM(
+views\relatorios\proventos.php:552: <select
+views\relatorios\proventos.php:571: </select>
+views\relatorios\proventos.php:579: <select
+views\relatorios\proventos.php:607: </select>
+views\relatorios\proventos.php:615: <select
+views\relatorios\proventos.php:648: </select>
+views\relatorios\receitas.php:51: SELECT
+views\relatorios\receitas.php:76: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\relatorios\receitas.php:185: SELECT DISTINCT
+views\relatorios\receitas.php:187: FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
+views\relatorios\receitas.php:290: <select
+views\relatorios\receitas.php:310: </select>
+views\relatorios\relatorio-funcao.php:4: $sql = "SELECT
+views\relatorios\relatorio-funcao.php:17: $sql = "SELECT ticker, data, quantidade, valor_unitario, valor_mercado
+includes\analise.php:56: $ops = analiseRows($conn, 'SELECT id,ticker,tipo_ativo,quantidade,valor_unitario,data,tipo_operacao,logo
+includes\analise.php:81: foreach (analiseRows($conn,'SELECT ticker,tipo_ativo FROM analise_acompanhamento WHERE usuario_id = ?', 'i',[$uid]) as $a) {
+includes\patrimonio_calculo.php:24: $stmt = $conn->prepare("SELECT id, ticker, tipo_ativo, quantidade,
+includes\saldos_consulta.php:9: SELECT
+includes\seguranca.php:27: $s=$conn->prepare('SELECT id FROM corretoras WHERE id=? AND usuario_id=?');
+includes\seguranca.php:53: $s = $conn->prepare('SELECT senha,status_assinatura,data_expiracao FROM usuarios WHERE id=?');

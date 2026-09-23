@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -14,7 +15,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 require_once __DIR__ . '/../../includes/mercado_api.php';
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 $anoAtual = (int)date('Y');
 $mesAtual = (int)date('n');
@@ -503,7 +504,7 @@ try {
 
     error_log(
         'MyCashFlow relatório investimentos nacional: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -542,7 +543,7 @@ try {
 
     error_log(
         'MyCashFlow relatório investimentos internacional: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -558,12 +559,12 @@ if ($erroPosicaoNacional === '') {
     } catch (Throwable $e) {
         $erroPosicaoNacional =
             $e instanceof DomainException
-                ? $e->getMessage()
+                ? mcfMensagemErro($e)
                 : 'Não foi possível consolidar a carteira nacional.';
 
         error_log(
             'MyCashFlow relatório consolidação nacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
     }
 }
@@ -577,12 +578,12 @@ if ($erroPosicaoInternacional === '') {
     } catch (Throwable $e) {
         $erroPosicaoInternacional =
             $e instanceof DomainException
-                ? $e->getMessage()
+                ? mcfMensagemErro($e)
                 : 'Não foi possível consolidar a carteira internacional.';
 
         error_log(
             'MyCashFlow relatório consolidação internacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
     }
 }
@@ -652,7 +653,7 @@ if (
 
         error_log(
             'MyCashFlow relatório cotações nacionais: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
     }
 }
@@ -728,7 +729,7 @@ if (
 
         error_log(
             'MyCashFlow relatório cotações internacionais: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
     }
 }
@@ -1044,7 +1045,7 @@ try {
 
     error_log(
         'MyCashFlow relatório movimentação investimentos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -1094,7 +1095,7 @@ try {
 } catch (Throwable $e) {
     error_log(
         'MyCashFlow relatório anos investimentos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 

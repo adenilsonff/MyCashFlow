@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -127,8 +128,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $conn->prepare("
                     INSERT INTO contas
-                    (nome, tipo, categoria, vencimento, paga, valor, grupo_recorrencia, parcela_atual, total_parcelas)
-                    VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)
+                    (usuario_id, nome, tipo, categoria, vencimento, paga, valor, grupo_recorrencia, parcela_atual, total_parcelas)
+                    VALUES (@mcf_usuario_id, ?, ?, ?, ?, 0, ?, ?, ?, ?)
                 ");
                 if (!$stmt) {
                     throw new RuntimeException('Não foi possível preparar o cadastro.');
@@ -172,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("
                 UPDATE contas
                 SET paga = ?
-                WHERE id = ?
+                WHERE usuario_id = @mcf_usuario_id AND id = ?
             ");
 
             $stmt->bind_param("ii", $paga, $id);
@@ -193,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             in_array($alcance, ['somente', 'proximos'], true)) {
             $stmt = $conn->prepare("
                 SELECT tipo, vencimento, grupo_recorrencia
-                FROM contas WHERE id = ? LIMIT 1
+                FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas WHERE id = ? LIMIT 1
             ");
             $stmt->bind_param("i", $id);
             $stmt->execute();
@@ -212,21 +213,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($ajustar) {
                         $stmt = $conn->prepare("
                             UPDATE contas SET valor = ?
-                            WHERE grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
+                            WHERE usuario_id = @mcf_usuario_id AND grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
                         ");
                         $stmt->bind_param("dsss", $novoValor, $grupoRecorrencia, $vencimento, $tipoSelecionado);
                     } else {
                         $stmt = $conn->prepare("
                             DELETE FROM contas
-                            WHERE grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
+                            WHERE usuario_id = @mcf_usuario_id AND grupo_recorrencia = ? AND vencimento >= ? AND tipo = ?
                         ");
                         $stmt->bind_param("sss", $grupoRecorrencia, $vencimento, $tipoSelecionado);
                     }
                 } elseif ($ajustar) {
-                    $stmt = $conn->prepare("UPDATE contas SET valor = ? WHERE id = ?");
+                    $stmt = $conn->prepare("UPDATE contas SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?");
                     $stmt->bind_param("di", $novoValor, $id);
                 } else {
-                    $stmt = $conn->prepare("DELETE FROM contas WHERE id = ?");
+                    $stmt = $conn->prepare("DELETE FROM contas WHERE usuario_id = @mcf_usuario_id AND id = ?");
                     $stmt->bind_param("i", $id);
                 }
                 $stmt->execute();
@@ -250,7 +251,7 @@ $sql = "
         grupo_recorrencia,
         parcela_atual,
         total_parcelas
-    FROM contas
+    FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
     WHERE MONTH(vencimento) = ?
     AND YEAR(vencimento) = ?
 ";
@@ -514,7 +515,7 @@ if ($categoriaFiltro === 'pessoal') {
                                             Sim
                                         </option>
                                     </select>
-                                </form>
+                                <?= mcfCsrfField() ?></form>
                             </td>
 
                             <td>
@@ -702,7 +703,7 @@ if ($categoriaFiltro === 'pessoal') {
             >
                 Registrar
             </button>
-        </form>
+        <?= mcfCsrfField() ?></form>
     </div>
 </div>
 
@@ -864,7 +865,7 @@ if ($categoriaFiltro === 'pessoal') {
             >
                 Atualizar
             </button>
-        </form>
+        <?= mcfCsrfField() ?></form>
     </div>
 </div>
 
@@ -890,7 +891,7 @@ if ($categoriaFiltro === 'pessoal') {
 
             <button type="submit" class="btn-padrao btn-excluir">Excluir</button>
             <button type="button" class="btn-padrao btn-secundario" onclick="fecharModal('modal-excluir')">Cancelar</button>
-        </form>
+        <?= mcfCsrfField() ?></form>
     </div>
 </div>
 

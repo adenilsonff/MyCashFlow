@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+
 // Consulta única de saldos usada por Saldos e Patrimônio.
 function saldosListarContas($conn, $usuario_id) {
 $contas = [];

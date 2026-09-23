@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__.'/../../config.php';
 if (!isset($conn)) {
-include __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../config.php';
 }
 
 $corretora_id = isset($_GET['corretora_id'])
@@ -45,7 +46,7 @@ deducao_1,
 lucro_desc,
 darf,
 lucro_final
-FROM operacoes
+FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
 WHERE corretora_id = ?
 AND MONTH(data) = ?
 AND YEAR(data) = ?

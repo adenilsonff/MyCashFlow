@@ -1,0 +1,8 @@
+Options -Indexes
+RewriteEngine On
+# Arquivos internos, backups e código histórico nunca são rotas públicas.
+RewriteRule ^(?:ARQUIVOS|includes|models|controllers|migrations|tools|tests|docs|views/BKP|\.git)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:config\.php|README\.md|TESTE\.txt)$ - [F,L,NC]
+<FilesMatch "(?i)\.(sql|zip|bak|log|ini|env)$">
+    Require all denied
+</FilesMatch>

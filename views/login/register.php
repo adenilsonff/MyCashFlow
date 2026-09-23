@@ -1,81 +1,21 @@
 <?php
-include("../../config.php");
-
-$erro = null;
-$sucesso = null;
-$email = "";
-
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST['email'] ?? '');
-    $senha = $_POST['senha'] ?? '';
-    $confirmarSenha = $_POST['confirmar_senha'] ?? '';
-
-    if ($email === '' || $senha === '' || $confirmarSenha === '') {
-        $erro = "Preencha todos os campos.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $erro = "Informe um e-mail válido.";
-    } elseif (strlen($senha) < 8) {
-        $erro = "A senha deve ter pelo menos 8 caracteres.";
-    } elseif ($senha !== $confirmarSenha) {
-        $erro = "As senhas não coincidem.";
-    } else {
-        $stmt = $conn->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
-
-        if ($stmt) {
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if ($result->num_rows > 0) {
-                $erro = "Este e-mail já está cadastrado.";
-            }
-
-            $stmt->close();
-        } else {
-            $erro = "Não foi possível concluir o cadastro.";
-        }
-
-        if (!$erro) {
-            $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-            $dataExpiracao = date('Y-m-d', strtotime('+30 days'));
-            $status = "ativo";
-
-            $stmt = $conn->prepare("
-                INSERT INTO usuarios (
-                    email,
-                    senha,
-                    status_assinatura,
-                    data_expiracao
-                )
-                VALUES (?, ?, ?, ?)
-            ");
-
-            if ($stmt) {
-                $stmt->bind_param(
-                    "ssss",
-                    $email,
-                    $senhaHash,
-                    $status,
-                    $dataExpiracao
-                );
-
-                if ($stmt->execute()) {
-                    $sucesso = "Usuário cadastrado com sucesso. Seu acesso inicial é válido por 30 dias.";
-                    $email = "";
-                } else {
-                    if ($stmt->errno === 1062) {
-                        $erro = "Este e-mail já está cadastrado.";
-                    } else {
-                        $erro = "Não foi possível concluir o cadastro.";
-                    }
-                }
-
-                $stmt->close();
-            } else {
-                $erro = "Não foi possível concluir o cadastro.";
-            }
-        }
-    }
+require_once __DIR__.'/../../config.php';
+require_once __DIR__.'/../../includes/perfil.php';
+$erro = null; $sucesso = null; $email = ''; $nome = '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $nome = mcfNome(mcfTexto($_POST, 'nome'));
+        $email = mcfEmail(mcfTexto($_POST, 'email'));
+        $senha = mcfTexto($_POST, 'senha');
+        mcfValidarSenha($senha, mcfTexto($_POST, 'confirmar_senha'));
+        $hash = password_hash($senha, PASSWORD_DEFAULT);
+        $validade = date('Y-m-d', strtotime('+30 days'));
+        $s = $conn->prepare("INSERT INTO usuarios (nome,email,senha,status_assinatura,data_expiracao) VALUES (?,?,?,'ativo',?)");
+        $s->bind_param('ssss', $nome, $email, $hash, $validade); $s->execute(); $s->close();
+        $sucesso = 'Usuário cadastrado com sucesso. Seu acesso inicial é válido por 30 dias.';
+        $email = ''; $nome = '';
+    } catch (DomainException $e) { $erro = $e->getMessage(); http_response_code(422); }
+    catch (mysqli_sql_exception $e) { $erro = $e->getCode() === 1062 ? 'Este e-mail já está cadastrado.' : 'Não foi possível concluir o cadastro.'; http_response_code($e->getCode() === 1062 ? 422 : 500); }
 }
 ?>
 
@@ -96,6 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <form method="POST" autocomplete="on">
             <h2>Cadastrar Usuário</h2>
 
+            <label for="nome">Nome de exibição:</label>
+            <input id="nome" name="nome" value="<?= htmlspecialchars($nome, ENT_QUOTES, 'UTF-8') ?>" minlength="2" maxlength="100" autocomplete="name" required>
             <label for="email">Email:</label>
             <input
                 type="email"
@@ -106,12 +48,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 required
             >
 
+            <p>Senha de 12 a 72 bytes; letras acentuadas podem ocupar mais de um byte.</p>
             <label for="senha">Senha:</label>
             <input
                 type="password"
                 id="senha"
                 name="senha"
-                minlength="8"
+                minlength="12"
                 autocomplete="new-password"
                 required
             >
@@ -121,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 type="password"
                 id="confirmar_senha"
                 name="confirmar_senha"
-                minlength="8"
+                minlength="12"
                 autocomplete="new-password"
                 required
             >
@@ -144,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 Já tem uma conta?
                 <a href="login.php">Entrar</a>
             </p>
-        </form>
+        <?= mcfCsrfField() ?></form>
     </main>
 
     <footer>

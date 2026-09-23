@@ -1,0 +1,17 @@
+CREATE TABLE `div_datacom` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `datacom` date NOT NULL,
+  `datapag` date DEFAULT NULL,
+  `valor` decimal(15,8) NOT NULL,
+  `tipo` enum('DIV','JCP','REND') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_div_usuario` (`usuario_id`),
+  KEY `idx_div_ticker` (`ticker`),
+  KEY `idx_div_tipo_ativo` (`tipo_ativo`),
+  KEY `idx_div_usuario_datacom` (`usuario_id`,`datacom`),
+  KEY `idx_div_usuario_ticker` (`usuario_id`,`ticker`),
+  CONSTRAINT `fk_div_datacom_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -87,13 +88,13 @@ Verifica se a corretora existe
 */
 $stmt = $conn->prepare("
 SELECT id
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 WHERE id = ?
 LIMIT 1
 ");
 
 if (!$stmt) {
-die("Erro ao verificar corretora: " . htmlspecialchars($conn->error));
+die("Erro ao verificar corretora: " . htmlspecialchars('Falha de banco de dados.'));
 }
 
 $stmt->bind_param("i", $corretora_id);
@@ -103,7 +104,7 @@ $resultado = $stmt->get_result();
 
 if (!$resultado || $resultado->num_rows === 0) {
 $stmt->close();
-die("Corretora não encontrada.");
+mcfFalhar(404,"Corretora não encontrada.");
 }
 
 $stmt->close();
@@ -135,13 +136,13 @@ $stmtTaxas = $conn->prepare("
 SELECT
 nome_taxa,
 percentual
-FROM corretora_taxas
+FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
 WHERE corretora_id = ?
 ORDER BY id ASC
 ");
 
 if (!$stmtTaxas) {
-die("Erro ao consultar taxas: " . htmlspecialchars($conn->error));
+die("Erro ao consultar taxas: " . htmlspecialchars('Falha de banco de dados.'));
 }
 
 $stmtTaxas->bind_param("i", $corretora_id);
@@ -293,7 +294,7 @@ Grava a operação
 */
 $stmt = $conn->prepare("
 INSERT INTO operacoes
-(
+(usuario_id, 
 corretora_id,
 data,
 acao,
@@ -311,8 +312,7 @@ lucro_desc,
 darf,
 lucro_final
 )
-VALUES
-(
+VALUES (@mcf_usuario_id, 
 ?,
 ?,
 ?,
@@ -333,7 +333,7 @@ VALUES
 ");
 
 if (!$stmt) {
-die("Erro ao preparar operação: " . htmlspecialchars($conn->error));
+die("Erro ao preparar operação: " . htmlspecialchars('Falha de banco de dados.'));
 }
 
 $tipos = "issi" . str_repeat("d", 12);
@@ -360,7 +360,7 @@ $lucro_final
 
 if (!$stmt->execute()) {
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 

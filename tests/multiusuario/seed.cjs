@@ -1,0 +1,22 @@
+const path=require('path');
+const cp=require('child_process');
+const run=sql=>cp.execFileSync('C:/xampp/mysql/bin/mysql.exe',['-u','root','mcf_test_20260921'],{input:sql});
+for(const [u,id,name] of [[1,101,'ALFA_PRIVADO'],[2,201,'BETA_PRIVADO']])run(`
+INSERT INTO contas(id,usuario_id,nome,tipo,categoria,vencimento,valor,grupo_recorrencia) VALUES(${id},${u},'${name}','recorrente','pessoal','2026-09-20',${u*111},'mesmo-grupo');
+INSERT INTO rendas(id,usuario_id,nome,descricao,tipo,classificacao,data,valor,grupo_recorrencia) VALUES(${id},${u},'${name}','${name}','recorrente','regular','2026-09-20',${u*1111},'mesmo-grupo');
+INSERT INTO compras(id,usuario_id,nome,nome_original,categoria,valor_total,total_parcelas,data_compra,origem) VALUES(${id},${u},'${name}','LOJA','pessoal',${u*123},1,'2026-09-20','ofx');
+INSERT INTO cartoes(id,usuario_id,compra_id,data,valor,parcela,fitid) VALUES(${id},${u},${id},'2026-09-20',${u*123},1,'fitid-igual');
+INSERT INTO corretoras(id,usuario_id,nome) VALUES(${id},${u},'${name}');
+INSERT INTO corretora_taxas(id,usuario_id,corretora_id,nome_taxa,percentual) VALUES(${id},${u},${id},'${name}',0.01);
+INSERT INTO operacoes(id,usuario_id,corretora_id,data,acao,quantidade,valor_compra,valor_venda,total_compra,total_venda,valor_operacao,lucro_bruto,taxas,deducao_1,imposto_20,lucro_desc,darf,lucro_final) VALUES(${id},${u},${id},'2026-09-20','${name}',1,10,20,10,20,30,10,1,0,2,9,2,7);
+INSERT INTO contas_financeiras(id,usuario_id,nome,tipo,saldo_inicial,data_saldo_inicial) VALUES(${id},${u},'${name}','corrente',${u*1000},'2026-01-01');
+INSERT INTO movimentacoes_financeiras(id,usuario_id,conta_id,tipo,data,descricao,valor,origem_modulo) VALUES(${id},${u},${id},'entrada','2026-09-20','${name}',${u*90},'manual');
+INSERT INTO investimentos_nacionais(id,usuario_id,ticker,tipo_ativo,quantidade,valor_unitario,data,tipo_operacao) VALUES(${id},${u},'PETR4','acao',${u*10},30,'2026-09-01','compra');
+INSERT INTO investimentos_internacionais(id,usuario_id,ticker,tipo_ativo,quantidade,valor_unitario,valor_investido,data,tipo_operacao) VALUES(${id},${u},'AAPL','stock',${u*2},200,${u*400},'2026-09-01','compra');
+INSERT INTO div_datacom(id,usuario_id,ticker,tipo_ativo,datacom,datapag,valor,tipo) VALUES(${id},${u},'PETR4','acao','2026-09-15','2026-09-20',${u},'DIV');
+INSERT INTO analise_marcacoes(id,usuario_id,ticker,tipo_ativo,tipo,titulo,preco) VALUES(${id},${u},'PETR4','acao','linha','${name}',${u*10});
+INSERT INTO analise_acompanhamento(usuario_id,ticker,tipo_ativo) VALUES(${u},'PETR4','acao');
+INSERT INTO cartao_nomes_recorrentes(usuario_id,chave_descricao,descricao_original,nome_personalizado) VALUES(${u},REPEAT('a',64),'LOJA','${name}');
+INSERT INTO ofx_importacoes(usuario_id,nome_arquivo,hash_arquivo,quantidade_transacoes) VALUES(${u},'${name}',REPEAT('b',64),1);
+`);
+console.log('Fixtures de duas contas carregadas exclusivamente na base mcf_test_20260921.');

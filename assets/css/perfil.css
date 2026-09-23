@@ -1,0 +1,33 @@
+.perfil { max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+.perfil section { background: #fff; border: 1px solid #d9e1e8; border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; }
+.perfil form { display: grid; gap: .7rem; }
+.perfil input { box-sizing: border-box; width: 100%; min-width: 0; padding: .7rem; border: 1px solid #8794a0; border-radius: 4px; font: inherit; }
+.perfil button { justify-self: start; margin-top: .5rem; padding: .75rem 1.25rem; cursor: pointer; }
+.perfil-ajuda { font-size: .9rem; color: #465363; line-height: 1.5; margin-top: 0; }
+.perfil-erro, .perfil-sucesso { padding: 1rem; border-radius: 4px; }
+.perfil-erro { background: #fff0f0; color: #8a1616; }
+.perfil-sucesso { background: #eaf7ef; color: #155b30; }
+
+/* Perfil e configuração seguem os cartões e a paleta do MyCashFlow. */
+.perfil { width: min(800px, 100%); box-sizing: border-box; color: #2C3E50; }
+.perfil h2 { margin: 0 0 12px; color: #2C3E50; }
+.perfil h3 { margin-top: 0; color: #2C3E50; }
+.perfil p { line-height: 1.6; overflow-wrap: anywhere; }
+.perfil section { border-radius: 10px; box-shadow: 0 3px 10px rgba(44,62,80,.07); }
+.perfil label { font-weight: bold; color: #2C3E50; }
+.perfil input { min-height: 44px; border-color: #aebdc9; border-radius: 5px; color: #2C3E50; background: #fff; }
+.perfil button { border: 1px solid #2C3E50; border-radius: 5px; background: #2C3E50; color: #fff; font: bold 15px Arial,sans-serif; min-height: 44px; transition: background .2s; }
+.perfil button:hover { background: #34495E; }
+.perfil a:not(.conta-atalho) { display: inline-flex; align-items: center; min-height: 24px; padding: 10px 15px; border: 1px solid #c1cbd4; border-radius: 5px; background: #fff; color: #2C3E50; font-weight: bold; text-decoration: none; transition: background .2s,color .2s; }
+.perfil a:not(.conta-atalho):hover { background: #34495E; color: #fff; }
+.perfil :is(a,button,input):focus-visible { outline: 3px solid #28688b; outline-offset: 3px; }
+.perfil-intro { color: #465363; margin-bottom: 24px; }
+.conta-configuracao { width: min(1100px,100%); max-width: 1100px; }
+.conta-atalhos { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.conta-atalho { display: flex; flex-direction: column; gap: 12px; padding: 22px; border: 1px solid #d9e1e8; border-top: 4px solid #34495E; border-radius: 10px; background: #fff; color: #2C3E50; text-decoration: none; line-height: 1.5; box-shadow: 0 3px 10px rgba(44,62,80,.07); transition: border-color .2s,box-shadow .2s; }
+.conta-atalho strong { font-size: 1.15rem; }
+.conta-atalho > span:not(.conta-atalho-acao) { color: #465363; }
+.conta-atalho .conta-atalho-acao { align-self: start; margin-top: auto; padding: 8px 12px; border-radius: 5px; background: #ECF0F1; font-weight: bold; }
+.conta-atalho:hover { border-color: #34495E; box-shadow: 0 5px 14px rgba(44,62,80,.15); }
+.conta-atalho:hover .conta-atalho-acao { background: #34495E; color: #fff; }
+@media(max-width:768px) { .conta-atalhos { grid-template-columns: 1fr; } .perfil { margin: 1rem auto; } .perfil section { padding: 1.15rem; } .perfil button { width: 100%; } }

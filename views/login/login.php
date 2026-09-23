@@ -1,6 +1,6 @@
 <?php
-session_start();
-include("../../config.php");
+require_once __DIR__.'/../../config.php';
+require_once __DIR__.'/../../includes/perfil.php';
 
 if (isset($_SESSION['usuario_id'])) {
     header("Location: ../dashboard.php");
@@ -11,8 +11,8 @@ $erro = null;
 $email = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = trim($_POST['email'] ?? '');
-    $senha = $_POST['senha'] ?? '';
+    $email = is_string($_POST['email'] ?? null) ? strtolower(trim($_POST['email'])) : '';
+    $senha = is_string($_POST['senha'] ?? null) ? $_POST['senha'] : '';
 
     if ($email === '' || $senha === '') {
         $erro = "Preencha o e-mail e a senha.";
@@ -22,12 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $sql = "
             SELECT
                 id,
+                nome,
                 email,
                 senha,
                 status_assinatura,
                 data_expiracao
             FROM usuarios
-            WHERE email = ?
+            WHERE email_normalizado = ?
             LIMIT 1
         ";
 
@@ -48,9 +49,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $erro = "Seu período de acesso expirou.";
                     } else {
                         session_regenerate_id(true);
+                        $_SESSION = [];
+                        $_SESSION['mcf_csrf'] = bin2hex(random_bytes(32));
+                        $_SESSION['auth_version'] = hash('sha256', $usuario['senha']);
 
                         $_SESSION['usuario_id'] = (int)$usuario['id'];
                         $_SESSION['usuario_email'] = $usuario['email'];
+                        $_SESSION['usuario_nome'] = $usuario['nome'];
                         $_SESSION['status_assinatura'] = $usuario['status_assinatura'];
                         $_SESSION['data_expiracao'] = $usuario['data_expiracao'];
 
@@ -143,7 +148,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             Ainda não tem conta?
             <a href="register.php">Cadastre-se aqui</a>
         </p>
-    </form>
+    <?= mcfCsrfField() ?></form>
 </main>
 
 <footer>

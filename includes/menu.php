@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+
 $menuAtual = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 $menuEhExtra = $menuAtual === '/MyCashFlow/views/rendas.php' && ($_GET['classificacao'] ?? '') === 'extra';
 $menuBase = '/MyCashFlow/views/';
@@ -21,11 +23,12 @@ $menuItens = [
     ], ['investimentos_nacionais.php', 'investimentos_internacionais.php',
         'div_datacom.php', 'div_valor.php', 'div_compra.php',
         'daytrade/editar_corretora.php']],
+    ['Análise', 'analise.php', [], []],
     ['Relatórios', 'relatorios/relatorios.php', [], [
         'relatorios/financeiro.php', 'relatorios/investimentos.php',
         'relatorios/proventos.php', 'relatorios/daytrade.php', 'relatorios/rel-acoes.php'
     ]],
-    ['Configuração', 'configuracao.php', [], []],
+    ['Configuração', 'configuracao.php', [['Meu perfil', 'perfil.php'], ['Compartilhamento', 'compartilhamento.php'], ['Histórico dos meus dados', 'historico.php'], ['Avisos', 'avisos.php']], ['compartilhado.php']],
     ['Sair', 'login/logout.php', [], []]
 ];
 $menuEscape = static function ($valor) {
@@ -46,7 +49,7 @@ $menuEscape = static function ($valor) {
 ?>
     <div class="mcf-menu-item<?= $menuGrupoAtivo ? ' mcf-menu-active' : '' ?>">
         <div class="mcf-menu-row">
-            <a href="<?= $menuEscape($menuBase . $menuDestino) ?>"<?= $menuPaginaAtiva ? ' aria-current="page"' : '' ?>><?= $menuEscape($menuRotulo) ?></a>
+            <a data-mcf-own href="<?= $menuEscape($menuBase . $menuDestino) ?>"<?= $menuPaginaAtiva ? ' aria-current="page"' : '' ?>><?= $menuEscape($menuRotulo) ?></a>
             <?php if ($menuFilhos): ?>
             <button type="button" class="mcf-menu-toggle" aria-expanded="false" aria-controls="mcf-submenu-<?= $menuIndice ?>" aria-label="Submenus de <?= $menuEscape($menuRotulo) ?>"><span aria-hidden="true">▾</span></button>
             <?php endif; ?>
@@ -54,7 +57,7 @@ $menuEscape = static function ($valor) {
         <?php if ($menuFilhos): ?>
         <div class="mcf-submenu" id="mcf-submenu-<?= $menuIndice ?>" hidden>
             <?php foreach ($menuFilhos as [$menuFilhoRotulo, $menuFilhoDestino]): ?>
-            <a href="<?= $menuEscape($menuBase . $menuFilhoDestino) ?>"<?= ($menuFilhoDestino === 'rendas.php?classificacao=extra' ? $menuEhExtra : $menuAtual === $menuBase . $menuFilhoDestino) ? ' aria-current="page"' : '' ?>><?= $menuEscape($menuFilhoRotulo) ?></a>
+            <a data-mcf-own href="<?= $menuEscape($menuBase . $menuFilhoDestino) ?>"<?= ($menuFilhoDestino === 'rendas.php?classificacao=extra' ? $menuEhExtra : $menuAtual === $menuBase . $menuFilhoDestino) ? ' aria-current="page"' : '' ?>><?= $menuEscape($menuFilhoRotulo) ?></a>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>

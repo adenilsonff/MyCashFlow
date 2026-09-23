@@ -1,3 +1,4 @@
+<?php if (realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; } ?>
 <main class="acoes-layout">
     <h1><?= $relatorio['titulo'] ?></h1>
     <button onclick="window.print()" class="btn-imprimir">🖨️ Imprimir</button>

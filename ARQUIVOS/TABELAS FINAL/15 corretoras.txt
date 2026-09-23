@@ -1,0 +1,9 @@
+CREATE TABLE `corretoras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_id_owner` (`id`,`usuario_id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_corretoras_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../config.php';
 // Página de Rendas - Estrutura base
 ?>
 <!DOCTYPE html>

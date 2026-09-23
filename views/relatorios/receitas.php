@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -72,7 +73,7 @@ $stmt = $conn->prepare("
             END
         ) AS recebido
 
-    FROM rendas
+    FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
     WHERE YEAR(data) = ?
     GROUP BY MONTH(data)
     ORDER BY MONTH(data)
@@ -183,7 +184,7 @@ $anosDisponiveis = [];
 $resultAnos = $conn->query("
     SELECT DISTINCT
         YEAR(data) AS ano
-    FROM rendas
+    FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
     WHERE data IS NOT NULL
     ORDER BY ano DESC
 ");

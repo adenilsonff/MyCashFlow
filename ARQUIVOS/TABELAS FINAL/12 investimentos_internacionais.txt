@@ -1,0 +1,20 @@
+CREATE TABLE `investimentos_internacionais` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(20) NOT NULL,
+  `tipo_ativo` enum('stock','etf','reit','adr') NOT NULL,
+  `quantidade` decimal(22,8) NOT NULL,
+  `valor_unitario` decimal(18,4) NOT NULL,
+  `valor_investido` decimal(24,8) NOT NULL,
+  `data` date NOT NULL,
+  `valor_mercado` decimal(18,4) DEFAULT NULL,
+  `logo` varchar(500) DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `tipo_operacao` enum('compra','venda') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_inv_int_usuario` (`usuario_id`),
+  KEY `idx_inv_int_ticker` (`ticker`),
+  KEY `idx_inv_int_tipo_ativo` (`tipo_ativo`),
+  KEY `idx_inv_int_usuario_ticker_data` (`usuario_id`,`ticker`,`data`),
+  CONSTRAINT `fk_inv_int_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

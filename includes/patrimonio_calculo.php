@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+
 require_once __DIR__ . '/carteiras_posicoes.php';
 require_once __DIR__ . '/saldos_consulta.php';
 

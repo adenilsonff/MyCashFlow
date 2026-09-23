@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -55,7 +56,7 @@ $stmt = $conn->prepare("
                 ELSE 0
             END
         ) AS receita_recebida
-    FROM rendas
+    FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
     WHERE YEAR(data) = ?
     GROUP BY MONTH(data)
     ORDER BY MONTH(data)
@@ -87,7 +88,7 @@ $stmt = $conn->prepare("
                 ELSE 0
             END
         ) AS despesa_paga
-    FROM contas
+    FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
     WHERE YEAR(vencimento) = ?
     GROUP BY MONTH(vencimento)
     ORDER BY MONTH(vencimento)
@@ -145,12 +146,12 @@ $sqlAnos = "
     SELECT ano
     FROM (
         SELECT DISTINCT YEAR(data) AS ano
-        FROM rendas
+        FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
 
         UNION
 
         SELECT DISTINCT YEAR(vencimento) AS ano
-        FROM contas
+        FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
     ) AS anos
     WHERE ano IS NOT NULL
     ORDER BY ano DESC

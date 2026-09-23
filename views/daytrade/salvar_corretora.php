@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -64,7 +65,7 @@ die("Informe um percentual válido.");
 
 $stmt = $conn->prepare("
 SELECT id
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 WHERE nome = ?
 LIMIT 1
 ");
@@ -72,7 +73,7 @@ LIMIT 1
 if (!$stmt) {
 die(
 "Erro ao consultar corretora: " .
-htmlspecialchars($conn->error, ENT_QUOTES, 'UTF-8')
+htmlspecialchars('Falha de banco de dados.', ENT_QUOTES, 'UTF-8')
 );
 }
 
@@ -94,12 +95,12 @@ try {
 
 $stmt = $conn->prepare("
 INSERT INTO corretoras
-(nome)
-VALUES (?)
+(usuario_id, nome)
+VALUES (@mcf_usuario_id, ?)
 ");
 
 if (!$stmt) {
-throw new Exception($conn->error);
+throw new Exception('Falha de banco de dados.');
 }
 
 $stmt->bind_param(
@@ -108,7 +109,7 @@ $corretora
 );
 
 if (!$stmt->execute()) {
-throw new Exception($stmt->error);
+throw new Exception('Falha de banco de dados.');
 }
 
 $corretora_id = $conn->insert_id;
@@ -117,16 +118,16 @@ $stmt->close();
 
 $stmt = $conn->prepare("
 INSERT INTO corretora_taxas
-(
+(usuario_id, 
 corretora_id,
 nome_taxa,
 percentual
 )
-VALUES (?, ?, ?)
+VALUES (@mcf_usuario_id, ?, ?, ?)
 ");
 
 if (!$stmt) {
-throw new Exception($conn->error);
+throw new Exception('Falha de banco de dados.');
 }
 
 $stmt->bind_param(
@@ -137,7 +138,7 @@ $taxa_valor
 );
 
 if (!$stmt->execute()) {
-throw new Exception($stmt->error);
+throw new Exception('Falha de banco de dados.');
 }
 
 $stmt->close();
@@ -154,7 +155,7 @@ $conn->rollback();
 die(
 "Erro ao cadastrar corretora: " .
 htmlspecialchars(
-$e->getMessage(),
+mcfMensagemErro($e),
 ENT_QUOTES,
 'UTF-8'
 )

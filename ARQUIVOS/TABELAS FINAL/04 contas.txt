@@ -1,0 +1,17 @@
+CREATE TABLE `contas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `tipo` enum('unica','parcelada','recorrente') NOT NULL,
+  `categoria` enum('pessoal','conjunta') NOT NULL,
+  `grupo_recorrencia` varchar(36) DEFAULT NULL,
+  `parcela_atual` int(11) DEFAULT NULL,
+  `total_parcelas` int(11) DEFAULT NULL,
+  `vencimento` date NOT NULL,
+  `paga` tinyint(1) NOT NULL DEFAULT 0,
+  `valor` decimal(10,2) NOT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_contas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

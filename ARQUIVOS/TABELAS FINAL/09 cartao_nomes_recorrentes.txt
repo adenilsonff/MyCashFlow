@@ -1,0 +1,9 @@
+CREATE TABLE `cartao_nomes_recorrentes` (
+  `chave_descricao` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `descricao_original` varchar(255) NOT NULL,
+  `nome_personalizado` varchar(255) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`usuario_id`,`chave_descricao`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_cartao_nomes_recorrentes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

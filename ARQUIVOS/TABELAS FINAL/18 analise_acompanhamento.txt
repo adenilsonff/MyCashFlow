@@ -1,0 +1,10 @@
+CREATE TABLE `analise_acompanhamento` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_analise_usuario_ativo` (`usuario_id`,`ticker`,`tipo_ativo`),
+  CONSTRAINT `fk_mcf_analise_acompanhamento_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

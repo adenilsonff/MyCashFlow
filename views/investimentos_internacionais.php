@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -14,7 +15,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 require_once __DIR__ . '/../includes/mercado_api.php';
 require_once __DIR__ . '/../includes/carteiras_posicoes.php';
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 function internacionalEscape($v) {
     return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -287,7 +288,7 @@ try {
 } catch (Throwable $e) {
     $erro =
         $e instanceof DomainException
-            ? $e->getMessage()
+            ? mcfMensagemErro($e)
             : 'Não foi possível conferir a estrutura da tabela.';
 }
 
@@ -517,12 +518,12 @@ if (
 
     } catch (DomainException $e) {
         $erro =
-            $e->getMessage();
+            mcfMensagemErro($e);
 
     } catch (Throwable $e) {
         error_log(
             'MyCashFlow internacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
 
         $erro =
@@ -667,7 +668,7 @@ if ($estrutura_ok) {
 
         $erro_carteira =
             $e instanceof DomainException
-                ? $e->getMessage()
+                ? mcfMensagemErro($e)
                 : 'Não foi possível carregar a carteira.';
     }
 }
@@ -1611,7 +1612,7 @@ $av_modal =
                         Registrar
                     </button>
                 </div>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </div>
     </dialog>
 

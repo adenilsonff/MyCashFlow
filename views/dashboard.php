@@ -1,9 +1,10 @@
 <?php
+require_once __DIR__.'/../config.php';
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 if (session_status() === PHP_SESSION_NONE) {
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -11,7 +12,7 @@ header("Location: login/login.php");
 exit;
 }
 
-include __DIR__ . '/../config.php';
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/mercado_api.php';
 
 $usuario_id = (int)$_SESSION['usuario_id'];
@@ -219,7 +220,7 @@ SELECT
 COALESCE(SUM(valor), 0) AS total,
 COALESCE(SUM(CASE WHEN recebido = 1 THEN valor ELSE 0 END), 0) AS recebido,
 COALESCE(SUM(CASE WHEN recebido = 0 THEN valor ELSE 0 END), 0) AS pendente
-FROM rendas
+FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
 WHERE MONTH(data) = ? AND YEAR(data) = ?
 ";
 
@@ -238,7 +239,7 @@ SELECT
 COALESCE(SUM(valor), 0) AS total,
 COALESCE(SUM(CASE WHEN paga = 1 THEN valor ELSE 0 END), 0) AS pago,
 COALESCE(SUM(CASE WHEN paga = 0 THEN valor ELSE 0 END), 0) AS pendente
-FROM contas
+FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
 WHERE MONTH(vencimento) = ? AND YEAR(vencimento) = ?
 ";
 
@@ -263,8 +264,8 @@ COALESCE(SUM(CASE WHEN cp.categoria = 'conjunta' THEN c.valor ELSE 0 END), 0) AS
 COALESCE(SUM(CASE WHEN cp.categoria = 'unica' THEN c.valor ELSE 0 END), 0) AS reembolsavel,
 COALESCE(SUM(CASE WHEN c.paga = 1 THEN c.valor ELSE 0 END), 0) AS pago,
 COALESCE(SUM(CASE WHEN c.paga = 0 THEN c.valor ELSE 0 END), 0) AS pendente
-FROM cartoes c
-INNER JOIN compras cp ON cp.id = c.compra_id
+FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) c
+INNER JOIN (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) cp ON cp.id = c.compra_id
 WHERE MONTH(c.data) = ? AND YEAR(c.data) = ?
 ";
 
@@ -286,7 +287,7 @@ SELECT
 COALESCE(SUM(lucro_final), 0) AS resultado,
 COALESCE(SUM(darf), 0) AS darf,
 COUNT(id) AS operacoes
-FROM operacoes
+FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
 WHERE MONTH(data) = ? AND YEAR(data) = ?
 ";
 
@@ -342,7 +343,7 @@ true
 } catch (Throwable $e) {
 error_log(
 'MyCashFlow dashboard investimentos nacionais: ' .
-$e->getMessage()
+mcfMensagemErro($e)
 );
 
 $totalNacional = null;
@@ -384,7 +385,7 @@ false
 } catch (Throwable $e) {
 error_log(
 'MyCashFlow dashboard investimentos internacionais: ' .
-$e->getMessage()
+mcfMensagemErro($e)
 );
 
 $totalInternacional = null;
@@ -424,7 +425,7 @@ $totalInternacional,
 } catch (Throwable $e) {
 error_log(
 'MyCashFlow dashboard câmbio investimentos: ' .
-$e->getMessage()
+mcfMensagemErro($e)
 );
 
 $cotacaoDolarInvestimentos = null;
@@ -465,7 +466,7 @@ $sqlReceitasGrafico = "
 SELECT
 DATE_FORMAT(data, '%Y-%m') AS periodo,
 COALESCE(SUM(valor), 0) AS total
-FROM rendas
+FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas
 WHERE data >= ? AND data < ?
 GROUP BY DATE_FORMAT(data, '%Y-%m')
 ORDER BY periodo
@@ -488,7 +489,7 @@ $sqlDespesasGrafico = "
 SELECT
 DATE_FORMAT(vencimento, '%Y-%m') AS periodo,
 COALESCE(SUM(valor), 0) AS total
-FROM contas
+FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
 WHERE vencimento >= ? AND vencimento < ?
 GROUP BY DATE_FORMAT(vencimento, '%Y-%m')
 ORDER BY periodo
@@ -537,7 +538,7 @@ include __DIR__ . '/../includes/menu.php';
 
 <div class="dashboard-usuario">
 <span>Bem-vindo</span>
-<strong><?php echo htmlspecialchars($_SESSION['usuario_email']); ?></strong>
+<strong><?php echo htmlspecialchars(mcfRotuloUsuario(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); ?></strong>
 </div>
 </div>
 

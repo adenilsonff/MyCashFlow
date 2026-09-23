@@ -180,3 +180,18 @@ footer {
     #mcf-mobile-toggle:focus-visible { outline: 2px solid white; outline-offset: -4px; }
     #mcf-menu.mcf-enhanced:not(.mcf-mobile-open) { display: none; }
 }
+/* Controles de conta: mesma paleta e tipografia da navegação do sistema. */
+.mcf-profile-link { color: inherit; overflow-wrap: anywhere; text-underline-offset: 4px; }
+.mcf-account-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 10px 20px; background: #fff; border-bottom: 1px solid #d9e1e8; }
+.mcf-account-links a, .mcf-owner-notice a { display: inline-flex; align-items: center; padding: 10px 15px; border-radius: 5px; color: #2C3E50; background: #ECF0F1; text-decoration: none; font-weight: bold; line-height: 1.4; transition: background .2s, color .2s; }
+.mcf-account-links a:hover, .mcf-owner-notice a:hover { background: #34495E; color: #fff; }
+.mcf-account-selector { display: flex; justify-content: center; align-items: end; flex-wrap: wrap; gap: 12px; margin: 0; padding: 16px 20px; background: #ECF0F1; border-bottom: 1px solid #d9e1e8; color: #2C3E50; }
+.mcf-account-selector label { display: grid; gap: 6px; font-weight: bold; min-width: 0; max-width: 100%; }
+.mcf-account-selector select { box-sizing: border-box; width: 100%; max-width: 460px; min-height: 42px; border: 1px solid #aebdc9; border-radius: 5px; background: #fff; color: #2C3E50; padding: 10px 12px; font: inherit; }
+.mcf-account-selector button { min-height: 42px; padding: 10px 18px; border: 1px solid #2C3E50; border-radius: 5px; background: #2C3E50; color: #fff; font: bold 14px Arial, sans-serif; cursor: pointer; }
+.mcf-account-selector button:hover { background: #34495E; }
+.mcf-owner-notice { padding: 18px 20px; background: #fff8e5; border-left: 4px solid #a87800; color: #422f00; line-height: 1.5; overflow-wrap: anywhere; }
+.mcf-owner-notice p { margin: 8px 0; }
+.mcf-account-links a:focus-visible, .mcf-account-selector :focus-visible, .mcf-owner-notice a:focus-visible { outline: 3px solid #28688b; outline-offset: 3px; }
+@media (max-width: 768px) { .mcf-account-links { justify-content: stretch; padding: 10px 15px; } .mcf-account-links a { flex: 1 1 200px; justify-content: center; text-align: center; } .mcf-account-selector { align-items: stretch; padding: 15px; } .mcf-account-selector label, .mcf-account-selector button { flex: 1 1 100%; } .mcf-account-selector select { max-width: 100%; } }
+@media print { .mcf-account-links, .mcf-account-selector { display: none !important; } }

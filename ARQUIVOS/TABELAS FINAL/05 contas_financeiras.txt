@@ -1,0 +1,18 @@
+CREATE TABLE `contas_financeiras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `instituicao` varchar(100) DEFAULT NULL,
+  `icone` varchar(255) DEFAULT NULL,
+  `tipo` enum('corrente','poupanca','carteira','corretora','outros') NOT NULL,
+  `saldo_inicial` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `data_saldo_inicial` date NOT NULL,
+  `ativa` tinyint(1) NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_id_owner` (`id`,`usuario_id`),
+  KEY `idx_cf_usuario` (`usuario_id`),
+  KEY `idx_cf_usuario_ativa` (`usuario_id`,`ativa`),
+  CONSTRAINT `fk_cf_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

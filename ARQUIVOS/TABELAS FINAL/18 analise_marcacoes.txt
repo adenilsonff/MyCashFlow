@@ -1,0 +1,17 @@
+CREATE TABLE `analise_marcacoes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `tipo` enum('linha','nota') NOT NULL,
+  `titulo` varchar(80) NOT NULL,
+  `preco` decimal(16,4) DEFAULT NULL,
+  `cor` char(7) NOT NULL DEFAULT '#6366f1',
+  `texto` varchar(2000) NOT NULL DEFAULT '',
+  `versao` int(10) unsigned NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_analise_marcacoes` (`usuario_id`,`ticker`,`tipo_ativo`),
+  CONSTRAINT `fk_mcf_analise_marcacoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

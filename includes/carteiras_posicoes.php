@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+
 // Regras compartilhadas com as carteiras; preservadas sem alteração.
 function acoesTicker($ticker) {
     return preg_replace('/\.SA$/', '', strtoupper(trim($ticker)));

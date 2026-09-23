@@ -1,12 +1,13 @@
 <?php
+require_once __DIR__.'/../config.php';
 
-include __DIR__ . '/../config.php';
+require_once __DIR__ . '/../config.php';
 
 
 
 if (session_status() === PHP_SESSION_NONE) {
 
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 }
 
@@ -28,7 +29,7 @@ require_once __DIR__ . '/../includes/mercado_api.php';
 
 $usuario_id =
 
-    (int)$_SESSION['usuario_id'];
+    mcfDonoId();
 
 
 
@@ -564,7 +565,7 @@ function obterCotacaoAtual($ticker) {
 
             ': ' .
 
-            $e->getMessage()
+            mcfMensagemErro($e)
 
         );
 
@@ -1292,7 +1293,7 @@ if (
 
             'MyCashFlow simulador de proventos: ' .
 
-            $e->getMessage()
+            mcfMensagemErro($e)
 
         );
 
@@ -1768,7 +1769,7 @@ $melhorResultado =
 
                 </div>
 
-            </form>
+            <?= mcfCsrfField() ?></form>
 
         </div>
 

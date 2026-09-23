@@ -1,0 +1,37 @@
+.compartilhamento { width: min(1100px, 100%); box-sizing: border-box; padding: 1rem; margin: 1rem auto; }
+.compartilhamento section { background: white; padding: 1.25rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #d9e1e8; }
+.compartilhamento article { border-top: 1px solid #d9e1e8; padding: 1rem 0; overflow-wrap: anywhere; }
+.compartilhamento p { line-height: 1.5; }
+.compartilhamento form { display: grid; gap: .8rem; }
+.compartilhamento select, .compartilhamento input:not([type=hidden]):not([type=checkbox]) { padding: .65rem; font: inherit; max-width: 100%; box-sizing: border-box; border: 1px solid #8794a0; border-radius: 4px; }
+.compartilhamento fieldset > label:not(.opcao) { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 0 0 .9rem 1.5rem; font-size: .9rem; }
+.compartilhamento input[type=email], .compartilhamento input[type=date] { padding: .65rem; border: 1px solid #8794a0; border-radius: 4px; font: inherit; max-width: 100%; box-sizing: border-box; }
+.compartilhamento fieldset { border: 1px solid #c1cbd4; border-radius: 4px; display: grid; gap: .65rem; }
+.compartilhamento .opcao { display: flex; gap: .5rem; align-items: center; }
+.compartilhamento button { padding: .7rem 1rem; background: #2c3e50; color: white; border: 1px solid #2c3e50; border-radius: 4px; cursor: pointer; justify-self: start; font: inherit; }
+.compartilhamento button.secundario { background: white; color: #2c3e50; }
+.compartilhamento .acoes, .compartilhamento .filtros { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; }
+.compartilhamento .filtros label { display: grid; gap: .4rem; }
+.compartilhamento .aviso { background: #e7f3fa; padding: 1rem; border-left: 4px solid #28688b; }
+.compartilhamento .erro { background: #fff0f0; border-color: #982b2b; color: #822525; }
+.compartilhamento .ajuda { color: #465363; font-size: .9rem; }
+.compartilhamento .links-modulos { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+.compartilhamento details { margin-top: 1rem; }
+.compartilhamento summary { cursor: pointer; padding: .5rem 0; }
+.compartilhamento .tabela-scroll { overflow-x: auto; }
+.compartilhamento table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.compartilhamento th, .compartilhamento td { text-align: left; padding: .7rem; border-bottom: 1px solid #dde4eb; white-space: pre-wrap; overflow-wrap: anywhere; min-width: 75px; }
+.compartilhamento th { background: #edf2f6; }
+@media print { header, nav, #mcf-mobile-toggle, .compartilhamento form, .compartilhamento .links-modulos { display: none !important; } .compartilhamento { width: 100%; margin: 0; } .compartilhamento .tabela-scroll { overflow: visible; } }
+
+/* Links de ação com aparência consistente com os botões do MyCashFlow. */
+.compartilhamento { color: #2C3E50; }
+.compartilhamento a { display: inline-flex; align-items: center; padding: 9px 14px; border: 1px solid #c1cbd4; border-radius: 5px; background: #fff; color: #2C3E50; text-decoration: none; font-weight: bold; line-height: 1.4; transition: background .2s, color .2s, border-color .2s; }
+.compartilhamento a:hover, .compartilhamento a[aria-current="page"] { background: #34495E; border-color: #34495E; color: #fff; }
+.compartilhamento a:focus-visible, .compartilhamento button:focus-visible, .compartilhamento summary:focus-visible { outline: 3px solid #28688b; outline-offset: 3px; }
+.compartilhamento button:hover { background: #34495E; color: #fff; }
+.compartilhamento summary { color: #2C3E50; font-weight: bold; }
+.compartilhamento input[type=checkbox] { accent-color: #2C3E50; width: 16px; height: 16px; }
+.mcf-permission-actions { margin: .5rem 0 1rem 1.5rem; font-size: .9rem; color: #465363; }
+.mcf-permission-action { display: inline-flex; align-items: center; gap: .4rem; margin: .4rem 1rem .4rem 0; }
+@media(max-width: 600px) { .compartilhamento .links-modulos { gap: .5rem; } .compartilhamento .links-modulos a { flex: 1 1 180px; justify-content: center; text-align: center; } }

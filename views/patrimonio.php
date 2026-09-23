@@ -1,6 +1,7 @@
 <?php
+require_once __DIR__.'/../config.php';
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 $usuario_id = filter_var($_SESSION['usuario_id'] ?? null, FILTER_VALIDATE_INT,
     ['options' => ['min_range' => 1]]);
@@ -48,7 +49,7 @@ if (!extension_loaded('bcmath')) {
                 patrimonioCarteira($conn, $usuario_id, $carteira['nacional'], mercadoApi()));
         } catch (Throwable $e) {
             $carteira['erro'] = $e instanceof DomainException
-                ? $e->getMessage() . ' Confira o histórico da carteira.'
+                ? mcfMensagemErro($e) . ' Confira o histórico da carteira.'
                 : 'Não foi possível carregar esta carteira.';
             $erros[] = $carteira['titulo'] . ': ' . $carteira['erro'];
         }

@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
+
 // Consultas e cache compartilhados; nunca altera o histórico das carteiras.
 final class MercadoApi {
     private $cfg, $transport, $clock;

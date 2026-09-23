@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -122,7 +123,7 @@ $anosDisponiveis = [];
 try {
     $stmt = $conn->prepare("
         SELECT DISTINCT YEAR(data) AS ano
-        FROM operacoes
+        FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
         WHERE data IS NOT NULL
         ORDER BY ano DESC
     ");
@@ -144,7 +145,7 @@ try {
 } catch (Throwable $e) {
     error_log(
         'MyCashFlow relatório day trade anos: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -165,7 +166,7 @@ try {
         SELECT
             id,
             nome
-        FROM corretoras
+        FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
         ORDER BY nome ASC
     ");
 
@@ -185,7 +186,7 @@ try {
 } catch (Throwable $e) {
     error_log(
         'MyCashFlow relatório day trade corretoras: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 
@@ -227,8 +228,8 @@ try {
             o.lucro_desc,
             o.darf,
             o.lucro_final
-        FROM operacoes o
-        INNER JOIN corretoras c
+        FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) o
+        INNER JOIN (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) c
             ON c.id = o.corretora_id
         WHERE YEAR(o.data) = ?
     ";
@@ -274,7 +275,7 @@ try {
 
     error_log(
         'MyCashFlow relatório day trade: ' .
-        $e->getMessage()
+        mcfMensagemErro($e)
     );
 }
 

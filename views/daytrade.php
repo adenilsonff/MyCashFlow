@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -34,7 +35,7 @@ $corretoras = [];
 
 $resultCorretoras = $conn->query("
 SELECT id, nome
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 ORDER BY nome ASC
 ");
 
@@ -50,7 +51,7 @@ if ($corretora_selecionada > 0) {
 
 $stmt = $conn->prepare("
 SELECT nome
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 WHERE id = ?
 ");
 
@@ -97,7 +98,7 @@ SELECT
 id,
 nome_taxa,
 percentual
-FROM corretora_taxas
+FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
 WHERE corretora_id = ?
 ORDER BY id ASC
 ");
@@ -143,7 +144,7 @@ $stmtResumo = $conn->prepare("
 SELECT
 COALESCE(SUM(darf), 0) AS total_darf,
 COALESCE(SUM(lucro_final), 0) AS total_lucro_final
-FROM operacoes
+FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
 WHERE corretora_id = ?
 AND MONTH(data) = ?
 AND YEAR(data) = ?
@@ -338,7 +339,7 @@ class="btn-padrao"
 Salvar
 </button>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 
@@ -688,7 +689,7 @@ class="btn-padrao"
 Salvar operação
 </button>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 
@@ -1032,7 +1033,7 @@ class="btn-padrao btn-salvar-ajuste"
 Salvar ajustes
 </button>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 
@@ -1165,7 +1166,7 @@ aviso.style.display =
 
 window.location.href =
 'daytrade/editar_corretora.php?id=' +
-encodeURIComponent(id);
+encodeURIComponent(id) + <?= json_encode(!empty($GLOBALS['mcf_contexto']) ? '&compartilhamento='.(int)$GLOBALS['mcf_contexto']['id'] : '') ?>;
 
 }
 );

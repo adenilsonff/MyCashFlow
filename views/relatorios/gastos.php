@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -88,7 +89,7 @@ $stmt = $conn->prepare("
             END
         ) AS pago
 
-    FROM contas
+    FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
     WHERE YEAR(vencimento) = ?
     GROUP BY MONTH(vencimento)
     ORDER BY MONTH(vencimento)
@@ -200,7 +201,7 @@ $anosDisponiveis = [];
 $resultAnos = $conn->query("
     SELECT DISTINCT
         YEAR(vencimento) AS ano
-    FROM contas
+    FROM (SELECT * FROM contas WHERE usuario_id = @mcf_usuario_id) AS contas
     WHERE vencimento IS NOT NULL
     ORDER BY ano DESC
 ");

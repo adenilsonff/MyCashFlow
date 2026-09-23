@@ -1,0 +1,13 @@
+CREATE TABLE `corretora_taxas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corretora_id` int(11) NOT NULL,
+  `nome_taxa` varchar(100) NOT NULL,
+  `percentual` decimal(10,5) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  KEY `fk_mcf_corretora_taxas_relation` (`corretora_id`,`usuario_id`),
+  CONSTRAINT `corretora_taxas_ibfk_1` FOREIGN KEY (`corretora_id`) REFERENCES `corretoras` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mcf_corretora_taxas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_mcf_corretora_taxas_relation` FOREIGN KEY (`corretora_id`, `usuario_id`) REFERENCES `corretoras` (`id`, `usuario_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

@@ -1,0 +1,13 @@
+CREATE TABLE `ofx_importacoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome_arquivo` varchar(255) NOT NULL,
+  `hash_arquivo` varchar(64) NOT NULL,
+  `periodo_inicio` date DEFAULT NULL,
+  `periodo_fim` date DEFAULT NULL,
+  `quantidade_transacoes` int(11) NOT NULL DEFAULT 0,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_ofx_owner` (`usuario_id`,`hash_arquivo`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_ofx_importacoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

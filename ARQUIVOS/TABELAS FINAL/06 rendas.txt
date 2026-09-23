@@ -1,0 +1,19 @@
+CREATE TABLE `rendas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `descricao` text DEFAULT NULL,
+  `data` date NOT NULL,
+  `valor` decimal(10,2) NOT NULL,
+  `tipo` enum('unica','parcelada','recorrente') NOT NULL DEFAULT 'unica',
+  `grupo_recorrencia` varchar(50) DEFAULT NULL,
+  `parcela_atual` int(11) DEFAULT NULL,
+  `total_parcelas` int(11) DEFAULT NULL,
+  `recebido` tinyint(1) NOT NULL DEFAULT 0,
+  `porcentagem` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `classificacao` enum('regular','extra') NOT NULL DEFAULT 'regular',
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_rendas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci

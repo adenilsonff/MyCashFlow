@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -79,7 +80,7 @@ if ($total_compra < 0 || $total_venda < 0 || $taxas < 0) {
 
 $stmt = $conn->prepare("
     SELECT id
-    FROM operacoes
+    FROM (SELECT * FROM operacoes WHERE usuario_id = @mcf_usuario_id) AS operacoes
     WHERE id = ?
     AND corretora_id = ?
 ");
@@ -88,7 +89,7 @@ if (!$stmt) {
     die(
         "Erro ao consultar operação: " .
         htmlspecialchars(
-            $conn->error,
+            'Falha de banco de dados.',
             ENT_QUOTES,
             'UTF-8'
         )
@@ -218,7 +219,7 @@ $stmt = $conn->prepare("
         lucro_desc = ?,
         darf = ?,
         lucro_final = ?
-    WHERE id = ?
+    WHERE usuario_id = @mcf_usuario_id AND id = ?
     AND corretora_id = ?
 ");
 
@@ -226,7 +227,7 @@ if (!$stmt) {
     die(
         "Erro ao preparar atualização: " .
         htmlspecialchars(
-            $conn->error,
+            'Falha de banco de dados.',
             ENT_QUOTES,
             'UTF-8'
         )
@@ -265,7 +266,7 @@ if ($stmt->execute()) {
     exit;
 }
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 

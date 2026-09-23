@@ -1,24 +1,11 @@
 <?php
-session_start();
-
-$_SESSION = [];
-
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-
-    setcookie(
-        session_name(),
-        '',
-        time() - 42000,
-        $params["path"],
-        $params["domain"],
-        $params["secure"],
-        $params["httponly"]
-    );
+require_once __DIR__.'/../../config.php';
+require_once __DIR__.'/../../config.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo '<!doctype html><html lang="pt-br"><meta charset="utf-8"><title>Sair</title><form method="post"><p>Encerrar esta sessão?</p>'.mcfCsrfField().'<button type="submit">Sair</button></form></html>';
+    exit;
 }
-
-session_destroy();
-
-header("Location: login.php");
-exit;
-?>
+$_SESSION=[];
+$p=session_get_cookie_params();
+setcookie(session_name(),'', ['expires'=>time()-42000,'path'=>$p['path'],'domain'=>$p['domain'],'secure'=>$p['secure'],'httponly'=>true,'samesite'=>'Lax']);
+session_destroy(); header('Location: login.php'); exit;

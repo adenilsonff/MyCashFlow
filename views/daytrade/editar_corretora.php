@@ -1,8 +1,10 @@
 <?php
-include __DIR__ . '/../../config.php';
+require_once __DIR__.'/../../config.php';
+mcfExigirCorretora($conn, (int)($_SERVER['REQUEST_METHOD']==='POST' ? ($_POST['corretora_id']??0) : ($_GET['id']??0)));
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -63,7 +65,7 @@ die("Informe o nome da corretora.");
 
 $stmt = $conn->prepare("
 SELECT id
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 WHERE nome = ?
 AND id <> ?
 LIMIT 1
@@ -73,7 +75,7 @@ if (!$stmt) {
 die(
 "Erro ao consultar corretora: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -100,14 +102,14 @@ $stmt->close();
 $stmt = $conn->prepare("
 UPDATE corretoras
 SET nome = ?
-WHERE id = ?
+WHERE usuario_id = @mcf_usuario_id AND id = ?
 ");
 
 if (!$stmt) {
 die(
 "Erro ao atualizar corretora: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -122,7 +124,7 @@ $corretora_id
 
 if (!$stmt->execute()) {
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 
@@ -166,19 +168,19 @@ die("Informe um percentual válido.");
 
 $stmt = $conn->prepare("
 INSERT INTO corretora_taxas
-(
+(usuario_id, 
 corretora_id,
 nome_taxa,
 percentual
 )
-VALUES (?, ?, ?)
+VALUES (@mcf_usuario_id, ?, ?, ?)
 ");
 
 if (!$stmt) {
 die(
 "Erro ao adicionar taxa: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -194,7 +196,7 @@ $percentual
 
 if (!$stmt->execute()) {
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 
@@ -249,7 +251,7 @@ UPDATE corretora_taxas
 SET
 nome_taxa = ?,
 percentual = ?
-WHERE id = ?
+WHERE usuario_id = @mcf_usuario_id AND id = ?
 AND corretora_id = ?
 ");
 
@@ -257,7 +259,7 @@ if (!$stmt) {
 die(
 "Erro ao atualizar taxa: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -274,7 +276,7 @@ $corretora_id
 
 if (!$stmt->execute()) {
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 
@@ -310,7 +312,7 @@ die("Taxa inválida.");
 
 $stmt = $conn->prepare("
 DELETE FROM corretora_taxas
-WHERE id = ?
+WHERE usuario_id = @mcf_usuario_id AND id = ?
 AND corretora_id = ?
 ");
 
@@ -318,7 +320,7 @@ if (!$stmt) {
 die(
 "Erro ao excluir taxa: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -333,7 +335,7 @@ $corretora_id
 
 if (!$stmt->execute()) {
 
-$erro = $stmt->error;
+$erro = 'Falha de banco de dados.';
 
 $stmt->close();
 
@@ -368,7 +370,7 @@ $stmt = $conn->prepare("
 SELECT
 id,
 nome
-FROM corretoras
+FROM (SELECT * FROM corretoras WHERE usuario_id = @mcf_usuario_id) AS corretoras
 WHERE id = ?
 ");
 
@@ -376,7 +378,7 @@ if (!$stmt) {
 die(
 "Erro ao consultar corretora: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -406,7 +408,7 @@ SELECT
 id,
 nome_taxa,
 percentual
-FROM corretora_taxas
+FROM (SELECT * FROM corretora_taxas WHERE usuario_id = @mcf_usuario_id) AS corretora_taxas
 WHERE corretora_id = ?
 ORDER BY id ASC
 ");
@@ -415,7 +417,7 @@ if (!$stmt) {
 die(
 "Erro ao consultar taxas: " .
 htmlspecialchars(
-$conn->error,
+'Falha de banco de dados.',
 ENT_QUOTES,
 'UTF-8'
 )
@@ -545,7 +547,7 @@ class="btn-padrao"
 Salvar nome
 </button>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 
@@ -606,7 +608,7 @@ class="btn-padrao"
 Adicionar taxa
 </button>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 
@@ -694,7 +696,7 @@ Excluir
 
 </div>
 
-</form>
+<?= mcfCsrfField() ?></form>
 
 </div>
 

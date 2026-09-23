@@ -1,8 +1,9 @@
 <?php
+require_once __DIR__.'/../config.php';
 
-include __DIR__ . '/../config.php';
+require_once __DIR__ . '/../config.php';
 
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login/login.php");
@@ -213,17 +214,17 @@ if (isset($_POST['atualizar_fatura_paga'])) {
         $stmt = $conn->prepare(
             'UPDATE cartoes 
              SET paga = 1 
-             WHERE MONTH(data) = ? AND YEAR(data) = ?'
+             WHERE usuario_id = @mcf_usuario_id AND MONTH(data) = ? AND YEAR(data) = ?'
         );
 
         if (!$stmt) {
-            die('Erro ao preparar atualização da fatura: ' . $conn->error);
+            die('Erro ao preparar atualização da fatura: ' . 'Falha de banco de dados.');
         }
 
         $stmt->bind_param('ii', $mesSelecionado, $anoSelecionado);
 
         if (!$stmt->execute()) {
-            die('Erro ao marcar fatura como paga: ' . $stmt->error);
+            die('Erro ao marcar fatura como paga: ' . 'Falha de banco de dados.');
         }
 
         $stmt->close();
@@ -246,7 +247,7 @@ if (isset($_POST['atualizar_categoria_lote'])) {
     }
 
     if (!empty($comprasSelecionadas)) {
-        $stmt = $conn->prepare('UPDATE compras SET categoria = ? WHERE id = ?');
+        $stmt = $conn->prepare('UPDATE compras SET categoria = ? WHERE usuario_id = @mcf_usuario_id AND id = ?');
         foreach ($comprasSelecionadas as $compraId) {
             $id = (int)$compraId;
             $stmt->bind_param('si', $categoria, $id);
@@ -269,7 +270,7 @@ if (isset($_POST['deletar_cartao'])) {
     $fim = (new DateTime($inicio))->modify('+1 month')->format('Y-m-d');
     try {
         $conn->begin_transaction();
-        $stmt = $conn->prepare('SELECT id FROM compras WHERE id = ? FOR UPDATE');
+        $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE id = ? FOR UPDATE');
         if (!$stmt) {
             throw new Exception('Falha ao localizar compra.');
         }
@@ -278,7 +279,7 @@ if (isset($_POST['deletar_cartao'])) {
             throw new Exception('Falha ao localizar compra.');
         }
         $stmt->close();
-        $stmt = $conn->prepare('SELECT id FROM cartoes WHERE compra_id = ? AND data >= ? AND data < ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND data >= ? AND data < ? LIMIT 1');
         if (!$stmt) {
             throw new Exception('Falha ao verificar competência.');
         }
@@ -291,7 +292,7 @@ if (isset($_POST['deletar_cartao'])) {
         if (!$existe) {
             throw new Exception('A compra não possui parcela no mês selecionado.');
         }
-        $stmt = $conn->prepare('DELETE FROM cartoes WHERE compra_id = ? AND data >= ?');
+        $stmt = $conn->prepare('DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?');
         if (!$stmt) {
             throw new Exception('Falha ao preparar exclusão.');
         }
@@ -300,7 +301,7 @@ if (isset($_POST['deletar_cartao'])) {
             throw new Exception('Falha ao excluir parcelas.');
         }
         $stmt->close();
-        $stmt = $conn->prepare('DELETE FROM compras WHERE id = ? AND NOT EXISTS (SELECT 1 FROM cartoes WHERE compra_id = ?)');
+        $stmt = $conn->prepare('DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? AND NOT EXISTS (SELECT 1 FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?)');
         if (!$stmt) {
             throw new Exception('Falha ao preparar exclusão da compra.');
         }
@@ -333,17 +334,17 @@ if (isset($_POST['atualizar_paga'])) {
 
     if ($id > 0) {
         $stmt = $conn->prepare(
-            'UPDATE cartoes SET paga = ? WHERE id = ?'
+            'UPDATE cartoes SET paga = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
         );
 
         if (!$stmt) {
-            die('Erro ao preparar pagamento: ' . $conn->error);
+            die('Erro ao preparar pagamento: ' . 'Falha de banco de dados.');
         }
 
         $stmt->bind_param('ii', $paga, $id);
 
         if (!$stmt->execute()) {
-            die('Erro ao atualizar pagamento: ' . $stmt->error);
+            die('Erro ao atualizar pagamento: ' . 'Falha de banco de dados.');
         }
 
         $stmt->close();
@@ -371,17 +372,17 @@ if (isset($_POST['ajustar_valor'])) {
 
     if ($id > 0) {
         $stmt = $conn->prepare(
-            'UPDATE cartoes SET valor = ? WHERE id = ?'
+            'UPDATE cartoes SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
         );
 
         if (!$stmt) {
-            die('Erro ao preparar ajuste: ' . $conn->error);
+            die('Erro ao preparar ajuste: ' . 'Falha de banco de dados.');
         }
 
         $stmt->bind_param('di', $novoValor, $id);
 
         if (!$stmt->execute()) {
-            die('Erro ao ajustar valor: ' . $stmt->error);
+            die('Erro ao ajustar valor: ' . 'Falha de banco de dados.');
         }
 
         $stmt->close();
@@ -411,17 +412,17 @@ if (isset($_POST['atualizar_categoria'])) {
 
     if ($compraId > 0) {
         $stmt = $conn->prepare(
-            'UPDATE compras SET categoria = ? WHERE id = ?'
+            'UPDATE compras SET categoria = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
         );
 
         if (!$stmt) {
-            die('Erro ao preparar categoria: ' . $conn->error);
+            die('Erro ao preparar categoria: ' . 'Falha de banco de dados.');
         }
 
         $stmt->bind_param('si', $categoria, $compraId);
 
         if (!$stmt->execute()) {
-            die('Erro ao atualizar categoria: ' . $stmt->error);
+            die('Erro ao atualizar categoria: ' . 'Falha de banco de dados.');
         }
 
         $stmt->close();
@@ -544,7 +545,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
 
     $lock = ccRows(
         $conn,
-        "SELECT GET_LOCK('mycashflow_cartao_importacao', 10) AS adquirido"
+        "SELECT GET_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id), 10) AS adquirido"
     );
 
     if ((int) $lock[0]['adquirido'] !== 1) {
@@ -559,7 +560,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
 
         $compras = ccRows(
             $conn,
-            'SELECT * FROM compras WHERE id = ? FOR UPDATE',
+            'SELECT * FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE id = ? FOR UPDATE',
             'i',
             [$compraId]
         );
@@ -584,8 +585,8 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
             ccExec(
                 $conn,
                 'INSERT INTO cartao_nomes_recorrentes
-                    (chave_descricao, descricao_original, nome_personalizado)
-                 VALUES (?, ?, ?)
+                    (usuario_id, chave_descricao, descricao_original, nome_personalizado)
+                 VALUES (@mcf_usuario_id, ?, ?, ?)
                  ON DUPLICATE KEY UPDATE
                     descricao_original = VALUES(descricao_original),
                     nome_personalizado = VALUES(nome_personalizado)',
@@ -595,7 +596,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
 
             $cobrancas = ccRows(
                 $conn,
-                "SELECT id, nome, nome_original FROM compras
+                "SELECT id, nome, nome_original FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras
                  WHERE origem = 'ofx' AND total_parcelas = 1 AND valor_total > 0"
             );
 
@@ -612,7 +613,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
                     $conn,
                     'UPDATE compras
                      SET nome_original = COALESCE(nome_original, nome), nome = ?
-                     WHERE id = ?',
+                     WHERE usuario_id = @mcf_usuario_id AND id = ?',
                     'si',
                     [$nome, (int) $cobranca['id']]
                 );
@@ -624,7 +625,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
                 $conn,
                 'UPDATE compras
                  SET nome_original = COALESCE(nome_original, nome), nome = ?
-                 WHERE id = ?',
+                 WHERE usuario_id = @mcf_usuario_id AND id = ?',
                 'si',
                 [$nome, $compraId]
             );
@@ -632,7 +633,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
             if ($permite) {
                 ccExec(
                     $conn,
-                    'DELETE FROM cartao_nomes_recorrentes WHERE chave_descricao = ?',
+                    'DELETE FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id AND chave_descricao = ?',
                     's',
                     [ccChaveNomeRecorrente($descricao)]
                 );
@@ -652,7 +653,7 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
 
         throw $e;
     } finally {
-        ccRows($conn, "SELECT RELEASE_LOCK('mycashflow_cartao_importacao')");
+        ccRows($conn, "SELECT RELEASE_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id))");
     }
 }
 
@@ -673,7 +674,7 @@ function ccImportar(
     $inicio = sprintf('%04d-%02d-01', $af, $mf);
     $fim = (new DateTime($inicio))->modify('+1 month')->format('Y-m-d');
     $lista = ccLerOfx($conteudo);
-    $lock = ccRows($conn, "SELECT GET_LOCK('mycashflow_cartao_importacao', 10) AS adquirido");
+    $lock = ccRows($conn, "SELECT GET_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id), 10) AS adquirido");
     if ((int) $lock[0]['adquirido'] !== 1) {
         throw new RuntimeException('Outra importação está em andamento. Tente novamente.');
     }
@@ -681,7 +682,7 @@ function ccImportar(
     try {
         $conn->begin_transaction();
         $emTransacao = true;
-        $registro = ccRows($conn, 'SELECT id FROM ofx_importacoes WHERE hash_arquivo = ? LIMIT 1', 's', [$hash]);
+        $registro = ccRows($conn, 'SELECT id FROM (SELECT * FROM ofx_importacoes WHERE usuario_id = @mcf_usuario_id) AS ofx_importacoes WHERE hash_arquivo = ? LIMIT 1', 's', [$hash]);
         if ($registro && !$reprocessar) {
             $conn->rollback();
             $emTransacao = false;
@@ -747,7 +748,7 @@ function ccImportar(
             // FITID é conferido dentro da competência, pois não identifica a compra inteira.
             $porFitid = ccRows(
                 $conn,
-                'SELECT DISTINCT c.* FROM compras c JOIN cartoes p ON p.compra_id = c.id WHERE p.fitid = ? AND p.data >= ? AND p.data < ?',
+                'SELECT DISTINCT c.* FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) c JOIN (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) p ON p.compra_id = c.id WHERE p.fitid = ? AND p.data >= ? AND p.data < ?',
                 'sss',
                 [$fitid, $inicio, $fim]
             );
@@ -761,7 +762,7 @@ function ccImportar(
             if (!$candidatas && $tp > 1) {
                 $possiveis = ccRows(
                     $conn,
-                    "SELECT * FROM compras WHERE data_compra = ? AND total_parcelas = ? AND origem = 'ofx'",
+                    "SELECT * FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE data_compra = ? AND total_parcelas = ? AND origem = 'ofx'",
                     'si',
                     [$dataSql, $tp]
                 );
@@ -769,7 +770,7 @@ function ccImportar(
                     if (normalizarTexto($c['nome_original'] ?? $c['nome']) !== normalizarTexto($nomeBanco)) {
                         continue;
                     }
-                    $parcelas = ccRows($conn, 'SELECT data, parcela FROM cartoes WHERE compra_id = ?', 'i', [(int) $c['id']]);
+                    $parcelas = ccRows($conn, 'SELECT data, parcela FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?', 'i', [(int) $c['id']]);
                     $mesesInicio = [];
                     foreach ($parcelas as $p) {
                         $mesesInicio[adicionarMeses(new DateTime($p['data']), 1 - (int) $p['parcela'])->format('Y-m')] = true;
@@ -808,7 +809,7 @@ function ccImportar(
                 if (!$credito && $tp === 1) {
                     $regrasNome = ccRows(
                         $conn,
-                        'SELECT nome_personalizado FROM cartao_nomes_recorrentes
+                        'SELECT nome_personalizado FROM (SELECT * FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id) AS cartao_nomes_recorrentes
                          WHERE chave_descricao = ?',
                         's',
                         [ccChaveNomeRecorrente($nomeBanco)]
@@ -821,7 +822,7 @@ function ccImportar(
 
                 ccExec(
                     $conn,
-                    "INSERT INTO compras (nome, nome_original, categoria, valor_total, total_parcelas, data_compra, origem, identificador_ofx) VALUES (?, ?, 'pessoal', ?, ?, ?, 'ofx', ?)",
+                    "INSERT INTO compras (usuario_id, nome, nome_original, categoria, valor_total, total_parcelas, data_compra, origem, identificador_ofx) VALUES (@mcf_usuario_id, ?, ?, 'pessoal', ?, ?, ?, 'ofx', ?)",
                     'ssdiss',
                     [$nomeExibido, $nomeBanco, round($valor * $tp, 2), $tp, $dataSql, $chave]
                 );
@@ -832,7 +833,7 @@ function ccImportar(
                 $dataParcela = adicionarMeses($base, $p - $np)->format('Y-m-d');
                 $existentes = ccRows(
                     $conn,
-                    'SELECT id, data FROM cartoes WHERE compra_id = ? AND parcela = ?',
+                    'SELECT id, data FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND parcela = ?',
                     'ii',
                     [$compraId, $p]
                 );
@@ -846,7 +847,7 @@ function ccImportar(
                         }
                         ccExec(
                             $conn,
-                            'UPDATE cartoes SET valor = ?, fitid = ? WHERE id = ?',
+                            'UPDATE cartoes SET valor = ?, fitid = ? WHERE usuario_id = @mcf_usuario_id AND id = ?',
                             'dsi',
                             [$valor, $fitid, (int) $existentes[0]['id']]
                         );
@@ -855,7 +856,7 @@ function ccImportar(
                 else {
                     ccExec(
                         $conn,
-                        'INSERT INTO cartoes (compra_id, data, valor, parcela, paga, fitid) VALUES (?, ?, ?, ?, 0, ?)',
+                        'INSERT INTO cartoes (usuario_id, compra_id, data, valor, parcela, paga, fitid) VALUES (@mcf_usuario_id, ?, ?, ?, ?, 0, ?)',
                         'isdis',
                         [$compraId, $dataParcela, $valor, $p, $p === $np ? $fitid : null]
                     );
@@ -863,7 +864,7 @@ function ccImportar(
             }
             ccExec(
                 $conn,
-                'UPDATE compras SET valor_total = (SELECT COALESCE(SUM(valor),0) FROM cartoes WHERE compra_id = ?) WHERE id = ?',
+                'UPDATE compras SET valor_total = (SELECT COALESCE(SUM(valor),0) FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?) WHERE usuario_id = @mcf_usuario_id AND id = ?',
                 'ii',
                 [$compraId, $compraId]
             );
@@ -872,7 +873,7 @@ function ccImportar(
         if (!$registro) {
             ccExec(
                 $conn,
-                'INSERT INTO ofx_importacoes (nome_arquivo, hash_arquivo, periodo_inicio, periodo_fim, quantidade_transacoes) VALUES (?, ?, ?, ?, ?)',
+                'INSERT INTO ofx_importacoes (usuario_id, nome_arquivo, hash_arquivo, periodo_inicio, periodo_fim, quantidade_transacoes) VALUES (@mcf_usuario_id, ?, ?, ?, ?, ?)',
                 'ssssi',
                 [$arquivo, $hash, $periodoInicio, $periodoFim, count($lista)]
             );
@@ -892,7 +893,7 @@ function ccImportar(
         throw $e;
     }
     finally {
-        ccRows($conn, "SELECT RELEASE_LOCK('mycashflow_cartao_importacao')");
+        ccRows($conn, "SELECT RELEASE_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id))");
     }
 }
 if (isset($_POST['renomear_compra'])) {
@@ -906,7 +907,7 @@ if (isset($_POST['renomear_compra'])) {
             isset($_POST['repetir_nome'])
         );
     } catch (Throwable $e) {
-        $_SESSION['cartao_aviso'] = 'Não foi possível renomear: ' . $e->getMessage();
+        $_SESSION['cartao_aviso'] = 'Não foi possível renomear a compra.';
     }
 
     voltarPagina($paginaAtual, $mes, $ano);
@@ -974,13 +975,13 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
     catch (CcRevisao $e) {
         $pendente['indice'] = $e->indice;
         $pendente['opcoes'] = $e->opcoes;
-        $pendente['descricao'] = $e->getMessage();
+        $pendente['descricao'] = mcfMensagemErro($e);
         $pendente['token'] = bin2hex(random_bytes(16));
         $_SESSION['cc_pendente'] = $pendente;
         $_SESSION['cartao_aviso'] = 'Há mais de uma compra compatível. Nenhuma alteração foi gravada. Revise a correspondência para continuar.';
     }
     catch (Throwable $e) {
-        $_SESSION['cartao_aviso'] = 'Importação não concluída: ' . $e->getMessage();
+        $_SESSION['cartao_aviso'] = 'Importação não concluída. Verifique o arquivo e as correspondências.';
     }
     voltarPagina($paginaAtual, $mes, $ano);
 }
@@ -1002,8 +1003,8 @@ $stmt = $conn->prepare(
         compras.origem, compras.valor_total,
         compras.categoria,
         compras.total_parcelas
-     FROM cartoes
-     INNER JOIN compras
+     FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes
+     INNER JOIN (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras
         ON compras.id = cartoes.compra_id
      WHERE MONTH(cartoes.data) = ?
        AND YEAR(cartoes.data) = ?
@@ -1011,7 +1012,7 @@ $stmt = $conn->prepare(
 );
 
 if (!$stmt) {
-    die('Erro ao preparar consulta: ' . $conn->error);
+    die('Erro ao preparar consulta: ' . 'Falha de banco de dados.');
 }
 
 $stmt->bind_param('ii', $mes, $ano);
@@ -1028,7 +1029,7 @@ $pagasFatura = 0;
 
 $regrasNomes = ccRows(
     $conn,
-    'SELECT chave_descricao FROM cartao_nomes_recorrentes'
+    'SELECT chave_descricao FROM (SELECT * FROM cartao_nomes_recorrentes WHERE usuario_id = @mcf_usuario_id) AS cartao_nomes_recorrentes'
 );
 
 $chavesNomes = array_fill_keys(array_column($regrasNomes, 'chave_descricao'), true);
@@ -1468,7 +1469,7 @@ function tokenCartao()
                             Continuar importação
                         </button>
                     </footer>
-                </form>
+                <?= mcfCsrfField() ?></form>
             </dialog>
             <?php endif; ?>
             <header class="cc-top">
@@ -1679,7 +1680,7 @@ function tokenCartao()
                         Importar OFX
                     </button>
                 </footer>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </dialog>
         <dialog id="cc-filtro" class="cc-dialog" aria-labelledby="cc-filtro-title">
             <header>
@@ -1787,7 +1788,7 @@ function tokenCartao()
                         Salvar categorias
                     </button>
                 </footer>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </dialog>
         <?php foreach (['nome' => 'Renomear compra', 'categoria' => 'Classificar compra', 'ajustar' => 'Ajustar parcela', 'excluir' => 'Excluir compra'] as $tipoModal => $tituloModal): ?>
         <dialog
@@ -1892,7 +1893,7 @@ function tokenCartao()
                         <?= $tipoModal === 'excluir' ? 'Excluir deste mês em diante' : 'Salvar' ?>
                     </button>
                 </footer>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </dialog>
         <?php endforeach; ?>
         <dialog id="cc-pagar" class="cc-dialog" aria-labelledby="cc-pagar-title">
@@ -1928,7 +1929,7 @@ function tokenCartao()
                         Confirmar pagamento
                     </button>
                 </footer>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </dialog>
         <script>
             const parcelas = <?= json_encode($cartoes, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?>;

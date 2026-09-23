@@ -1,9 +1,10 @@
 <?php
+require_once __DIR__.'/../../config.php';
 
-include __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -94,7 +95,7 @@ $stmt = $conn->prepare("
             WHEN c.paga = 0 THEN 1
             ELSE 0
         END) AS abertos_qtd
-    FROM cartoes c
+    FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) c
     WHERE YEAR(c.data) = ?
     GROUP BY MONTH(c.data)
     ORDER BY MONTH(c.data)
@@ -182,7 +183,7 @@ $mediaMensal = $totalLiquido / 12;
 
 $stmt = $conn->prepare("
     SELECT COUNT(DISTINCT compra_id) AS total
-    FROM cartoes
+    FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes
     WHERE YEAR(data) = ?
 ");
 

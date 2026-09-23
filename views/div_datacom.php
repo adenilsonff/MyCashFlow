@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -10,7 +11,7 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 $mes = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date("n");
 $ano = isset($_GET['ano']) ? (int)$_GET['ano'] : (int)date("Y");
@@ -636,7 +637,7 @@ $tipoFiltroTexto =
                                                 >
                                                     Excluir
                                                 </button>
-                                            </form>
+                                            <?= mcfCsrfField() ?></form>
                                         </div>
                                     </td>
                                 </tr>
@@ -780,7 +781,7 @@ $tipoFiltroTexto =
                 >
                     Registrar
                 </button>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </div>
     </div>
 
@@ -987,7 +988,7 @@ $tipoFiltroTexto =
                 >
                     Atualizar
                 </button>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </div>
     </div>
 

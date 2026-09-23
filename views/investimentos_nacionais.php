@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -14,7 +15,7 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 require_once __DIR__ . '/../includes/mercado_api.php';
 require_once __DIR__ . '/../includes/carteiras_posicoes.php';
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 function acoesEscape($valor) {
     return htmlspecialchars((string)$valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -307,12 +308,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             bin2hex(random_bytes(32));
 
     } catch (DomainException $e) {
-        $erro = $e->getMessage();
+        $erro = mcfMensagemErro($e);
 
     } catch (Throwable $e) {
         error_log(
             'MyCashFlow: falha ao registrar investimento nacional: ' .
-            $e->getMessage()
+            mcfMensagemErro($e)
         );
 
         $erro =
@@ -414,7 +415,7 @@ try {
 
     $erro_carteira =
         $e instanceof DomainException
-            ? $e->getMessage() .
+            ? mcfMensagemErro($e) .
                 ' Confira o histórico antes de consolidar a carteira.'
             : 'Não foi possível carregar a carteira.';
 }
@@ -1036,7 +1037,7 @@ $av_modal =
                         Registrar
                     </button>
                 </div>
-            </form>
+            <?= mcfCsrfField() ?></form>
         </div>
     </dialog>
 

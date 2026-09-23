@@ -1,8 +1,9 @@
 <?php
-include __DIR__ . '/../config.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
 }
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -10,7 +11,7 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfDonoId();
 
 if (empty($_SESSION['csrf_saldos'])) {
     $_SESSION['csrf_saldos'] = bin2hex(random_bytes(32));
@@ -1528,7 +1529,7 @@ $instituicoes = instituicoesSaldo();
                                     >
                                         Inativar
                                     </button>
-                                </form>
+                                <?= mcfCsrfField() ?></form>
 
                             <?php else: ?>
 
@@ -1543,7 +1544,7 @@ $instituicoes = instituicoesSaldo();
                                     >
                                         Reativar
                                     </button>
-                                </form>
+                                <?= mcfCsrfField() ?></form>
 
                             <?php endif; ?>
 
@@ -1563,7 +1564,7 @@ $instituicoes = instituicoesSaldo();
                                     >
                                         Excluir
                                     </button>
-                                </form>
+                                <?= mcfCsrfField() ?></form>
 
                             <?php endif; ?>
 
@@ -1691,7 +1692,7 @@ $instituicoes = instituicoesSaldo();
                                             >
                                                 Excluir
                                             </button>
-                                        </form>
+                                        <?= mcfCsrfField() ?></form>
 
                                     </div>
                                 </td>
@@ -1782,7 +1783,7 @@ $instituicoes = instituicoesSaldo();
                                                 >
                                                     Excluir
                                                 </button>
-                                            </form>
+                                            <?= mcfCsrfField() ?></form>
 
                                         </div>
 
@@ -1896,7 +1897,7 @@ $instituicoes = instituicoesSaldo();
                 Cadastrar conta
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
@@ -1994,7 +1995,7 @@ $instituicoes = instituicoesSaldo();
                 Salvar alterações
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
@@ -2056,7 +2057,7 @@ $instituicoes = instituicoesSaldo();
                 Registrar movimentação
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
@@ -2109,7 +2110,7 @@ $instituicoes = instituicoesSaldo();
                 Salvar alterações
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
@@ -2189,7 +2190,7 @@ $instituicoes = instituicoesSaldo();
                 Transferir
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
@@ -2237,7 +2238,7 @@ $instituicoes = instituicoesSaldo();
                 Salvar transferência
             </button>
 
-        </form>
+        <?= mcfCsrfField() ?></form>
 
     </div>
 </div>
