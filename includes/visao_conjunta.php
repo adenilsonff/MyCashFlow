@@ -52,7 +52,7 @@ function mcfCalcularConjunto(array $carteiras, array $cotacoes): array {
         }
     }
     $avaliar=static function(array $row) use($cotacoes): array {
-        $quote=$cotacoes[$row['moeda']][$row['ticker']] ?? [];
+        $quote=$cotacoes[$row['moeda']][$row['ticker'].'|'.$row['tipo']] ?? ($row['tipo']==='cripto' ? [] : ($cotacoes[$row['moeda']][$row['ticker']] ?? []));
         $preco=$quote['price'] ?? null;
         if (!is_numeric($preco) || !is_finite((float)$preco) || (float)$preco<=0 || ($quote['currency'] ?? $row['moeda'])!==$row['moeda']) $preco=null;
         $row['cotacao']=$preco;
@@ -80,8 +80,8 @@ function mcfCalcularConjunto(array $carteiras, array $cotacoes): array {
 function mcfAvaliarCarteiras(array $carteiras): array {
     require_once __DIR__.'/mercado_api.php';$quotes=[];
     foreach (['BRL','USD'] as $moeda) {
-        $tickers=[];foreach ($carteiras as $c) if ($c['moeda']===$moeda) foreach ($c['posicoes'] as $p) $tickers[]=$p['ticker'];
-        $quotes[$moeda]=$tickers ? mercadoApi()->stocks(array_values(array_unique($tickers)),$moeda) : [];
+        $positions=[];foreach ($carteiras as $c) if ($c['moeda']===$moeda) foreach ($c['posicoes'] as $p) $positions[]=$p;
+        $quotes[$moeda]=mercadoCotacoesPosicoes($positions,$moeda);
     }
     return mcfCalcularConjunto($carteiras,$quotes);
 }

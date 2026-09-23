@@ -79,7 +79,7 @@ function resumoCusto(array $operacoes, $nacional) {
         $tiposAtivoValidos =
             $nacional
                 ? ['acao', 'fii', 'etf', 'bdr']
-                : ['stock', 'etf', 'reit', 'adr'];
+                : ['stock', 'etf', 'reit', 'adr', 'cripto'];
 
         if (
             !in_array(

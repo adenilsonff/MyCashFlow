@@ -98,6 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         setInterval(atualizarRelogio, 1000);
     </script>
+<link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../../assets/css/padrao.css') ?>">
 </head>
 
 <body onload="atualizarRelogio()">

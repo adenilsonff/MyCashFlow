@@ -1,0 +1,1788 @@
+-- MyCashFlow: estrutura vazia atualizada. Importar somente em banco NOVO e VAZIO.
+-- Sem usuários, dados financeiros ou credenciais. Não utilizar para atualizar banco existente.
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `analise_acompanhamento` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_analise_usuario_ativo` (`usuario_id`,`ticker`,`tipo_ativo`),
+  CONSTRAINT `fk_mcf_analise_acompanhamento_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_acompanhamento_INSERT BEFORE INSERT ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_acompanhamento_INSERT AFTER INSERT ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'analise','analise_acompanhamento',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'criado_em',NEW.`criado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_acompanhamento_UPDATE BEFORE UPDATE ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'criado_em',OLD.`criado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'criado_em',NEW.`criado_em`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_acompanhamento_UPDATE AFTER UPDATE ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'criado_em',OLD.`criado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'criado_em',NEW.`criado_em`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'analise','analise_acompanhamento',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'criado_em',OLD.`criado_em`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'criado_em',NEW.`criado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_acompanhamento_DELETE BEFORE DELETE ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_acompanhamento_DELETE AFTER DELETE ON `analise_acompanhamento` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'analise','analise_acompanhamento',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'criado_em',OLD.`criado_em`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `analise_marcacoes` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `tipo` enum('linha','nota') NOT NULL,
+  `titulo` varchar(80) NOT NULL,
+  `preco` decimal(16,4) DEFAULT NULL,
+  `cor` char(7) NOT NULL DEFAULT '#6366f1',
+  `texto` varchar(2000) NOT NULL DEFAULT '',
+  `versao` int(10) unsigned NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_analise_marcacoes` (`usuario_id`,`ticker`,`tipo_ativo`),
+  CONSTRAINT `fk_mcf_analise_marcacoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_marcacoes_INSERT BEFORE INSERT ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_marcacoes_INSERT AFTER INSERT ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'analise','analise_marcacoes',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'tipo',NEW.`tipo`,'titulo',NEW.`titulo`,'preco',NEW.`preco`,'cor',NEW.`cor`,'texto',NEW.`texto`,'versao',NEW.`versao`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_marcacoes_UPDATE BEFORE UPDATE ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'tipo',OLD.`tipo`,'titulo',OLD.`titulo`,'preco',OLD.`preco`,'cor',OLD.`cor`,'texto',OLD.`texto`,'versao',OLD.`versao`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'tipo',NEW.`tipo`,'titulo',NEW.`titulo`,'preco',NEW.`preco`,'cor',NEW.`cor`,'texto',NEW.`texto`,'versao',NEW.`versao`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_marcacoes_UPDATE AFTER UPDATE ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'tipo',OLD.`tipo`,'titulo',OLD.`titulo`,'preco',OLD.`preco`,'cor',OLD.`cor`,'texto',OLD.`texto`,'versao',OLD.`versao`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'tipo',NEW.`tipo`,'titulo',NEW.`titulo`,'preco',NEW.`preco`,'cor',NEW.`cor`,'texto',NEW.`texto`,'versao',NEW.`versao`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'analise','analise_marcacoes',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'tipo',OLD.`tipo`,'titulo',OLD.`titulo`,'preco',OLD.`preco`,'cor',OLD.`cor`,'texto',OLD.`texto`,'versao',OLD.`versao`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'tipo',NEW.`tipo`,'titulo',NEW.`titulo`,'preco',NEW.`preco`,'cor',NEW.`cor`,'texto',NEW.`texto`,'versao',NEW.`versao`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_analise_marcacoes_DELETE BEFORE DELETE ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='analise' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_analise_marcacoes_DELETE AFTER DELETE ON `analise_marcacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'analise','analise_marcacoes',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'tipo',OLD.`tipo`,'titulo',OLD.`titulo`,'preco',OLD.`preco`,'cor',OLD.`cor`,'texto',OLD.`texto`,'versao',OLD.`versao`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `cartao_nomes_recorrentes` (
+  `chave_descricao` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `descricao_original` varchar(255) NOT NULL,
+  `nome_personalizado` varchar(255) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`usuario_id`,`chave_descricao`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_cartao_nomes_recorrentes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartao_nomes_recorrentes_INSERT BEFORE INSERT ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartao_nomes_recorrentes_INSERT AFTER INSERT ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','cartao_nomes_recorrentes',NEW.`chave_descricao`,'cadastrar',NULL,JSON_OBJECT('chave_descricao',NEW.`chave_descricao`,'descricao_original',NEW.`descricao_original`,'nome_personalizado',NEW.`nome_personalizado`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartao_nomes_recorrentes_UPDATE BEFORE UPDATE ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('chave_descricao',OLD.`chave_descricao`,'descricao_original',OLD.`descricao_original`,'nome_personalizado',OLD.`nome_personalizado`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('chave_descricao',NEW.`chave_descricao`,'descricao_original',NEW.`descricao_original`,'nome_personalizado',NEW.`nome_personalizado`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartao_nomes_recorrentes_UPDATE AFTER UPDATE ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('chave_descricao',OLD.`chave_descricao`,'descricao_original',OLD.`descricao_original`,'nome_personalizado',OLD.`nome_personalizado`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('chave_descricao',NEW.`chave_descricao`,'descricao_original',NEW.`descricao_original`,'nome_personalizado',NEW.`nome_personalizado`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','cartao_nomes_recorrentes',NEW.`chave_descricao`,'editar',JSON_OBJECT('chave_descricao',OLD.`chave_descricao`,'descricao_original',OLD.`descricao_original`,'nome_personalizado',OLD.`nome_personalizado`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('chave_descricao',NEW.`chave_descricao`,'descricao_original',NEW.`descricao_original`,'nome_personalizado',NEW.`nome_personalizado`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartao_nomes_recorrentes_DELETE BEFORE DELETE ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartao_nomes_recorrentes_DELETE AFTER DELETE ON `cartao_nomes_recorrentes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'cartao','cartao_nomes_recorrentes',OLD.`chave_descricao`,'excluir',JSON_OBJECT('chave_descricao',OLD.`chave_descricao`,'descricao_original',OLD.`descricao_original`,'nome_personalizado',OLD.`nome_personalizado`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `cartoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `compra_id` int(11) NOT NULL,
+  `data` date NOT NULL,
+  `valor` decimal(10,2) NOT NULL,
+  `parcela` int(11) NOT NULL,
+  `paga` tinyint(1) NOT NULL DEFAULT 0,
+  `fitid` varchar(255) DEFAULT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  KEY `fk_mcf_cartoes_relation` (`compra_id`,`usuario_id`),
+  CONSTRAINT `cartoes_ibfk_1` FOREIGN KEY (`compra_id`) REFERENCES `compras` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mcf_cartoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_mcf_cartoes_relation` FOREIGN KEY (`compra_id`, `usuario_id`) REFERENCES `compras` (`id`, `usuario_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartoes_INSERT BEFORE INSERT ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartoes_INSERT AFTER INSERT ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','cartoes',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'compra_id',NEW.`compra_id`,'data',NEW.`data`,'valor',NEW.`valor`,'parcela',NEW.`parcela`,'paga',NEW.`paga`,'fitid',NEW.`fitid`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartoes_UPDATE BEFORE UPDATE ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'compra_id',OLD.`compra_id`,'data',OLD.`data`,'valor',OLD.`valor`,'parcela',OLD.`parcela`,'paga',OLD.`paga`,'fitid',OLD.`fitid`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'compra_id',NEW.`compra_id`,'data',NEW.`data`,'valor',NEW.`valor`,'parcela',NEW.`parcela`,'paga',NEW.`paga`,'fitid',NEW.`fitid`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartoes_UPDATE AFTER UPDATE ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'compra_id',OLD.`compra_id`,'data',OLD.`data`,'valor',OLD.`valor`,'parcela',OLD.`parcela`,'paga',OLD.`paga`,'fitid',OLD.`fitid`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'compra_id',NEW.`compra_id`,'data',NEW.`data`,'valor',NEW.`valor`,'parcela',NEW.`parcela`,'paga',NEW.`paga`,'fitid',NEW.`fitid`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','cartoes',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'compra_id',OLD.`compra_id`,'data',OLD.`data`,'valor',OLD.`valor`,'parcela',OLD.`parcela`,'paga',OLD.`paga`,'fitid',OLD.`fitid`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'compra_id',NEW.`compra_id`,'data',NEW.`data`,'valor',NEW.`valor`,'parcela',NEW.`parcela`,'paga',NEW.`paga`,'fitid',NEW.`fitid`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_cartoes_DELETE BEFORE DELETE ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_cartoes_DELETE AFTER DELETE ON `cartoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'cartao','cartoes',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'compra_id',OLD.`compra_id`,'data',OLD.`data`,'valor',OLD.`valor`,'parcela',OLD.`parcela`,'paga',OLD.`paga`,'fitid',OLD.`fitid`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `clientes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `documento` varchar(20) DEFAULT NULL,
+  `endereco` varchar(200) DEFAULT NULL,
+  `telefone` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `clientes_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `compartilhamento_modulos` (
+  `compartilhamento_id` int(11) NOT NULL,
+  `modulo` enum('despesas','receitas','cartao','saldos','investimentos','daytrade','analise') NOT NULL,
+  `nivel` enum('leitura','edicao') NOT NULL DEFAULT 'leitura',
+  `cadastrar` tinyint(4) NOT NULL DEFAULT 1,
+  `editar` tinyint(4) NOT NULL DEFAULT 1,
+  `excluir` tinyint(4) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`compartilhamento_id`,`modulo`),
+  CONSTRAINT `fk_compartilhamento_modulos` FOREIGN KEY (`compartilhamento_id`) REFERENCES `compartilhamentos` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `compartilhamento_vistos` (
+  `usuario_id` int(11) NOT NULL,
+  `compartilhamento_id` int(11) NOT NULL,
+  `versao` int(11) NOT NULL,
+  PRIMARY KEY (`usuario_id`,`compartilhamento_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `compartilhamentos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `proprietario_id` int(11) NOT NULL,
+  `leitor_id` int(11) NOT NULL,
+  `estado` enum('pendente','ativo','revogado','recusado') NOT NULL DEFAULT 'pendente',
+  `versao` int(10) unsigned NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_compartilhamento_pessoas` (`proprietario_id`,`leitor_id`),
+  KEY `ix_compartilhamento_leitor` (`leitor_id`,`estado`),
+  CONSTRAINT `fk_compartilhamento_dono` FOREIGN KEY (`proprietario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_compartilhamento_leitor` FOREIGN KEY (`leitor_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `ck_compartilhamento_pessoas` CHECK (`proprietario_id` <> `leitor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `compras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(255) NOT NULL,
+  `nome_original` varchar(255) DEFAULT NULL,
+  `categoria` varchar(20) NOT NULL DEFAULT 'pessoal',
+  `valor_total` decimal(10,2) NOT NULL,
+  `total_parcelas` int(11) NOT NULL DEFAULT 1,
+  `data_compra` date NOT NULL,
+  `origem` varchar(20) NOT NULL,
+  `identificador_ofx` varchar(64) DEFAULT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_id_owner` (`id`,`usuario_id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_compras_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_compras_INSERT BEFORE INSERT ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_compras_INSERT AFTER INSERT ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','compras',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'nome_original',NEW.`nome_original`,'categoria',NEW.`categoria`,'valor_total',NEW.`valor_total`,'total_parcelas',NEW.`total_parcelas`,'data_compra',NEW.`data_compra`,'origem',NEW.`origem`,'identificador_ofx',NEW.`identificador_ofx`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_compras_UPDATE BEFORE UPDATE ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'nome_original',OLD.`nome_original`,'categoria',OLD.`categoria`,'valor_total',OLD.`valor_total`,'total_parcelas',OLD.`total_parcelas`,'data_compra',OLD.`data_compra`,'origem',OLD.`origem`,'identificador_ofx',OLD.`identificador_ofx`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'nome_original',NEW.`nome_original`,'categoria',NEW.`categoria`,'valor_total',NEW.`valor_total`,'total_parcelas',NEW.`total_parcelas`,'data_compra',NEW.`data_compra`,'origem',NEW.`origem`,'identificador_ofx',NEW.`identificador_ofx`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_compras_UPDATE AFTER UPDATE ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'nome_original',OLD.`nome_original`,'categoria',OLD.`categoria`,'valor_total',OLD.`valor_total`,'total_parcelas',OLD.`total_parcelas`,'data_compra',OLD.`data_compra`,'origem',OLD.`origem`,'identificador_ofx',OLD.`identificador_ofx`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'nome_original',NEW.`nome_original`,'categoria',NEW.`categoria`,'valor_total',NEW.`valor_total`,'total_parcelas',NEW.`total_parcelas`,'data_compra',NEW.`data_compra`,'origem',NEW.`origem`,'identificador_ofx',NEW.`identificador_ofx`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'cartao','compras',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'nome_original',OLD.`nome_original`,'categoria',OLD.`categoria`,'valor_total',OLD.`valor_total`,'total_parcelas',OLD.`total_parcelas`,'data_compra',OLD.`data_compra`,'origem',OLD.`origem`,'identificador_ofx',OLD.`identificador_ofx`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'nome_original',NEW.`nome_original`,'categoria',NEW.`categoria`,'valor_total',NEW.`valor_total`,'total_parcelas',NEW.`total_parcelas`,'data_compra',NEW.`data_compra`,'origem',NEW.`origem`,'identificador_ofx',NEW.`identificador_ofx`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_compras_DELETE BEFORE DELETE ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='cartao' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF; INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) SELECT x.usuario_id,@mcf_ator_id,'cartao','cartoes',x.id,'excluir',JSON_OBJECT('id',x.`id`,'compra_id',x.`compra_id`,'data',x.`data`,'valor',x.`valor`,'parcela',x.`parcela`,'paga',x.`paga`,'fitid',x.`fitid`,'usuario_id',x.`usuario_id`),NULL FROM `cartoes` x WHERE x.`compra_id`=OLD.id AND x.usuario_id=OLD.usuario_id;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_compras_DELETE AFTER DELETE ON `compras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'cartao','compras',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'nome_original',OLD.`nome_original`,'categoria',OLD.`categoria`,'valor_total',OLD.`valor_total`,'total_parcelas',OLD.`total_parcelas`,'data_compra',OLD.`data_compra`,'origem',OLD.`origem`,'identificador_ofx',OLD.`identificador_ofx`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `contas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `tipo` enum('unica','parcelada','recorrente') NOT NULL,
+  `categoria` enum('pessoal','conjunta') NOT NULL,
+  `grupo_recorrencia` varchar(36) DEFAULT NULL,
+  `parcela_atual` int(11) DEFAULT NULL,
+  `total_parcelas` int(11) DEFAULT NULL,
+  `vencimento` date NOT NULL,
+  `paga` tinyint(1) NOT NULL DEFAULT 0,
+  `valor` decimal(10,2) NOT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_contas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_INSERT BEFORE INSERT ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='despesas' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_INSERT AFTER INSERT ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'despesas','contas',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'tipo',NEW.`tipo`,'categoria',NEW.`categoria`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'vencimento',NEW.`vencimento`,'paga',NEW.`paga`,'valor',NEW.`valor`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_UPDATE BEFORE UPDATE ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'tipo',OLD.`tipo`,'categoria',OLD.`categoria`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'vencimento',OLD.`vencimento`,'paga',OLD.`paga`,'valor',OLD.`valor`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'tipo',NEW.`tipo`,'categoria',NEW.`categoria`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'vencimento',NEW.`vencimento`,'paga',NEW.`paga`,'valor',NEW.`valor`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='despesas' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_UPDATE AFTER UPDATE ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'tipo',OLD.`tipo`,'categoria',OLD.`categoria`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'vencimento',OLD.`vencimento`,'paga',OLD.`paga`,'valor',OLD.`valor`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'tipo',NEW.`tipo`,'categoria',NEW.`categoria`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'vencimento',NEW.`vencimento`,'paga',NEW.`paga`,'valor',NEW.`valor`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'despesas','contas',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'tipo',OLD.`tipo`,'categoria',OLD.`categoria`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'vencimento',OLD.`vencimento`,'paga',OLD.`paga`,'valor',OLD.`valor`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'tipo',NEW.`tipo`,'categoria',NEW.`categoria`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'vencimento',NEW.`vencimento`,'paga',NEW.`paga`,'valor',NEW.`valor`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_DELETE BEFORE DELETE ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='despesas' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_DELETE AFTER DELETE ON `contas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'despesas','contas',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'tipo',OLD.`tipo`,'categoria',OLD.`categoria`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'vencimento',OLD.`vencimento`,'paga',OLD.`paga`,'valor',OLD.`valor`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `contas_financeiras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `instituicao` varchar(100) DEFAULT NULL,
+  `icone` varchar(255) DEFAULT NULL,
+  `tipo` enum('corrente','poupanca','carteira','corretora','outros') NOT NULL,
+  `saldo_inicial` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `data_saldo_inicial` date NOT NULL,
+  `ativa` tinyint(1) NOT NULL DEFAULT 1,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_id_owner` (`id`,`usuario_id`),
+  KEY `idx_cf_usuario` (`usuario_id`),
+  KEY `idx_cf_usuario_ativa` (`usuario_id`,`ativa`),
+  CONSTRAINT `fk_cf_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_financeiras_INSERT BEFORE INSERT ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_financeiras_INSERT AFTER INSERT ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'saldos','contas_financeiras',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'nome',NEW.`nome`,'instituicao',NEW.`instituicao`,'icone',NEW.`icone`,'tipo',NEW.`tipo`,'saldo_inicial',NEW.`saldo_inicial`,'data_saldo_inicial',NEW.`data_saldo_inicial`,'ativa',NEW.`ativa`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_financeiras_UPDATE BEFORE UPDATE ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'nome',OLD.`nome`,'instituicao',OLD.`instituicao`,'icone',OLD.`icone`,'tipo',OLD.`tipo`,'saldo_inicial',OLD.`saldo_inicial`,'data_saldo_inicial',OLD.`data_saldo_inicial`,'ativa',OLD.`ativa`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'nome',NEW.`nome`,'instituicao',NEW.`instituicao`,'icone',NEW.`icone`,'tipo',NEW.`tipo`,'saldo_inicial',NEW.`saldo_inicial`,'data_saldo_inicial',NEW.`data_saldo_inicial`,'ativa',NEW.`ativa`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_financeiras_UPDATE AFTER UPDATE ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'nome',OLD.`nome`,'instituicao',OLD.`instituicao`,'icone',OLD.`icone`,'tipo',OLD.`tipo`,'saldo_inicial',OLD.`saldo_inicial`,'data_saldo_inicial',OLD.`data_saldo_inicial`,'ativa',OLD.`ativa`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'nome',NEW.`nome`,'instituicao',NEW.`instituicao`,'icone',NEW.`icone`,'tipo',NEW.`tipo`,'saldo_inicial',NEW.`saldo_inicial`,'data_saldo_inicial',NEW.`data_saldo_inicial`,'ativa',NEW.`ativa`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'saldos','contas_financeiras',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'nome',OLD.`nome`,'instituicao',OLD.`instituicao`,'icone',OLD.`icone`,'tipo',OLD.`tipo`,'saldo_inicial',OLD.`saldo_inicial`,'data_saldo_inicial',OLD.`data_saldo_inicial`,'ativa',OLD.`ativa`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'nome',NEW.`nome`,'instituicao',NEW.`instituicao`,'icone',NEW.`icone`,'tipo',NEW.`tipo`,'saldo_inicial',NEW.`saldo_inicial`,'data_saldo_inicial',NEW.`data_saldo_inicial`,'ativa',NEW.`ativa`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_contas_financeiras_DELETE BEFORE DELETE ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_contas_financeiras_DELETE AFTER DELETE ON `contas_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'saldos','contas_financeiras',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'nome',OLD.`nome`,'instituicao',OLD.`instituicao`,'icone',OLD.`icone`,'tipo',OLD.`tipo`,'saldo_inicial',OLD.`saldo_inicial`,'data_saldo_inicial',OLD.`data_saldo_inicial`,'ativa',OLD.`ativa`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `corretora_taxas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corretora_id` int(11) NOT NULL,
+  `nome_taxa` varchar(100) NOT NULL,
+  `percentual` decimal(10,5) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  KEY `fk_mcf_corretora_taxas_relation` (`corretora_id`,`usuario_id`),
+  CONSTRAINT `corretora_taxas_ibfk_1` FOREIGN KEY (`corretora_id`) REFERENCES `corretoras` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mcf_corretora_taxas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_mcf_corretora_taxas_relation` FOREIGN KEY (`corretora_id`, `usuario_id`) REFERENCES `corretoras` (`id`, `usuario_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretora_taxas_INSERT BEFORE INSERT ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretora_taxas_INSERT AFTER INSERT ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','corretora_taxas',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'nome_taxa',NEW.`nome_taxa`,'percentual',NEW.`percentual`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretora_taxas_UPDATE BEFORE UPDATE ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'nome_taxa',OLD.`nome_taxa`,'percentual',OLD.`percentual`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'nome_taxa',NEW.`nome_taxa`,'percentual',NEW.`percentual`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretora_taxas_UPDATE AFTER UPDATE ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'nome_taxa',OLD.`nome_taxa`,'percentual',OLD.`percentual`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'nome_taxa',NEW.`nome_taxa`,'percentual',NEW.`percentual`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','corretora_taxas',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'nome_taxa',OLD.`nome_taxa`,'percentual',OLD.`percentual`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'nome_taxa',NEW.`nome_taxa`,'percentual',NEW.`percentual`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretora_taxas_DELETE BEFORE DELETE ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretora_taxas_DELETE AFTER DELETE ON `corretora_taxas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'daytrade','corretora_taxas',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'nome_taxa',OLD.`nome_taxa`,'percentual',OLD.`percentual`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `corretoras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_id_owner` (`id`,`usuario_id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_corretoras_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretoras_INSERT BEFORE INSERT ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretoras_INSERT AFTER INSERT ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','corretoras',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretoras_UPDATE BEFORE UPDATE ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretoras_UPDATE AFTER UPDATE ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','corretoras',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_corretoras_DELETE BEFORE DELETE ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF; INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) SELECT x.usuario_id,@mcf_ator_id,'daytrade','corretora_taxas',x.id,'excluir',JSON_OBJECT('id',x.`id`,'corretora_id',x.`corretora_id`,'nome_taxa',x.`nome_taxa`,'percentual',x.`percentual`,'usuario_id',x.`usuario_id`),NULL FROM `corretora_taxas` x WHERE x.`corretora_id`=OLD.id AND x.usuario_id=OLD.usuario_id; INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) SELECT x.usuario_id,@mcf_ator_id,'daytrade','operacoes',x.id,'excluir',JSON_OBJECT('id',x.`id`,'corretora_id',x.`corretora_id`,'data',x.`data`,'acao',x.`acao`,'quantidade',x.`quantidade`,'valor_compra',x.`valor_compra`,'valor_venda',x.`valor_venda`,'total_compra',x.`total_compra`,'total_venda',x.`total_venda`,'valor_operacao',x.`valor_operacao`,'lucro_bruto',x.`lucro_bruto`,'taxas',x.`taxas`,'deducao_1',x.`deducao_1`,'imposto_20',x.`imposto_20`,'lucro_desc',x.`lucro_desc`,'darf',x.`darf`,'lucro_final',x.`lucro_final`,'criado_em',x.`criado_em`,'usuario_id',x.`usuario_id`),NULL FROM `operacoes` x WHERE x.`corretora_id`=OLD.id AND x.usuario_id=OLD.usuario_id;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_corretoras_DELETE AFTER DELETE ON `corretoras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'daytrade','corretoras',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `div_datacom` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `datacom` date NOT NULL,
+  `datapag` date DEFAULT NULL,
+  `valor` decimal(15,8) NOT NULL,
+  `tipo` enum('DIV','JCP','REND') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_div_usuario` (`usuario_id`),
+  KEY `idx_div_ticker` (`ticker`),
+  KEY `idx_div_tipo_ativo` (`tipo_ativo`),
+  KEY `idx_div_usuario_datacom` (`usuario_id`,`datacom`),
+  KEY `idx_div_usuario_ticker` (`usuario_id`,`ticker`),
+  CONSTRAINT `fk_div_datacom_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_div_datacom_INSERT BEFORE INSERT ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_div_datacom_INSERT AFTER INSERT ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','div_datacom',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'datacom',NEW.`datacom`,'datapag',NEW.`datapag`,'valor',NEW.`valor`,'tipo',NEW.`tipo`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_div_datacom_UPDATE BEFORE UPDATE ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'datacom',OLD.`datacom`,'datapag',OLD.`datapag`,'valor',OLD.`valor`,'tipo',OLD.`tipo`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'datacom',NEW.`datacom`,'datapag',NEW.`datapag`,'valor',NEW.`valor`,'tipo',NEW.`tipo`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_div_datacom_UPDATE AFTER UPDATE ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'datacom',OLD.`datacom`,'datapag',OLD.`datapag`,'valor',OLD.`valor`,'tipo',OLD.`tipo`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'datacom',NEW.`datacom`,'datapag',NEW.`datapag`,'valor',NEW.`valor`,'tipo',NEW.`tipo`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','div_datacom',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'datacom',OLD.`datacom`,'datapag',OLD.`datapag`,'valor',OLD.`valor`,'tipo',OLD.`tipo`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'datacom',NEW.`datacom`,'datapag',NEW.`datapag`,'valor',NEW.`valor`,'tipo',NEW.`tipo`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_div_datacom_DELETE BEFORE DELETE ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_div_datacom_DELETE AFTER DELETE ON `div_datacom` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'investimentos','div_datacom',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'datacom',OLD.`datacom`,'datapag',OLD.`datapag`,'valor',OLD.`valor`,'tipo',OLD.`tipo`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `historico_alteracoes` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `proprietario_id` int(11) NOT NULL,
+  `ator_id` int(11) NOT NULL,
+  `modulo` varchar(30) NOT NULL,
+  `tabela` varchar(64) NOT NULL,
+  `registro` varchar(255) NOT NULL,
+  `acao` varchar(12) NOT NULL,
+  `antes` longtext DEFAULT NULL,
+  `depois` longtext DEFAULT NULL,
+  `criado_em` datetime(6) NOT NULL DEFAULT current_timestamp(6),
+  PRIMARY KEY (`id`),
+  KEY `dono_data` (`proprietario_id`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `investimentos_internacionais` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(20) NOT NULL,
+  `tipo_ativo` enum('stock','etf','reit','adr','cripto') NOT NULL,
+  `quantidade` decimal(22,8) NOT NULL,
+  `valor_unitario` decimal(22,8) NOT NULL,
+  `valor_investido` decimal(24,8) NOT NULL,
+  `data` date NOT NULL,
+  `valor_mercado` decimal(22,8) DEFAULT NULL,
+  `logo` varchar(500) DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `tipo_operacao` enum('compra','venda') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_inv_int_usuario` (`usuario_id`),
+  KEY `idx_inv_int_ticker` (`ticker`),
+  KEY `idx_inv_int_tipo_ativo` (`tipo_ativo`),
+  KEY `idx_inv_int_usuario_ticker_data` (`usuario_id`,`ticker`,`data`),
+  CONSTRAINT `fk_inv_int_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_internacionais_INSERT BEFORE INSERT ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_internacionais_INSERT AFTER INSERT ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','investimentos_internacionais',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'valor_investido',NEW.`valor_investido`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_internacionais_UPDATE BEFORE UPDATE ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'valor_investido',OLD.`valor_investido`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'valor_investido',NEW.`valor_investido`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_internacionais_UPDATE AFTER UPDATE ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'valor_investido',OLD.`valor_investido`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'valor_investido',NEW.`valor_investido`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','investimentos_internacionais',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'valor_investido',OLD.`valor_investido`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'valor_investido',NEW.`valor_investido`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_internacionais_DELETE BEFORE DELETE ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_internacionais_DELETE AFTER DELETE ON `investimentos_internacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'investimentos','investimentos_internacionais',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'valor_investido',OLD.`valor_investido`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `investimentos_nacionais` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ticker` varchar(10) NOT NULL,
+  `tipo_ativo` enum('acao','fii','etf','bdr') NOT NULL,
+  `quantidade` int(11) NOT NULL,
+  `valor_unitario` decimal(10,2) NOT NULL,
+  `data` date NOT NULL,
+  `valor_mercado` decimal(15,2) DEFAULT NULL,
+  `logo` varchar(255) DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `tipo_operacao` enum('compra','venda') NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_inv_nac_usuario` (`usuario_id`),
+  KEY `idx_inv_nac_ticker` (`ticker`),
+  KEY `idx_inv_nac_tipo_ativo` (`tipo_ativo`),
+  KEY `idx_inv_nac_usuario_ticker_data` (`usuario_id`,`ticker`,`data`),
+  CONSTRAINT `fk_inv_nac_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_nacionais_INSERT BEFORE INSERT ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_nacionais_INSERT AFTER INSERT ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','investimentos_nacionais',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_nacionais_UPDATE BEFORE UPDATE ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_nacionais_UPDATE AFTER UPDATE ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'investimentos','investimentos_nacionais',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'ticker',NEW.`ticker`,'tipo_ativo',NEW.`tipo_ativo`,'quantidade',NEW.`quantidade`,'valor_unitario',NEW.`valor_unitario`,'data',NEW.`data`,'valor_mercado',NEW.`valor_mercado`,'logo',NEW.`logo`,'criado_em',NEW.`criado_em`,'tipo_operacao',NEW.`tipo_operacao`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_investimentos_nacionais_DELETE BEFORE DELETE ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='investimentos' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_investimentos_nacionais_DELETE AFTER DELETE ON `investimentos_nacionais` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'investimentos','investimentos_nacionais',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'ticker',OLD.`ticker`,'tipo_ativo',OLD.`tipo_ativo`,'quantidade',OLD.`quantidade`,'valor_unitario',OLD.`valor_unitario`,'data',OLD.`data`,'valor_mercado',OLD.`valor_mercado`,'logo',OLD.`logo`,'criado_em',OLD.`criado_em`,'tipo_operacao',OLD.`tipo_operacao`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `movimentacoes_financeiras` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `conta_id` int(11) NOT NULL,
+  `tipo` enum('entrada','saida','transferencia_entrada','transferencia_saida') NOT NULL,
+  `data` date NOT NULL,
+  `descricao` varchar(150) NOT NULL,
+  `valor` decimal(15,2) NOT NULL,
+  `transferencia_id` char(36) DEFAULT NULL,
+  `origem_modulo` enum('manual','receita','despesa','cartao','provento','investimento','daytrade') NOT NULL DEFAULT 'manual',
+  `origem_id` int(11) DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_mf_usuario` (`usuario_id`),
+  KEY `idx_mf_conta` (`conta_id`),
+  KEY `idx_mf_usuario_data` (`usuario_id`,`data`),
+  KEY `idx_mf_conta_data` (`conta_id`,`data`),
+  KEY `idx_mf_transferencia` (`transferencia_id`),
+  KEY `idx_mf_origem` (`usuario_id`,`origem_modulo`,`origem_id`),
+  KEY `fk_mcf_movimentacoes_financeiras_relation` (`conta_id`,`usuario_id`),
+  CONSTRAINT `fk_mcf_movimentacoes_financeiras_relation` FOREIGN KEY (`conta_id`, `usuario_id`) REFERENCES `contas_financeiras` (`id`, `usuario_id`),
+  CONSTRAINT `fk_mf_conta` FOREIGN KEY (`conta_id`) REFERENCES `contas_financeiras` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_mf_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_mf_valor_positivo` CHECK (`valor` > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_movimentacoes_financeiras_INSERT BEFORE INSERT ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_movimentacoes_financeiras_INSERT AFTER INSERT ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'saldos','movimentacoes_financeiras',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'conta_id',NEW.`conta_id`,'tipo',NEW.`tipo`,'data',NEW.`data`,'descricao',NEW.`descricao`,'valor',NEW.`valor`,'transferencia_id',NEW.`transferencia_id`,'origem_modulo',NEW.`origem_modulo`,'origem_id',NEW.`origem_id`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_movimentacoes_financeiras_UPDATE BEFORE UPDATE ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'conta_id',OLD.`conta_id`,'tipo',OLD.`tipo`,'data',OLD.`data`,'descricao',OLD.`descricao`,'valor',OLD.`valor`,'transferencia_id',OLD.`transferencia_id`,'origem_modulo',OLD.`origem_modulo`,'origem_id',OLD.`origem_id`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'conta_id',NEW.`conta_id`,'tipo',NEW.`tipo`,'data',NEW.`data`,'descricao',NEW.`descricao`,'valor',NEW.`valor`,'transferencia_id',NEW.`transferencia_id`,'origem_modulo',NEW.`origem_modulo`,'origem_id',NEW.`origem_id`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_movimentacoes_financeiras_UPDATE AFTER UPDATE ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'conta_id',OLD.`conta_id`,'tipo',OLD.`tipo`,'data',OLD.`data`,'descricao',OLD.`descricao`,'valor',OLD.`valor`,'transferencia_id',OLD.`transferencia_id`,'origem_modulo',OLD.`origem_modulo`,'origem_id',OLD.`origem_id`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`) <=> JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'conta_id',NEW.`conta_id`,'tipo',NEW.`tipo`,'data',NEW.`data`,'descricao',NEW.`descricao`,'valor',NEW.`valor`,'transferencia_id',NEW.`transferencia_id`,'origem_modulo',NEW.`origem_modulo`,'origem_id',NEW.`origem_id`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'saldos','movimentacoes_financeiras',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'conta_id',OLD.`conta_id`,'tipo',OLD.`tipo`,'data',OLD.`data`,'descricao',OLD.`descricao`,'valor',OLD.`valor`,'transferencia_id',OLD.`transferencia_id`,'origem_modulo',OLD.`origem_modulo`,'origem_id',OLD.`origem_id`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),JSON_OBJECT('id',NEW.`id`,'usuario_id',NEW.`usuario_id`,'conta_id',NEW.`conta_id`,'tipo',NEW.`tipo`,'data',NEW.`data`,'descricao',NEW.`descricao`,'valor',NEW.`valor`,'transferencia_id',NEW.`transferencia_id`,'origem_modulo',NEW.`origem_modulo`,'origem_id',NEW.`origem_id`,'criado_em',NEW.`criado_em`,'atualizado_em',NEW.`atualizado_em`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_movimentacoes_financeiras_DELETE BEFORE DELETE ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='saldos' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_movimentacoes_financeiras_DELETE AFTER DELETE ON `movimentacoes_financeiras` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'saldos','movimentacoes_financeiras',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'usuario_id',OLD.`usuario_id`,'conta_id',OLD.`conta_id`,'tipo',OLD.`tipo`,'data',OLD.`data`,'descricao',OLD.`descricao`,'valor',OLD.`valor`,'transferencia_id',OLD.`transferencia_id`,'origem_modulo',OLD.`origem_modulo`,'origem_id',OLD.`origem_id`,'criado_em',OLD.`criado_em`,'atualizado_em',OLD.`atualizado_em`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `ofx_importacoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome_arquivo` varchar(255) NOT NULL,
+  `hash_arquivo` varchar(64) NOT NULL,
+  `periodo_inicio` date DEFAULT NULL,
+  `periodo_fim` date DEFAULT NULL,
+  `quantidade_transacoes` int(11) NOT NULL DEFAULT 0,
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mcf_ofx_owner` (`usuario_id`,`hash_arquivo`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_ofx_importacoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `operacoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `corretora_id` int(11) NOT NULL,
+  `data` date NOT NULL,
+  `acao` varchar(20) NOT NULL,
+  `quantidade` int(11) NOT NULL,
+  `valor_compra` decimal(15,2) DEFAULT NULL,
+  `valor_venda` decimal(15,2) DEFAULT NULL,
+  `total_compra` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `total_venda` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `valor_operacao` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_bruto` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `taxas` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `deducao_1` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `imposto_20` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_desc` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `darf` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `lucro_final` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  KEY `fk_mcf_operacoes_relation` (`corretora_id`,`usuario_id`),
+  CONSTRAINT `fk_mcf_operacoes_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`),
+  CONSTRAINT `fk_mcf_operacoes_relation` FOREIGN KEY (`corretora_id`, `usuario_id`) REFERENCES `corretoras` (`id`, `usuario_id`) ON DELETE CASCADE,
+  CONSTRAINT `operacoes_ibfk_1` FOREIGN KEY (`corretora_id`) REFERENCES `corretoras` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_operacoes_INSERT BEFORE INSERT ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_operacoes_INSERT AFTER INSERT ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','operacoes',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'data',NEW.`data`,'acao',NEW.`acao`,'quantidade',NEW.`quantidade`,'valor_compra',NEW.`valor_compra`,'valor_venda',NEW.`valor_venda`,'total_compra',NEW.`total_compra`,'total_venda',NEW.`total_venda`,'valor_operacao',NEW.`valor_operacao`,'lucro_bruto',NEW.`lucro_bruto`,'taxas',NEW.`taxas`,'deducao_1',NEW.`deducao_1`,'imposto_20',NEW.`imposto_20`,'lucro_desc',NEW.`lucro_desc`,'darf',NEW.`darf`,'lucro_final',NEW.`lucro_final`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_operacoes_UPDATE BEFORE UPDATE ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'data',OLD.`data`,'acao',OLD.`acao`,'quantidade',OLD.`quantidade`,'valor_compra',OLD.`valor_compra`,'valor_venda',OLD.`valor_venda`,'total_compra',OLD.`total_compra`,'total_venda',OLD.`total_venda`,'valor_operacao',OLD.`valor_operacao`,'lucro_bruto',OLD.`lucro_bruto`,'taxas',OLD.`taxas`,'deducao_1',OLD.`deducao_1`,'imposto_20',OLD.`imposto_20`,'lucro_desc',OLD.`lucro_desc`,'darf',OLD.`darf`,'lucro_final',OLD.`lucro_final`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'data',NEW.`data`,'acao',NEW.`acao`,'quantidade',NEW.`quantidade`,'valor_compra',NEW.`valor_compra`,'valor_venda',NEW.`valor_venda`,'total_compra',NEW.`total_compra`,'total_venda',NEW.`total_venda`,'valor_operacao',NEW.`valor_operacao`,'lucro_bruto',NEW.`lucro_bruto`,'taxas',NEW.`taxas`,'deducao_1',NEW.`deducao_1`,'imposto_20',NEW.`imposto_20`,'lucro_desc',NEW.`lucro_desc`,'darf',NEW.`darf`,'lucro_final',NEW.`lucro_final`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_operacoes_UPDATE AFTER UPDATE ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'data',OLD.`data`,'acao',OLD.`acao`,'quantidade',OLD.`quantidade`,'valor_compra',OLD.`valor_compra`,'valor_venda',OLD.`valor_venda`,'total_compra',OLD.`total_compra`,'total_venda',OLD.`total_venda`,'valor_operacao',OLD.`valor_operacao`,'lucro_bruto',OLD.`lucro_bruto`,'taxas',OLD.`taxas`,'deducao_1',OLD.`deducao_1`,'imposto_20',OLD.`imposto_20`,'lucro_desc',OLD.`lucro_desc`,'darf',OLD.`darf`,'lucro_final',OLD.`lucro_final`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'data',NEW.`data`,'acao',NEW.`acao`,'quantidade',NEW.`quantidade`,'valor_compra',NEW.`valor_compra`,'valor_venda',NEW.`valor_venda`,'total_compra',NEW.`total_compra`,'total_venda',NEW.`total_venda`,'valor_operacao',NEW.`valor_operacao`,'lucro_bruto',NEW.`lucro_bruto`,'taxas',NEW.`taxas`,'deducao_1',NEW.`deducao_1`,'imposto_20',NEW.`imposto_20`,'lucro_desc',NEW.`lucro_desc`,'darf',NEW.`darf`,'lucro_final',NEW.`lucro_final`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'daytrade','operacoes',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'data',OLD.`data`,'acao',OLD.`acao`,'quantidade',OLD.`quantidade`,'valor_compra',OLD.`valor_compra`,'valor_venda',OLD.`valor_venda`,'total_compra',OLD.`total_compra`,'total_venda',OLD.`total_venda`,'valor_operacao',OLD.`valor_operacao`,'lucro_bruto',OLD.`lucro_bruto`,'taxas',OLD.`taxas`,'deducao_1',OLD.`deducao_1`,'imposto_20',OLD.`imposto_20`,'lucro_desc',OLD.`lucro_desc`,'darf',OLD.`darf`,'lucro_final',OLD.`lucro_final`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'corretora_id',NEW.`corretora_id`,'data',NEW.`data`,'acao',NEW.`acao`,'quantidade',NEW.`quantidade`,'valor_compra',NEW.`valor_compra`,'valor_venda',NEW.`valor_venda`,'total_compra',NEW.`total_compra`,'total_venda',NEW.`total_venda`,'valor_operacao',NEW.`valor_operacao`,'lucro_bruto',NEW.`lucro_bruto`,'taxas',NEW.`taxas`,'deducao_1',NEW.`deducao_1`,'imposto_20',NEW.`imposto_20`,'lucro_desc',NEW.`lucro_desc`,'darf',NEW.`darf`,'lucro_final',NEW.`lucro_final`,'criado_em',NEW.`criado_em`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_operacoes_DELETE BEFORE DELETE ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='daytrade' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_operacoes_DELETE AFTER DELETE ON `operacoes` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'daytrade','operacoes',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'corretora_id',OLD.`corretora_id`,'data',OLD.`data`,'acao',OLD.`acao`,'quantidade',OLD.`quantidade`,'valor_compra',OLD.`valor_compra`,'valor_venda',OLD.`valor_venda`,'total_compra',OLD.`total_compra`,'total_venda',OLD.`total_venda`,'valor_operacao',OLD.`valor_operacao`,'lucro_bruto',OLD.`lucro_bruto`,'taxas',OLD.`taxas`,'deducao_1',OLD.`deducao_1`,'imposto_20',OLD.`imposto_20`,'lucro_desc',OLD.`lucro_desc`,'darf',OLD.`darf`,'lucro_final',OLD.`lucro_final`,'criado_em',OLD.`criado_em`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `recuperacao_senha` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `token_hash` varchar(255) NOT NULL,
+  `data_expiracao` datetime NOT NULL,
+  `utilizado` tinyint(1) NOT NULL DEFAULT 0,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `recuperacao_senha_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `rendas` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `nome` varchar(100) NOT NULL,
+  `descricao` text DEFAULT NULL,
+  `data` date NOT NULL,
+  `valor` decimal(10,2) NOT NULL,
+  `tipo` enum('unica','parcelada','recorrente') NOT NULL DEFAULT 'unica',
+  `grupo_recorrencia` varchar(50) DEFAULT NULL,
+  `parcela_atual` int(11) DEFAULT NULL,
+  `total_parcelas` int(11) DEFAULT NULL,
+  `recebido` tinyint(1) NOT NULL DEFAULT 0,
+  `porcentagem` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `classificacao` enum('regular','extra') NOT NULL DEFAULT 'regular',
+  `usuario_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_mcf_owner` (`usuario_id`),
+  CONSTRAINT `fk_mcf_rendas_owner` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_rendas_INSERT BEFORE INSERT ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='receitas' AND m.nivel='edicao' AND m.cadastrar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_rendas_INSERT AFTER INSERT ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'receitas','rendas',NEW.`id`,'cadastrar',NULL,JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'descricao',NEW.`descricao`,'data',NEW.`data`,'valor',NEW.`valor`,'tipo',NEW.`tipo`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'recebido',NEW.`recebido`,'porcentagem',NEW.`porcentagem`,'criado_em',NEW.`criado_em`,'classificacao',NEW.`classificacao`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_rendas_UPDATE BEFORE UPDATE ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN IF NOT (OLD.usuario_id <=> NEW.usuario_id) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario imutavel'; END IF; IF NEW.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> NEW.usuario_id AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'descricao',OLD.`descricao`,'data',OLD.`data`,'valor',OLD.`valor`,'tipo',OLD.`tipo`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'recebido',OLD.`recebido`,'porcentagem',OLD.`porcentagem`,'criado_em',OLD.`criado_em`,'classificacao',OLD.`classificacao`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'descricao',NEW.`descricao`,'data',NEW.`data`,'valor',NEW.`valor`,'tipo',NEW.`tipo`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'recebido',NEW.`recebido`,'porcentagem',NEW.`porcentagem`,'criado_em',NEW.`criado_em`,'classificacao',NEW.`classificacao`,'usuario_id',NEW.`usuario_id`)) AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=NEW.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='receitas' AND m.nivel='edicao' AND m.editar=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_rendas_UPDATE AFTER UPDATE ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND NOT (JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'descricao',OLD.`descricao`,'data',OLD.`data`,'valor',OLD.`valor`,'tipo',OLD.`tipo`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'recebido',OLD.`recebido`,'porcentagem',OLD.`porcentagem`,'criado_em',OLD.`criado_em`,'classificacao',OLD.`classificacao`,'usuario_id',OLD.`usuario_id`) <=> JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'descricao',NEW.`descricao`,'data',NEW.`data`,'valor',NEW.`valor`,'tipo',NEW.`tipo`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'recebido',NEW.`recebido`,'porcentagem',NEW.`porcentagem`,'criado_em',NEW.`criado_em`,'classificacao',NEW.`classificacao`,'usuario_id',NEW.`usuario_id`)) THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(NEW.usuario_id,@mcf_ator_id,'receitas','rendas',NEW.`id`,'editar',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'descricao',OLD.`descricao`,'data',OLD.`data`,'valor',OLD.`valor`,'tipo',OLD.`tipo`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'recebido',OLD.`recebido`,'porcentagem',OLD.`porcentagem`,'criado_em',OLD.`criado_em`,'classificacao',OLD.`classificacao`,'usuario_id',OLD.`usuario_id`),JSON_OBJECT('id',NEW.`id`,'nome',NEW.`nome`,'descricao',NEW.`descricao`,'data',NEW.`data`,'valor',NEW.`valor`,'tipo',NEW.`tipo`,'grupo_recorrencia',NEW.`grupo_recorrencia`,'parcela_atual',NEW.`parcela_atual`,'total_parcelas',NEW.`total_parcelas`,'recebido',NEW.`recebido`,'porcentagem',NEW.`porcentagem`,'criado_em',NEW.`criado_em`,'classificacao',NEW.`classificacao`,'usuario_id',NEW.`usuario_id`)); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_guard_rendas_DELETE BEFORE DELETE ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 THEN  IF OLD.usuario_id <> @mcf_usuario_id THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Proprietario invalido'; END IF; IF @mcf_ator_id <> OLD.usuario_id AND 1 AND NOT EXISTS(SELECT 1 FROM compartilhamentos s JOIN compartilhamento_modulos m ON m.compartilhamento_id=s.id JOIN usuarios u ON u.id=s.proprietario_id WHERE s.id=@mcf_convite_id AND s.versao=@mcf_convite_versao AND s.proprietario_id=OLD.usuario_id AND s.leitor_id=@mcf_ator_id AND s.estado='ativo' AND m.modulo='receitas' AND m.nivel='edicao' AND m.excluir=1 AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE()) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='Acao nao autorizada neste modulo'; END IF;  END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 */ /*!50003 TRIGGER mcf_audit_rendas_DELETE AFTER DELETE ON `rendas` FOR EACH ROW BEGIN IF COALESCE(@mcf_ator_id,0)>0 AND 1 THEN INSERT INTO historico_alteracoes(proprietario_id,ator_id,modulo,tabela,registro,acao,antes,depois) VALUES(OLD.usuario_id,@mcf_ator_id,'receitas','rendas',OLD.`id`,'excluir',JSON_OBJECT('id',OLD.`id`,'nome',OLD.`nome`,'descricao',OLD.`descricao`,'data',OLD.`data`,'valor',OLD.`valor`,'tipo',OLD.`tipo`,'grupo_recorrencia',OLD.`grupo_recorrencia`,'parcela_atual',OLD.`parcela_atual`,'total_parcelas',OLD.`total_parcelas`,'recebido',OLD.`recebido`,'porcentagem',OLD.`porcentagem`,'criado_em',OLD.`criado_em`,'classificacao',OLD.`classificacao`,'usuario_id',OLD.`usuario_id`),NULL); END IF; END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `usuarios` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(100) NOT NULL,
+  `senha` varchar(255) NOT NULL,
+  `status_assinatura` enum('ativo','inativo') DEFAULT 'ativo',
+  `data_expiracao` date NOT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `nome` varchar(100) DEFAULT NULL,
+  `email_normalizado` varchar(100) GENERATED ALWAYS AS (lcase(trim(`email`))) STORED,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `uq_usuarios_email_normalizado` (`email_normalizado`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+

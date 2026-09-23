@@ -32,7 +32,7 @@ function carteiraPercentual($resultado, $custo) {
         number_format($valor, 2, ',', '.') . '%';
 }
 
-function carteiraLogos($ticker, $atual, array $historico) {
+function carteiraLogos($ticker, $atual, array $historico, $tipoAtivo) {
     $normalizar = function ($v) {
         return strtoupper(trim((string)$v));
     };
@@ -40,7 +40,7 @@ function carteiraLogos($ticker, $atual, array $historico) {
     $ticker = $normalizar($ticker);
     $urls = [];
 
-    if (preg_match('/^[A-Z0-9.-]{1,20}$/D', $ticker)) {
+    if ($tipoAtivo!=='cripto' && preg_match('/^[A-Z0-9.-]{1,20}$/D', $ticker)) {
         foreach (['png', 'webp', 'jpg', 'svg'] as $ext) {
             $relativo =
                 '../assets/img/acoes/internacionais/' .
@@ -68,7 +68,7 @@ function carteiraLogos($ticker, $atual, array $historico) {
     $adicionar($atual);
 
     foreach (array_reverse($historico) as $op) {
-        if ($normalizar($op['ticker'] ?? '') === $ticker) {
+        if ($normalizar($op['ticker'] ?? '') === $ticker && ($op['tipo_ativo']??'')===$tipoAtivo) {
             $adicionar($op['logo'] ?? null);
         }
 
@@ -112,7 +112,7 @@ function internacionalCalcular($form) {
         internacionalDecimal(
             $form['valor_unitario'],
             14,
-            4
+            8
         );
 
     if ($form['modo'] === 'valor') {
@@ -159,7 +159,7 @@ function internacionalCalcular($form) {
     }
 
     $totalExato =
-        bcmul($quantidade, $preco, 12);
+        bcmul($quantidade, $preco, 16);
 
     if (
         bccomp(
@@ -198,7 +198,7 @@ function internacionalNomeTipoAtivo($tipo) {
         'stock' => 'Stock',
         'etf' => 'ETF',
         'reit' => 'REIT',
-        'adr' => 'ADR'
+        'adr' => 'ADR', 'cripto' => 'Criptomoeda'
     ];
 
     return $tipos[$tipo] ?? $tipo;
@@ -323,7 +323,7 @@ if (
         if (
             !in_array(
                 $tipoAtivo,
-                ['stock', 'etf', 'reit', 'adr'],
+                ['stock', 'etf', 'reit', 'adr', 'cripto'],
                 true
             )
         ) {
@@ -375,10 +375,7 @@ if (
         ] = internacionalCalcular($form);
 
         $dadosCotacao =
-            mercadoApi()->stocks(
-                [$ticker],
-                'USD'
-            );
+            ($tipoAtivo === 'cripto' ? mercadoApi()->crypto([$ticker], 'USD') : mercadoApi()->stocks([$ticker], 'USD'));
 
         $cotacao =
             $dadosCotacao[$ticker] ?? [
@@ -612,16 +609,11 @@ if ($estrutura_ok) {
             );
 
         $av_cotacoes =
-            !empty($tickers)
-                ? mercadoApi()->stocks(
-                    $tickers,
-                    'USD'
-                )
-                : [];
+            mercadoCotacoesPosicoes($posicoes, 'USD');
 
         foreach ($posicoes as &$p) {
             $p['api'] =
-                $av_cotacoes[$p['ticker']] ??
+                $av_cotacoes[$p['ticker'].'|'.$p['tipo_ativo']] ??
                 [
                     'price' => null,
                     'logo' => null,
@@ -1120,7 +1112,7 @@ $av_modal =
                                         carteiraLogos(
                                             $row['ticker'],
                                             $row['logo'] ?? null,
-                                            $ops
+                                            $ops, $row['tipo_ativo']
                                         );
                                     ?>
 
@@ -1189,7 +1181,7 @@ $av_modal =
                                     US$
                                     <?= number_format(
                                         $row['valor_medio_ponderado'],
-                                        2,
+                                        $row['tipo_ativo']==='cripto' ? 8 : 2,
                                         ',',
                                         '.'
                                     ) ?>
@@ -1210,7 +1202,7 @@ $av_modal =
                                         ? 'US$ ' .
                                             number_format(
                                                 $row['valor_mercado_atual'],
-                                                2,
+                                                $row['tipo_ativo']==='cripto' ? 8 : 2,
                                                 ',',
                                                 '.'
                                             )
@@ -1283,7 +1275,7 @@ $av_modal =
                         <?php } ?>
 
                         <?php if ($posicoes) { ?>
-                            <tr>
+                            <tr class="linha-total">
                                 <td
                                     colspan="7"
                                     style="text-align:right;"
@@ -1472,6 +1464,7 @@ $av_modal =
                     >
                         ADR
                     </option>
+<option value="cripto" <?= $form['tipo_ativo'] === 'cripto' ? 'selected' : '' ?>>Criptomoeda</option>
                 </select>
 
                 <label for="op-ticker">
@@ -1496,8 +1489,8 @@ $av_modal =
 
                 <input
                     type="number"
-                    step="0.0001"
-                    min="0.0001"
+                    step="0.00000001"
+                    min="0.00000001"
                     name="valor_unitario"
                     id="valor_unitario"
                     value="<?= internacionalEscape(
@@ -1745,7 +1738,7 @@ $av_modal =
                                             US$
                                             <?= number_format(
                                                 $ordem['valor_unitario'],
-                                                4,
+                                                $ordem['tipo_ativo']==='cripto' ? 8 : 4,
                                                 ',',
                                                 '.'
                                             ) ?>
@@ -1805,7 +1798,7 @@ $av_modal =
                 ).test(texto)
             ) {
                 throw new Error(
-                    'Confira a precisão dos campos: quantidade e valor até 8 casas; preço até 4.'
+                    'Confira a precisão dos campos: quantidade e valor até 8 casas; preço até 8.'
                 );
             }
 
@@ -1854,7 +1847,7 @@ $av_modal =
             const p =
                 decimalInteiro(
                     precoTexto,
-                    4,
+                    8,
                     14
                 );
 
@@ -1865,7 +1858,7 @@ $av_modal =
                         8,
                         16
                     ) *
-                        10000n /
+                        100000000n /
                         p
                     : decimalInteiro(
                         origem,
@@ -1893,7 +1886,7 @@ $av_modal =
 
             if (
                 produto >
-                9999999999999999999999990000n
+                99999999999999999999999900000000n
             ) {
                 throw new Error(
                     'Valor da operação acima do limite suportado.'
@@ -1901,8 +1894,8 @@ $av_modal =
             }
 
             const total =
-                (produto + 5000n) /
-                10000n;
+                (produto + 50000000n) /
+                100000000n;
 
             if (total <= 0n) {
                 throw new Error(

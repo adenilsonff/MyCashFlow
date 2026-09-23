@@ -29,7 +29,7 @@ try {
     }
 } catch (DomainException $error) { mcfFalhar(422,$error->getMessage()); }
 $e=static fn($v)=>htmlspecialchars((string)($v ?? ''),ENT_QUOTES | ENT_SUBSTITUTE,'UTF-8');
-$money=static fn($v,$moeda)=>$v===null ? 'Indisponível' : ($moeda==='BRL' ? 'R$ ' : 'US$ ').number_format((float)$v,2,',','.');
+$money=static fn($v,$moeda,$casas=2)=>$v===null ? 'Indisponível' : ($moeda==='BRL' ? 'R$ ' : 'US$ ').number_format((float)$v,$casas,',','.');
 $cssPagina='/MyCashFlow/assets/css/compartilhamento.css';
 require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php';
 ?>
@@ -61,7 +61,7 @@ require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php
 <div class="tabela-scroll"><table><thead><tr><?php if ($key==='individuais'): ?><th>Titular</th><?php endif; ?><th>Ativo</th><th>Quantidade</th><th>Preço médio</th><th>Custo</th><th>Cotação</th><th>Mercado</th><th>Lucro/prejuízo</th><th>Variação</th><th>Fonte / horário</th></tr></thead><tbody>
 <?php foreach ($carteira[$key] as $r): ?><tr><?php if ($key==='individuais'): ?><td><?= $e($r['titular']['nome'] ?: $r['titular']['email']) ?><br><?= $e($r['titular']['email']) ?></td><?php endif; ?>
 <td><?= $e($r['ticker']) ?><br><?= $e($r['tipo'].' · '.$r['moeda']) ?></td><td><?= $e(mcfCompartilhamentoFormatar($r['quantidade'],'numero')) ?></td>
-<?php foreach (['medio','custo','cotacao','mercado','resultado'] as $campo): ?><td><?= $e($money($r[$campo],$r['moeda'])) ?></td><?php endforeach; ?>
+<?php foreach (['medio','custo','cotacao','mercado','resultado'] as $campo): ?><td><?= $e($money($r[$campo],$r['moeda'],($r['tipo']??'')==='cripto' && in_array($campo,['medio','cotacao'],true) ? 8 : 2)) ?></td><?php endforeach; ?>
 <td><?= $r['percentual']===null ? 'Indisponível' : $e(number_format((float)$r['percentual'],2,',','.').'%') ?></td><td><?= $e($r['fonte']) ?><br><?= $r['hora'] ? $e(date('d/m/Y H:i',(int)$r['hora'])) : 'Sem horário disponível' ?><?= $r['stale'] ? ' · atualização pendente' : '' ?></td></tr><?php endforeach; ?>
 </tbody></table></div><?php endif; ?></section><?php endforeach; ?>
 <?php else: ?>

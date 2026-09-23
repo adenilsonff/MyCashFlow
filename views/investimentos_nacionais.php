@@ -793,7 +793,7 @@ $av_modal =
                         <?php } ?>
 
                         <?php if ($posicoes) { ?>
-                            <tr>
+                            <tr class="linha-total">
                                 <td colspan="7" style="text-align:right;">
                                     <strong>Total:</strong>
                                 </td>

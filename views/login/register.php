@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - MyCashFlow</title>
     <link rel="stylesheet" href="/MyCashFlow/assets/css/style-auth.css">
+<link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../../assets/css/padrao.css') ?>">
 </head>
 <body>
     <header>

@@ -3,6 +3,7 @@ if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
 
 require_once __DIR__ . '/carteiras_posicoes.php';
 require_once __DIR__ . '/saldos_consulta.php';
+require_once __DIR__ . '/mercado_api.php';
 
 function patrimonioSomar($a, $b) {
     return $a === null || $b === null ? null : bcadd((string)$a, (string)$b, 24);
@@ -34,7 +35,7 @@ function patrimonioOperacoes($conn, $usuario_id, $nacional) {
 function patrimonioAvaliar(array $posicoes, array $cotacoes, $nacional, $cambio = null) {
     $total = '0';
     foreach ($posicoes as &$p) {
-        $p['api'] = $cotacoes[$p['ticker']] ?? null;
+        $p['api'] = $cotacoes[$p['ticker'].'|'.$p['tipo_ativo']] ?? (($p['tipo_ativo']??'')==='cripto' ? null : ($cotacoes[$p['ticker']] ?? null));
         $preco = $p['api']['price'] ?? null;
         $p['valor_origem'] = $preco === null ? null
             : bcmul((string)$preco, (string)$p['quantidade_total'], 24);
@@ -54,8 +55,7 @@ function patrimonioCarteira($conn, $usuario_id, $nacional, $api) {
     $cotacoes = [];
     $cambio = null;
     if ($posicoes) {
-        $cotacoes = $api->stocks(array_values(array_unique(array_column($posicoes, 'ticker'))),
-            $nacional ? 'BRL' : 'USD');
+        $cotacoes = mercadoCotacoesPosicoes($posicoes, $nacional ? 'BRL' : 'USD', $api);
         if (!$nacional) {
             $cambio = $api->fx()['USD'] ?? null;
         }

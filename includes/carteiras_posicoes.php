@@ -152,7 +152,7 @@ function internacionalConsolidar(array $operacoes) {
         if (
             !in_array(
                 $tipoAtivo,
-                ['stock', 'etf', 'reit', 'adr'],
+                ['stock', 'etf', 'reit', 'adr', 'cripto'],
                 true
             ) ||
             !in_array(
@@ -161,7 +161,7 @@ function internacionalConsolidar(array $operacoes) {
                 true
             ) ||
             bccomp($q, '0', 8) <= 0 ||
-            bccomp($preco, '0', 4) <= 0 ||
+            bccomp($preco, '0', 8) <= 0 ||
             (
                 $tipoOperacao === 'compra' &&
                 bccomp(

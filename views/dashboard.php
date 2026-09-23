@@ -94,7 +94,7 @@ $tipoOperacao = $op['tipo_operacao'] ?? '';
 
 $tiposAtivoValidos = $nacional
 ? ['acao', 'fii', 'etf', 'bdr']
-: ['stock', 'etf', 'reit', 'adr'];
+: ['stock', 'etf', 'reit', 'adr', 'cripto'];
 
 if (
 !in_array(

@@ -70,7 +70,7 @@ function relInvestTipoInternacional($tipo)
         'stock' => 'Stock',
         'etf' => 'ETF',
         'reit' => 'REIT',
-        'adr' => 'ADR'
+        'adr' => 'ADR', 'cripto' => 'Criptomoeda'
     ];
 
     return $tipos[$tipo] ?? $tipo;
@@ -86,11 +86,11 @@ function relInvestBRL($valor)
     );
 }
 
-function relInvestUSD($valor)
+function relInvestUSD($valor, $casas = 2)
 {
     return 'US$ ' . number_format(
         (float)$valor,
-        2,
+        $casas,
         ',',
         '.'
     );
@@ -336,7 +336,7 @@ function relInvestConsolidarInternacional(
         if (
             !in_array(
                 $tipoAtivo,
-                ['stock', 'etf', 'reit', 'adr'],
+                ['stock', 'etf', 'reit', 'adr', 'cripto'],
                 true
             ) ||
             !in_array(
@@ -349,11 +349,7 @@ function relInvestConsolidarInternacional(
                 '0',
                 8
             ) <= 0 ||
-            bccomp(
-                $preco,
-                '0',
-                4
-            ) <= 0 ||
+            bccomp($preco, '0', 8) <= 0 ||
             (
                 $tipoOperacao === 'compra' &&
                 bccomp(
@@ -617,7 +613,7 @@ if (
                 $posicao['ticker'];
 
             $cotacao =
-                $cotacoes[$ticker]['price'] ??
+                $cotacoes[$ticker.'|'.$posicao['tipo_ativo']]['price'] ?? ($posicao['tipo_ativo']==='cripto' ? null : ($cotacoes[$ticker]['price'] ?? null)) ??
                 null;
 
             if ($cotacao === null) {
@@ -675,10 +671,7 @@ if (
         );
 
         $cotacoes =
-            mercadoApi()->stocks(
-                $tickers,
-                'USD'
-            );
+            mercadoCotacoesPosicoes($posicoesInternacionais, 'USD');
 
         foreach (
             $posicoesInternacionais as &$posicao
@@ -687,7 +680,7 @@ if (
                 $posicao['ticker'];
 
             $cotacao =
-                $cotacoes[$ticker]['price'] ??
+                $cotacoes[$ticker.'|'.$posicao['tipo_ativo']]['price'] ?? ($posicao['tipo_ativo']==='cripto' ? null : ($cotacoes[$ticker]['price'] ?? null)) ??
                 null;
 
             if ($cotacao === null) {
@@ -1756,9 +1749,7 @@ $totalAtivosCarteiraInternacional =
                                 </td>
 
                                 <td>
-                                    <?= relInvestUSD(
-                                        $posicao['valor_medio_ponderado']
-                                    ) ?>
+                                    <?= relInvestUSD($posicao['valor_medio_ponderado'], $posicao['tipo_ativo']==='cripto' ? 8 : 2) ?>
                                 </td>
 
                                 <td>
@@ -1769,9 +1760,7 @@ $totalAtivosCarteiraInternacional =
 
                                 <td>
                                     <?= $posicao['cotacao_atual'] !== null
-                                        ? relInvestUSD(
-                                            $posicao['cotacao_atual']
-                                        )
+                                        ? relInvestUSD($posicao['cotacao_atual'], $posicao['tipo_ativo']==='cripto' ? 8 : 2)
                                         : 'Indisponível'
                                     ?>
                                 </td>

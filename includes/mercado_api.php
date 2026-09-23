@@ -200,6 +200,29 @@ final class MercadoApi {
         }
         return $result;
     }
+    public function crypto(array $symbols, $currency='USD') {
+        if($currency!=='USD') throw new InvalidArgumentException('Criptomoedas desta carteira são cotadas em USD.');
+        $symbols=array_values(array_unique(array_map(static fn($s)=>strtoupper(trim((string)$s)),$symbols)));
+        $result=[];$pending=[];
+        foreach($symbols as $s) {
+            if(!preg_match('/^[A-Z0-9]{1,20}$/D',$s)) {$result[$s]=$this->blank($s,'USD');continue;}
+            $e=$this->read('crypto:USD:'.$s);
+            if($this->due($e))$pending[]=$s;else $result[$s]=$this->expose($e,$s,'USD');
+        }
+        foreach(array_chunk($pending,max(1,min(10,(int)$this->cfg['batch_size']))) as $group) {
+            $response=$this->fetch([$this->request('https://brapi.dev/api/v2/crypto?coin='.rawurlencode(implode(',',$group)).'&currency=USD','brapi')]);
+            $r=$response[0]??['status'=>0,'data'=>[]];$items=[];
+            if($r['status']===200)foreach(($r['data']['coins']??[]) as $item)if(is_array($item)&&is_string($item['coin']??null))$items[$item['coin']]=$item;
+            foreach($group as $s){$d=$items[$s]??null;$q=null;
+                if($d&&($d['currency']??'')==='USD') {
+                    $q=$this->blank($s,'USD');$q['price']=$this->price($d['regularMarketPrice']??null);
+                    $q['logo']=$this->logo($d['coinImageUrl']??null);$q['market_time']=$this->stamp($d['regularMarketTime']??null);$q['fetched_at']=$this->now();
+                }
+                $result[$s]=$this->save('crypto:USD:'.$s,$q,$this->reason($r),$s,'USD');
+            }
+        }
+        return $result;
+    }
     public function fx() {
         $result=[]; $pending=[];
         foreach (['USD','EUR'] as $s) {
@@ -246,6 +269,15 @@ function mercadoApi() {
     static $api;
     if (!$api) $api=new MercadoApi(require __DIR__.'/mercado_config.php');
     return $api;
+}
+// Chave por tipo evita confundir, por exemplo, o ETF BTC com a criptomoeda BTC.
+function mercadoCotacoesPosicoes(array $posicoes,string $moeda,$api=null): array {
+    $api??=mercadoApi();$stocks=[];$crypto=[];$result=[];
+    foreach($posicoes as $p) {if(($p['tipo_ativo']??'')==='cripto')$crypto[]=$p['ticker'];else $stocks[]=$p['ticker'];}
+    $quotes=$stocks?$api->stocks(array_values(array_unique($stocks)),$moeda):[];
+    $coins=$crypto&&$moeda==='USD'?$api->crypto(array_values(array_unique($crypto)),'USD'):[];
+    foreach($posicoes as $p)$result[$p['ticker'].'|'.$p['tipo_ativo']]=($p['tipo_ativo']==='cripto'?$coins:$quotes)[$p['ticker']]??null;
+    return $result;
 }
 function mercadoLegenda($q) {
     if (!$q) return 'Cotação indisponível.';

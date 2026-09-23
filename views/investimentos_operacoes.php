@@ -29,7 +29,7 @@ require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php
 <details><summary>Corrigir ou excluir esta operação</summary><form method="post">
 <?= mcfCsrfField() ?><input type="hidden" name="mercado" value="<?= $e($mercado) ?>"><input type="hidden" name="operacao_id" value="<?= (int)$r['id'] ?>"><input type="hidden" name="revisao" value="<?= mcfInvestimentoRevisao($r) ?>">
 <label>Ativo <input name="ticker" value="<?= $e($r['ticker']) ?>" required></label>
-<label>Tipo <select name="tipo_ativo"><?php foreach ($mercado==='nacional' ? ['acao','fii','etf','bdr'] : ['stock','etf','reit','adr'] as $tipo): ?><option<?= $r['tipo_ativo']===$tipo ? ' selected' : '' ?>><?= $e($tipo) ?></option><?php endforeach; ?></select></label>
+<label>Tipo <select name="tipo_ativo"><?php foreach ($mercado==='nacional' ? ['acao','fii','etf','bdr'] : ['stock','etf','reit','adr','cripto'] as $tipo): ?><option value="<?= $e($tipo) ?>"<?= $r['tipo_ativo']===$tipo ? ' selected' : '' ?>><?= $tipo==='cripto' ? 'Criptomoeda' : $e(strtoupper($tipo)) ?></option><?php endforeach; ?></select></label>
 <label>Operação <select name="tipo_operacao"><option value="compra"<?= $r['tipo_operacao']==='compra' ? ' selected' : '' ?>>Compra</option><option value="venda"<?= $r['tipo_operacao']==='venda' ? ' selected' : '' ?>>Venda</option></select></label>
 <label>Quantidade positiva <input name="quantidade" inputmode="decimal" value="<?= $e(ltrim($r['quantidade'],'-')) ?>" required></label>
 <label>Preço unitário (ponto nos decimais) <input name="valor_unitario" inputmode="decimal" value="<?= $e($r['valor_unitario']) ?>" required></label>

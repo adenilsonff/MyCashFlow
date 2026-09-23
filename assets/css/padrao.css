@@ -1,0 +1,26 @@
+/* Padrão compartilhado, carregado após os estilos de cada módulo. */
+:root { --mcf-ink:#2c3e50; --mcf-primary:#34495e; --mcf-surface:#fff; --mcf-page:#ecf0f1; --mcf-border:#d9e1e8; --mcf-row-light:#fff; --mcf-row-dark:#edf1f5; --mcf-row-hover:#e0e8f0; --mcf-radius:8px; }
+body { font-family:Arial,sans-serif; background-color:var(--mcf-page); }
+body :is(input,select,textarea,button) { font-family:inherit; }
+body :is(main,[class$="-layout"],[class$="-page"]) :is(h2,h3) { color:var(--mcf-ink); }
+body :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),select,textarea) { border-radius:5px; border-color:#aebdc9; }
+body :is(a,button,input,select,textarea,summary):focus-visible { outline:3px solid #28688b; outline-offset:3px; }
+body :is(.btn-primary,.btn-principal,.av-primary,.form-rendas button,.form-contas button,.auth-container button) { background:var(--mcf-ink); color:#fff; border-radius:5px; }
+/* Não alcançar as tabelas internas do motor do gráfico de Análise. */
+body table:not(#an-chart table) { border-collapse:collapse; }
+body table:not(#an-chart table) > thead > tr > th { background:var(--mcf-ink); color:#fff; border-color:#465c70; }
+body table:not(#an-chart table) > tbody > tr { --mcf-row-bg:var(--mcf-row-light); }
+body table:not(#an-chart table) > tbody > tr:nth-child(even) { --mcf-row-bg:var(--mcf-row-dark); }
+body table:not(#an-chart table) > tbody > tr > :is(td,th) { background-color:var(--mcf-row-bg) !important; border-bottom:1px solid var(--mcf-border); }
+body table:not(#an-chart table) > tbody > tr:hover { --mcf-row-bg:var(--mcf-row-hover); }
+/* Situações continuam reconhecíveis, com alternância no mesmo tom. */
+body table:not(#an-chart table) > tbody > tr:is(.linha-paga,.linha-recebida) { --mcf-row-bg:#edf7f1; }
+body table:not(#an-chart table) > tbody > tr:is(.linha-paga,.linha-recebida):nth-child(even) { --mcf-row-bg:#dceee3; }
+body table:not(#an-chart table) > tbody > tr:is(.linha-paga,.linha-recebida):hover { --mcf-row-bg:#cfe6d8; }
+body table:not(#an-chart table) > tbody > tr.linha-vencida { --mcf-row-bg:#fff2f2; }
+body table:not(#an-chart table) > tbody > tr.linha-vencida:nth-child(even) { --mcf-row-bg:#f9e0e0; }
+body table:not(#an-chart table) > tbody > tr.linha-vencida:hover { --mcf-row-bg:#f3d3d3; }
+body table:not(#an-chart table) > tbody > tr:is(.linha-total,.mes-atual,.simulador-detalhe) { --mcf-row-bg:#e1e8ee; }
+body table:not(#an-chart table) > tfoot > tr > :is(td,th), body table:not(#an-chart table) > tbody > tr.linha-total > :is(td,th) { background:#dce5ed !important; color:var(--mcf-ink); font-weight:bold; border-top:2px solid #9aafc1; }
+.av-tipo-cripto { background:#fff0ce; color:#725000; }
+@media print { body table:not(#an-chart table) { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }

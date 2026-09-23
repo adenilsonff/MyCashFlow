@@ -35,11 +35,11 @@ function mcfInvestimentoCorrigir(mysqli $c, array $dados): void {
             $quantidade=trim(mcfTexto($dados,'quantidade'));$preco=trim(mcfTexto($dados,'valor_unitario'));
             $data=mcfCompartilhamentoData(mcfTexto($dados,'data'));
             if ($data<'1000-01-01' || $data>date('Y-m-d')) throw new DomainException('Informe uma data válida até hoje.');
-            if (!in_array($tipo,$internacional ? ['stock','etf','reit','adr'] : ['acao','fii','etf','bdr'],true) || !in_array($op,['compra','venda'],true)) throw new DomainException('Tipo de ativo ou operação inválido.');
+            if (!in_array($tipo,$internacional ? ['stock','etf','reit','adr','cripto'] : ['acao','fii','etf','bdr'],true) || !in_array($op,['compra','venda'],true)) throw new DomainException('Tipo de ativo ou operação inválido.');
             if (!preg_match($internacional ? '/^[A-Z][A-Z0-9.-]{0,19}$/D' : '/^[A-Z0-9]{1,10}$/D',$ticker)) throw new DomainException('Ticker inválido.');
             if (!preg_match($internacional ? '/^[0-9]{1,14}(?:\.[0-9]{1,8})?$/D' : '/^[1-9][0-9]{0,9}$/D',$quantidade) || bccomp($quantidade,'0',8)<=0 || (!$internacional && bccomp($quantidade,'2147483647',8)>0)) throw new DomainException('Quantidade inválida.');
-            if (!preg_match($internacional ? '/^[0-9]{1,14}(?:\.[0-9]{1,4})?$/D' : '/^[0-9]{1,8}(?:\.[0-9]{1,2})?$/D',$preco) || bccomp($preco,'0',4)<=0) throw new DomainException('Preço inválido. Use ponto para os decimais.');
-            $total=bcmul($quantidade,$preco,12);
+            if (!preg_match($internacional ? '/^[0-9]{1,14}(?:\.[0-9]{1,8})?$/D' : '/^[0-9]{1,8}(?:\.[0-9]{1,2})?$/D',$preco) || bccomp($preco,'0',8)<=0) throw new DomainException('Preço inválido. Use ponto para os decimais.');
+            $total=bcmul($quantidade,$preco,16);
             if ($internacional && (bccomp($total,'9999999999999999.99999999',12)>0 || bccomp($total,'0.000000005',12)<0)) throw new DomainException('Valor da operação fora do limite.');
             $qAssinada=$op==='venda' ? '-'.$quantidade : $quantidade;
             $ops[$indice]=['id'=>$id,'ticker'=>$ticker,'tipo_ativo'=>$tipo,'tipo_operacao'=>$op,'quantidade'=>$qAssinada,'valor_unitario'=>$preco,'data'=>$data];

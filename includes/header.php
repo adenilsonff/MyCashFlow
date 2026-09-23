@@ -9,6 +9,7 @@
 <?php if (!empty($cssPagina)): ?>
 <link rel="stylesheet" href="<?php echo htmlspecialchars($cssPagina); if ($cssPagina === '/MyCashFlow/assets/css/compartilhamento.css') echo '?v='.filemtime(__DIR__.'/../assets/css/compartilhamento.css'); ?>">
 <?php endif; ?>
+<link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../assets/css/padrao.css') ?>">
 </head>
 <body>
 
