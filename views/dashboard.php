@@ -434,10 +434,10 @@ $cotacaoDolarInvestimentos = null;
 }
 }
 
-$inicioGrafico = new DateTime('first day of this month');
-$inicioGrafico->modify('-5 months');
-
-$fimGrafico = new DateTime('first day of next month');
+$anoGrafico = filter_var($_GET['ano_grafico'] ?? $anoAtual, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1900,'max_range'=>9998]]);
+if ($anoGrafico === false) $anoGrafico = $anoAtual;
+$inicioGrafico = new DateTime(sprintf('%04d-01-01', $anoGrafico));
+$fimGrafico = new DateTime(sprintf('%04d-01-01', $anoGrafico + 1));
 
 $dataInicioGrafico = $inicioGrafico->format('Y-m-d');
 $dataFimGrafico = $fimGrafico->format('Y-m-d');
@@ -449,7 +449,7 @@ $despesasGrafico = [];
 
 $dataGrafico = clone $inicioGrafico;
 
-for ($i = 0; $i < 6; $i++) {
+for ($i = 0; $i < 12; $i++) {
 $chave = $dataGrafico->format('Y-m');
 $mes = (int)$dataGrafico->format('n');
 $ano = $dataGrafico->format('Y');
@@ -756,7 +756,12 @@ Ver investimentos · US$ 1 = R$
 <div class="grafico-cabecalho">
 <div>
 <h3>Receitas x Despesas</h3>
-<p>Comparativo dos últimos 6 meses</p>
+<p>Janeiro a dezembro de <?= $anoGrafico ?> · lançamentos registrados</p>
+<form method="get" class="filtro-ano-grafico">
+<label for="ano-grafico">Ano do gráfico</label>
+<input id="ano-grafico" name="ano_grafico" type="number" min="1900" max="9998" value="<?= $anoGrafico ?>" required style="width:90px;padding:6px;margin:6px">
+<button type="submit">Exibir</button>
+</form>
 </div>
 </div>
 

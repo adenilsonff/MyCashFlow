@@ -14,3 +14,5 @@ cp.execFileSync(php,[path.resolve(__dirname,'../../tools/migrar_perfil.php'),'--
 cp.execFileSync(php,[path.resolve(__dirname,'../../tools/migrar_compartilhamento.php'),'--apply'],{env:{...process.env,MCF_DB_NAME:'mcf_test_20260921'}});
 
 cp.execFileSync(php,[path.resolve(__dirname,'../../tools/migrar_melhorias.php'),'--apply'],{env:{...process.env,MCF_DB_NAME:'mcf_test_20260921'}});
+
+cp.execFileSync(php,[path.resolve(__dirname,'../../tools/migrar_cripto.php'),'--apply'],{env:{...process.env,MCF_DB_NAME:'mcf_test_20260921'}});

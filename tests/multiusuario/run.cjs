@@ -12,11 +12,12 @@ let server;
   let ready=false;
   for(let i=0;i<30;i++){try{const r=await fetch(url+'/views/login/login.php');if(r.status===200){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,100));}
   if(!ready)throw new Error('Servidor de testes indisponível.');
-  for(const name of ['integration','extended','lifecycle','compartilhamento','compartilhamento-edicao','melhorias','perfil'])cp.execFileSync(process.execPath,[path.join(__dirname,name+'.cjs')],{env,stdio:'inherit'});
+  for(const name of ['integration','extended','lifecycle','compartilhamento','compartilhamento-edicao','melhorias','cripto','dashboard-anual','perfil'])cp.execFileSync(process.execPath,[path.join(__dirname,name+'.cjs')],{env,stdio:'inherit'});
   cp.execFileSync(php,[path.join(root,'tests/visao-conjunta.test.php')],{env,stdio:'inherit'});
   cp.execFileSync(php,[path.join(root,'tests/analise.test.php')],{env,stdio:'inherit'});
   cp.execFileSync(process.execPath,[path.join(root,'tests/analise-core.test.cjs')],{env,stdio:'inherit'});
   cp.execFileSync(php,[path.join(root,'tests/comparativo.test.php')],{env,stdio:'inherit'});
   cp.execFileSync(php,[path.join(root,'tests/guardas.test.php')],{env,stdio:'inherit'});
+  cp.execFileSync(php,[path.join(root,'tests/cripto.test.php')],{env,stdio:'inherit'});
   console.log('Resultados: '+temp);
 } )().catch(e=>{console.error(e.message);process.exitCode=1;}).finally(()=>{if(server)server.kill();});
