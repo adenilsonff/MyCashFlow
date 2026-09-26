@@ -20,7 +20,7 @@ for(const [c,own,other,id] of [[a,'ALFA_PRIVADO','BETA_PRIVADO',101],[b,'BETA_PR
   if(p==='analise.php')c.anToken=html.match(/data-csrf="([a-f0-9]+)"/)[1];
   for(const form of html.matchAll(/<form\b[^>]*method="post"[^>]*>([\s\S]*?)<\/form>/gi))ok(form[1].includes('name="mcf_csrf"'),'CSRF no formulário '+p);
  }
- const report=await page(c,'relatorios/financeiro.php?ano=2026');ok(report.includes(id===101?'1.111,00':'2.222,00'),'total próprio financeiro');ok(!report.includes(id===101?'2.222,00':'1.111,00'),'total alheio ausente');
+ const report=await page(c,'relatorios/financeiro.php?ano=2026');const indicators=report.match(/<div class="indicators">([\s\S]*?)<\/div><\/div>/)?.[1]||'';ok(indicators.includes(id===101?'1.111,00':'2.222,00'),'total próprio financeiro');ok(!indicators.includes(id===101?'2.222,00':'1.111,00'),'total alheio ausente nos indicadores (eixos podem coincidir)');
  const state=JSON.parse((await c.req('/views/analise/api.php?action=state&ticker=PETR4&tipo_ativo=acao&usuario_id=999')).text);ok(JSON.stringify(state).includes(own),'Análise marcação própria');ok(!JSON.stringify(state).includes(other),'Análise marcação alheia');
 }
 console.log('Leituras, totais, formulários e autenticação: OK');
