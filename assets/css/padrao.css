@@ -6,6 +6,10 @@ body :is(main,[class$="-layout"],[class$="-page"]) :is(h2,h3) { color:var(--mcf-
 body :is(input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=hidden]),select,textarea) { border-radius:5px; border-color:#aebdc9; }
 body :is(a,button,input,select,textarea,summary):focus-visible { outline:3px solid #28688b; outline-offset:3px; }
 body :is(.btn-primary,.btn-principal,.av-primary,.form-rendas button,.form-contas button,.auth-container button) { background:var(--mcf-ink); color:#fff; border-radius:5px; }
+#mcf-menu { align-items:center; }
+#mcf-menu .mcf-menu-item { display:flex; align-items:center; }
+#mcf-menu .mcf-menu-row { display:flex; align-items:center; }
+#mcf-menu .mcf-menu-row > a { display:flex; align-items:center; }
 /* Não alcançar as tabelas internas do motor do gráfico de Análise. */
 body table:not(#an-chart table) { border-collapse:collapse; }
 body table:not(#an-chart table) > thead > tr > th { background:var(--mcf-ink); color:#fff; border-color:#465c70; }
