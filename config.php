@@ -9,14 +9,25 @@ $pass = getenv("MCF_DB_PASS") ?: "";
 $db = getenv("MCF_DB_NAME") ?: "financas";
 
 require_once __DIR__.'/includes/seguranca.php';
+require_once __DIR__.'/includes/modulos.php';
+
 ini_set('display_errors','0');
 mcfIniciarSessao();
+
 set_exception_handler(function (Throwable $e): void {
     // Não registrar SQL, valores, senhas, tokens ou mensagens do provedor.
     mcfFalhar(500, 'Não foi possível concluir a operação.');
 });
+
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-$conn = new mysqli($host, $user, $pass, $db, (int)(getenv('MCF_DB_PORT') ?: 3306));
+
+$conn = new mysqli(
+    $host,
+    $user,
+    $pass,
+    $db,
+    (int)(getenv('MCF_DB_PORT') ?: 3306)
+);
 
 if ($conn->connect_error) {
     mcfFalhar(503, "Banco indisponível.");

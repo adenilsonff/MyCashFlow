@@ -10,6 +10,11 @@ body :is(.btn-primary,.btn-principal,.av-primary,.form-rendas button,.form-conta
 #mcf-menu .mcf-menu-item { display:flex; align-items:center; }
 #mcf-menu .mcf-menu-row { display:flex; align-items:center; }
 #mcf-menu .mcf-menu-row > a { display:flex; align-items:center; }
+header { position:relative; }
+header .mcf-account-links { position:absolute; top:50%; right:20px; transform:translateY(-50%); display:flex; flex-direction:row; align-items:center; gap:8px; margin:0; padding:0; background:none; border:0; }
+header .mcf-account-links a { display:flex; align-items:center; justify-content:center; width:100px; height:44px; padding:0 12px; margin:0; background:#ecf0f1; color:#2c3e50; text-decoration:none !important; text-align:center; font-size:16px; font-weight:bold; border:0 !important; border-bottom:0 !important; border-radius:5px; box-shadow:none; box-sizing:border-box; }
+header .mcf-account-links a:hover, header .mcf-account-links a:focus, header .mcf-account-links a:active, header .mcf-account-links a:visited { text-decoration:none !important; border-bottom:0 !important; }
+header .mcf-account-links a:hover { background:#dce3e7; }
 /* Não alcançar as tabelas internas do motor do gráfico de Análise. */
 body table:not(#an-chart table) { border-collapse:collapse; }
 body table:not(#an-chart table) > thead > tr > th { background:var(--mcf-ink); color:#fff; border-color:#465c70; }
@@ -27,4 +32,8 @@ body table:not(#an-chart table) > tbody > tr.linha-vencida:hover { --mcf-row-bg:
 body table:not(#an-chart table) > tbody > tr:is(.linha-total,.mes-atual,.simulador-detalhe) { --mcf-row-bg:#e1e8ee; }
 body table:not(#an-chart table) > tfoot > tr > :is(td,th), body table:not(#an-chart table) > tbody > tr.linha-total > :is(td,th) { background:#dce5ed !important; color:var(--mcf-ink); font-weight:bold; border-top:2px solid #9aafc1; }
 .av-tipo-cripto { background:#fff0ce; color:#725000; }
+@media (max-width:768px) {
+    header .mcf-account-links { position:static; transform:none; justify-content:center; margin-top:10px; }
+    header .mcf-account-links a { width:100px; height:40px; font-size:14px; }
+}
 @media print { body table:not(#an-chart table) { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }

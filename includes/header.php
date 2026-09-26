@@ -18,11 +18,16 @@
 <?php if (isset($_SESSION['usuario_id'])): require_once __DIR__.'/perfil.php'; ?>
 <p><a data-mcf-own href="/MyCashFlow/views/perfil.php" class="mcf-profile-link"><?= htmlspecialchars(mcfRotuloUsuario(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></a></p>
 <?php endif; ?>
-</header>
+
 <?php if (isset($_SESSION['usuario_id'], $conn)):
 require_once __DIR__.'/compartilhamento_melhorias.php'; $novosAvisos=count(mcfAvisos($conn)); ?>
-<div class="mcf-account-links"><a data-mcf-own href="/MyCashFlow/views/avisos.php">Avisos de compartilhamento<?= $novosAvisos ? ' ('.$novosAvisos.($novosAvisos===1?' novo)':' novos)') : '' ?></a><a data-mcf-own href="/MyCashFlow/views/historico.php">Histórico dos meus dados</a></div>
-<?php mcfSeletorConta($conn); endif; ?>
+<div class="mcf-account-links">
+<a data-mcf-own href="/MyCashFlow/views/avisos.php">Avisos<?= $novosAvisos ? ' ('.$novosAvisos.($novosAvisos===1?' novo)':' novos)') : '' ?></a>
+<a data-mcf-own href="/MyCashFlow/views/historico.php">Histórico</a>
+</div>
+<?php endif; ?>
+</header>
+
 <?php if (!empty($GLOBALS['mcf_contexto'])): $contexto=$GLOBALS['mcf_contexto']; ?>
 <aside class="mcf-owner-notice" role="status">
 <strong>Gerenciando dados de <?= htmlspecialchars($contexto['nome'] ?: $contexto['email'],ENT_QUOTES | ENT_SUBSTITUTE,'UTF-8') ?></strong>

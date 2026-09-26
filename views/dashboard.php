@@ -12,10 +12,14 @@ header("Location: login/login.php");
 exit;
 }
 
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../includes/mercado_api.php';
 
-$usuario_id = (int)$_SESSION['usuario_id'];
+$usuario_id = mcfUsuarioId();
+
+$moduloReceitas = mcfModuloAtivo($conn, $usuario_id, 'receitas');
+$moduloDespesas = mcfModuloAtivo($conn, $usuario_id, 'despesas');
+$moduloCartao = mcfModuloAtivo($conn, $usuario_id, 'cartao');
+$moduloInvestimentos = mcfModuloAtivo($conn, $usuario_id, 'investimentos');
+$moduloDayTrade = mcfModuloAtivo($conn, $usuario_id, 'daytrade');
 
 $mesAtual = (int)date('n');
 $anoAtual = (int)date('Y');
@@ -215,6 +219,7 @@ $p['custo'],
 return $total;
 }
 
+if ($moduloReceitas) {
 $sqlReceitas = "
 SELECT
 COALESCE(SUM(valor), 0) AS total,
@@ -234,6 +239,9 @@ $totalReceitas = (float)$receitas['total'];
 $totalRecebido = (float)$receitas['recebido'];
 $totalReceber = (float)$receitas['pendente'];
 
+}
+
+if ($moduloDespesas) {
 $sqlDespesas = "
 SELECT
 COALESCE(SUM(valor), 0) AS total,
@@ -253,9 +261,15 @@ $totalDespesas = (float)$despesas['total'];
 $totalPago = (float)$despesas['pago'];
 $totalPendente = (float)$despesas['pendente'];
 
+}
+
+if ($moduloReceitas && $moduloDespesas) {
 $saldoPrevisto = $totalReceitas - $totalDespesas;
 $saldoRealizado = $totalRecebido - $totalPago;
 
+}
+
+if ($moduloCartao) {
 $sqlCartao = "
 SELECT
 COALESCE(SUM(c.valor), 0) AS total,
@@ -282,6 +296,9 @@ $totalCartaoReembolsavel = (float)$cartao['reembolsavel'];
 $totalCartaoPago = (float)$cartao['pago'];
 $totalCartaoPendente = (float)$cartao['pendente'];
 
+}
+
+if ($moduloDayTrade) {
 $sqlDayTrade = "
 SELECT
 COALESCE(SUM(lucro_final), 0) AS resultado,
@@ -300,6 +317,11 @@ $stmt->close();
 $totalDayTrade = (float)$dayTrade['resultado'];
 $totalDarf = (float)$dayTrade['darf'];
 $totalOperacoes = (int)$dayTrade['operacoes'];
+
+}
+
+if ($moduloInvestimentos) {
+require_once __DIR__ . '/../includes/mercado_api.php';
 
 $totalNacional = null;
 $totalInternacional = null;
@@ -434,6 +456,9 @@ $cotacaoDolarInvestimentos = null;
 }
 }
 
+}
+
+if ($moduloReceitas || $moduloDespesas) {
 $anoGrafico = filter_var($_GET['ano_grafico'] ?? $anoAtual, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1900,'max_range'=>9998]]);
 if ($anoGrafico === false) $anoGrafico = $anoAtual;
 $inicioGrafico = new DateTime(sprintf('%04d-01-01', $anoGrafico));
@@ -462,6 +487,7 @@ $despesasGrafico[$chave] = 0;
 $dataGrafico->modify('+1 month');
 }
 
+if ($moduloReceitas) {
 $sqlReceitasGrafico = "
 SELECT
 DATE_FORMAT(data, '%Y-%m') AS periodo,
@@ -485,6 +511,9 @@ $receitasGrafico[$row['periodo']] = (float)$row['total'];
 
 $stmt->close();
 
+}
+
+if ($moduloDespesas) {
 $sqlDespesasGrafico = "
 SELECT
 DATE_FORMAT(vencimento, '%Y-%m') AS periodo,
@@ -508,19 +537,26 @@ $despesasGrafico[$row['periodo']] = (float)$row['total'];
 
 $stmt->close();
 
+}
+
 $valoresReceitasGrafico = [];
 $valoresDespesasGrafico = [];
 
 foreach ($periodosGrafico as $periodo) {
-$valoresReceitasGrafico[] = $receitasGrafico[$periodo];
-$valoresDespesasGrafico[] = $despesasGrafico[$periodo];
+if ($moduloReceitas) $valoresReceitasGrafico[] = $receitasGrafico[$periodo];
+if ($moduloDespesas) $valoresDespesasGrafico[] = $despesasGrafico[$periodo];
 }
 
+}
+
+if ($moduloCartao) {
 $dadosCartaoGrafico = [
 $totalCartaoPessoal,
 $totalCartaoConjunta,
 $totalCartaoReembolsavel
 ];
+
+}
 
 $cssPagina = "/MyCashFlow/assets/css/style-dashboard.css";
 
@@ -544,6 +580,7 @@ include __DIR__ . '/../includes/menu.php';
 
 <div class="cards-container">
 
+<?php if ($moduloReceitas): ?>
 <a href="/MyCashFlow/views/rendas.php" class="card-link">
 <div class="card">
 <div class="card-topo">
@@ -569,7 +606,9 @@ R$ <?php echo number_format($totalReceitas, 2, ',', '.'); ?>
 <div class="card-rodape">Ver receitas</div>
 </div>
 </a>
+<?php endif; ?>
 
+<?php if ($moduloDespesas): ?>
 <a href="/MyCashFlow/views/contas.php" class="card-link">
 <div class="card">
 <div class="card-topo">
@@ -595,7 +634,9 @@ R$ <?php echo number_format($totalDespesas, 2, ',', '.'); ?>
 <div class="card-rodape">Ver despesas</div>
 </div>
 </a>
+<?php endif; ?>
 
+<?php if ($moduloReceitas && $moduloDespesas): ?>
 <div class="card card-saldo">
 <div class="card-topo">
 <h3>Saldo do Mês</h3>
@@ -627,6 +668,9 @@ R$ <?php echo number_format($saldoRealizado, 2, ',', '.'); ?>
 <div class="card-rodape card-rodape-neutro">Receitas - Despesas</div>
 </div>
 
+<?php endif; ?>
+
+<?php if ($moduloCartao): ?>
 <a href="/MyCashFlow/views/cartao.php" class="card-link">
 <div class="card">
 <div class="card-topo">
@@ -668,7 +712,9 @@ R$ <?php echo number_format($totalCartao, 2, ',', '.'); ?>
 <div class="card-rodape">Ver fatura</div>
 </div>
 </a>
+<?php endif; ?>
 
+<?php if ($moduloDayTrade): ?>
 <a href="/MyCashFlow/views/daytrade.php" class="card-link">
 <div class="card">
 <div class="card-topo">
@@ -697,7 +743,9 @@ R$ <?php echo number_format($totalDayTrade, 2, ',', '.'); ?>
 <div class="card-rodape">Ver Day Trade</div>
 </div>
 </a>
+<?php endif; ?>
 
+<?php if ($moduloInvestimentos): ?>
 <a href="/MyCashFlow/views/investimentos.php" class="card-link">
 <div class="card">
 <div class="card-topo">
@@ -747,11 +795,14 @@ Ver investimentos · US$ 1 = R$
 <?php } ?>
 </div>
 </a>
+<?php endif; ?>
 
 </div>
 
+<?php if ($moduloReceitas || $moduloDespesas || $moduloCartao): ?>
 <section class="graficos-dashboard">
 
+<?php if ($moduloReceitas || $moduloDespesas): ?>
 <div class="grafico-card">
 <div class="grafico-cabecalho">
 <div>
@@ -770,6 +821,9 @@ Ver investimentos · US$ 1 = R$
 </div>
 </div>
 
+<?php endif; ?>
+
+<?php if ($moduloCartao): ?>
 <div class="grafico-card">
 <div class="grafico-cabecalho">
 <div>
@@ -783,7 +837,10 @@ Ver investimentos · US$ 1 = R$
 </div>
 </div>
 
+<?php endif; ?>
+
 </section>
+<?php endif; ?>
 
 </main>
 
@@ -795,6 +852,7 @@ style: 'currency',
 currency: 'BRL'
 });
 
+<?php if ($moduloReceitas || $moduloDespesas): ?>
 const contextoReceitasDespesas = document.getElementById('graficoReceitasDespesas');
 
 new Chart(contextoReceitasDespesas, {
@@ -802,6 +860,7 @@ type: 'line',
 data: {
 labels: <?php echo json_encode($labelsGrafico, JSON_UNESCAPED_UNICODE); ?>,
 datasets: [
+<?php if ($moduloReceitas): ?>
 {
 label: 'Receitas',
 data: <?php echo json_encode($valoresReceitasGrafico); ?>,
@@ -813,6 +872,8 @@ fill: false,
 pointRadius: 4,
 pointHoverRadius: 6
 },
+<?php endif; ?>
+<?php if ($moduloDespesas): ?>
 {
 label: 'Despesas',
 data: <?php echo json_encode($valoresDespesasGrafico); ?>,
@@ -824,6 +885,7 @@ fill: false,
 pointRadius: 4,
 pointHoverRadius: 6
 }
+<?php endif; ?>
 ]
 },
 options: {
@@ -858,6 +920,9 @@ return moeda.format(value);
 }
 });
 
+<?php endif; ?>
+
+<?php if ($moduloCartao): ?>
 const contextoCartao = document.getElementById('graficoCartao');
 
 new Chart(contextoCartao, {
@@ -898,6 +963,7 @@ return context.label + ': ' + moeda.format(context.raw);
 }
 }
 });
+<?php endif; ?>
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
