@@ -1,4 +1,6 @@
 <?php
+if(($_GET['visao']??'')!=='classica'){$modulo='proventos';require __DIR__.'/../../includes/relatorios_modulos_tela.php';return;}
+
 require_once __DIR__.'/../../config.php';
 require_once __DIR__ . '/../../config.php';
 
@@ -543,6 +545,7 @@ $conferenciaCorreta =
                 method="GET"
                 class="proventos-rel-filtro"
             >
+<input type="hidden" name="visao" value="classica">
 
                 <div class="proventos-rel-campo">
                     <label for="ano">

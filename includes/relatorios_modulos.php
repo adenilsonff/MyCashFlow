@@ -2,12 +2,14 @@
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; }
 require_once __DIR__.'/relatorios_core.php';
+require_once __DIR__.'/relatorios_mercado.php';
 function relModulo(string $modulo): array {
     $common=' A situação é a atual, sem data efetiva de liquidação; não representa caixa histórico. O consolidado soma registros dos titulares, sem identificação automática de duplicatas entre perfis.';
     return match($modulo) {
         'gastos'=>['permissao'=>'despesas','titulo'=>'Gastos','labels'=>['total'=>'Total previsto','efetivado'=>'Pago','pendente'=>'A pagar','atrasado'=>'Vencido','recorrente'=>'Recorrente','parcelada'=>'Parcelado'],'series'=>['Pago','A pagar'],'aviso'=>'Base: vencimento das despesas. Pessoal/conjunta indica natureza, não finalidade. Parcelas de cartão não são incluídas.'.$common],
         'receitas'=>['permissao'=>'receitas','titulo'=>'Receitas','labels'=>['total'=>'Total previsto','efetivado'=>'Recebido','pendente'=>'A receber','atrasado'=>'Em atraso','recorrente'=>'Recorrente','parcelada'=>'Parcelado'],'series'=>['Recebido','A receber'],'aviso'=>'Base: data cadastrada da receita. Regular/extra é a classificação disponível. Transferências e investimentos não são incluídos automaticamente.'.$common],
         'cartao'=>['permissao'=>'cartao','titulo'=>'Cartões','labels'=>['total'=>'Valor líquido','compras'=>'Compras / débitos','creditos'=>'Créditos (negativos)','efetivado'=>'Liquidado líquido','pendente'=>'Em aberto líquido','atrasado'=>'Aberto em datas passadas'],'series'=>['Compras / débitos','Créditos'],'aviso'=>'Base: data de cada parcela da fatura, que não comprova o vencimento bancário. Créditos negativos reduzem o valor líquido. O valor total da compra e pagamentos em despesas não são somados novamente. Não há identificação de emissor/cartão nesta base.'.$common],
+        'investimentos','proventos','daytrade'=>relMercadoDef($modulo),
         default=>throw new DomainException('Módulo de relatório inválido.')
     };
 }

@@ -1,4 +1,6 @@
 <?php
+if(($_GET['visao']??'')!=='classica'){$modulo='investimentos';require __DIR__.'/../../includes/relatorios_modulos_tela.php';return;}
+
 require_once __DIR__.'/../../config.php';
 require_once __DIR__ . '/../../config.php';
 
@@ -1197,6 +1199,7 @@ $totalAtivosCarteiraInternacional =
                 method="GET"
                 class="investimentos-rel-filtro"
             >
+<input type="hidden" name="visao" value="classica">
 
                 <label for="ano">
                     Ano

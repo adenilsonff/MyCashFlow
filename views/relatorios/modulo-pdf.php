@@ -8,7 +8,7 @@ if(!is_string($token)||!preg_match('/^[a-f0-9]{48}$/',$token))mcfFalhar(422,'Con
 $snapshot=$_SESSION['relatorios'][$token]??null;
 if(!$snapshot||$snapshot['expira']<time()||$snapshot['ator']!==mcfUsuarioId())mcfFalhar(410,'A consulta expirou. Atualize o relatório antes de exportar.');
 $r=$snapshot['relatorio'];
-if(!isset($r['modulo'])||!in_array($r['modulo'],['gastos','receitas','cartao'],true))mcfFalhar(422,'Consulta de outro relatório.');
+if(!isset($r['modulo'])||!in_array($r['modulo'],['gastos','receitas','cartao','investimentos','proventos','daytrade'],true))mcfFalhar(422,'Consulta de outro relatório.');
 $def=relModulo($r['modulo']);
 // Revalidar mesmo que o snapshot tenha sido criado antes de uma revogação.
 mcfPessoasAutorizadas($conn,$def['permissao'],array_column($r['pessoas'],'id'));
