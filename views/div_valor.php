@@ -313,7 +313,7 @@ $tipoFiltroTexto =
     <main class="proventos-valor-layout">
         <div class="proventos-valor-cabecalho">
             <div>
-                <h1>
+                <h1 class="mcf-page-title">
                     Proventos a Receber
                 </h1>
 

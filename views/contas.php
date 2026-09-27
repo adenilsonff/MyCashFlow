@@ -333,7 +333,7 @@ if ($categoriaFiltro === 'pessoal') {
 <main class="contas-container">
     <div class="cabecalho-contas">
         <div>
-            <h1>Despesas</h1>
+            <h1 class="mcf-page-title">Despesas</h1>
             <p>
                 <?= htmlspecialchars($meses[$mes]) ?> de <?= $ano ?>
                 · <?= htmlspecialchars($rotuloCategoria) ?>

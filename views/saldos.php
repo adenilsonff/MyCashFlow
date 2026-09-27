@@ -1288,7 +1288,7 @@ $instituicoes = instituicoesSaldo();
     <div class="saldos-cabecalho">
 
         <div>
-            <h1>Contas e Saldos</h1>
+            <h1 class="mcf-page-title">Contas e Saldos</h1>
 
             <p>
                 Controle do dinheiro disponível nas suas contas financeiras.

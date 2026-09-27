@@ -393,7 +393,7 @@ $tipoFiltroTexto =
     <main class="datacom-layout">
         <div class="datacom-cabecalho">
             <div>
-                <h1>Data COM</h1>
+                <h1 class="mcf-page-title">Data COM</h1>
 
                 <p>
                     Cadastre e acompanhe os eventos que dão direito aos proventos.

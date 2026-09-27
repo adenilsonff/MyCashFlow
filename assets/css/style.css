@@ -9,7 +9,7 @@ body {
 }
 
 /* Cabeçalho */
-header {
+.mcf-site-header {
     background: #2C3E50;
     color: white;
     padding: 15px;
@@ -17,7 +17,7 @@ header {
 }
 
 /* Menu principal */
-nav {
+#mcf-menu {
     background: #34495E;
     padding: 10px;
     display: flex;
@@ -25,7 +25,7 @@ nav {
     gap: 20px;
 }
 
-nav a {
+#mcf-menu a {
     color: white;
     text-decoration: none;
     font-weight: bold;
@@ -34,7 +34,7 @@ nav a {
     transition: background 0.3s;
 }
 
-nav a:hover {
+#mcf-menu a:hover {
     background: #2C3E50;
 }
 
@@ -85,7 +85,7 @@ nav a:hover {
 }
 
 /* Rodapé */
-footer {
+.mcf-site-footer {
     text-align: center;
     padding: 10px;
     background: #2C3E50;

@@ -16,7 +16,7 @@ $cssPagina='/MyCashFlow/assets/css/compartilhamento.css';
 require __DIR__.'/../includes/header.php'; require __DIR__.'/../includes/menu.php';
 ?>
 <main class="compartilhamento">
-<h2>Compartilhamento</h2><p><a href="visao_conjunta.php">Visão conjunta: meus dados e módulos autorizados</a></p>
+<h2 class="mcf-page-title">Compartilhamento</h2><p><a href="visao_conjunta.php">Visão conjunta: meus dados e módulos autorizados</a></p>
 <p>Cada pessoa entra com seu próprio login. Os acessos autorizados podem permitir consulta ou edição e podem ser revogados a qualquer momento.</p>
 <?php if ($erro): ?><p role="alert" class="aviso erro"><?= $e($erro) ?></p><?php endif; ?>
 <?php if ($aviso): ?><p role="status" class="aviso"><?= $e($aviso) ?></p><?php endif; ?>

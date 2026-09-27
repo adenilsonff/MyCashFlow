@@ -230,6 +230,7 @@ include __DIR__ . '/../includes/menu.php';
 ?>
 
 <main class="acoes-layout">
+<h1 class="mcf-page-title">Day Trade</h1>
 
 <?php if ($corretora_selecionada === 0): ?>
 

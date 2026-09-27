@@ -18,7 +18,7 @@ function relSelect(string $name,string $label,array $choices,array $f): void { ?
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Visão Financeira · MyCashFlow</title><link rel="stylesheet" href="/MyCashFlow/assets/css/relatorios/central.css?v=1"></head><body>
 <?php include __DIR__.'/../../includes/header.php';include __DIR__.'/../../includes/menu.php';?>
 <main class="report-layout"><a href="relatorios.php">← Central de Relatórios</a>
-<div class="report-intro"><span>MYCASHFLOW / RELATÓRIOS</span><h1>Entenda sua evolução financeira</h1><p>Escolha o período, compare resultados e leve a mesma visão para o PDF.</p></div>
+<div class="report-intro"><span>MYCASHFLOW / RELATÓRIOS</span><h1 class="mcf-page-title">Entenda sua evolução financeira</h1><p>Escolha o período, compare resultados e leve a mesma visão para o PDF.</p></div>
 <form method="get" class="report-filters">
 <?php relSelect('periodo','Período',['semana'=>'Semana','mes'=>'Mês','trimestre'=>'Trimestre','semestre'=>'Semestre','ano'=>'Ano','personalizado'=>'Personalizado','36meses'=>'Últimos 36 meses até a referência','ytd'=>'Acumulado anual até a referência'],$f);?>
 <label>Data de referência<input type="date" name="referencia" value="<?=relH($f['referencia'])?>" required></label>

@@ -27,7 +27,7 @@ function relSelect(string $name,string $label,array $choices,array $f): void { ?
 <!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=relH($def['titulo'])?> · MyCashFlow</title><link rel="stylesheet" href="/MyCashFlow/assets/css/relatorios/central.css?v=1"></head><body>
 <?php include __DIR__.'/header.php';include __DIR__.'/menu.php';?>
 <main class="report-layout"><a href="relatorios.php">← Central de Relatórios</a>
-<?php if($mercado):?><p><a href="<?=relH($modulo)?>.php?visao=classica">Abrir visão clássica<?=$modulo==='investimentos'?' e avaliação da carteira':''?></a></p><?php endif;?><div class="report-intro"><span>MYCASHFLOW / RELATÓRIOS</span><h1><?=relH($def['titulo'])?> em perspectiva</h1><p>Escolha o período, compare resultados e leve a mesma visão para o PDF.</p></div>
+<?php if($mercado):?><p><a href="<?=relH($modulo)?>.php?visao=classica">Abrir visão clássica<?=$modulo==='investimentos'?' e avaliação da carteira':''?></a></p><?php endif;?><div class="report-intro"><span>MYCASHFLOW / RELATÓRIOS</span><h1 class="mcf-page-title"><?=relH($def['titulo'])?> em perspectiva</h1><p>Escolha o período, compare resultados e leve a mesma visão para o PDF.</p></div>
 <form method="get" action="<?=relH($modulo)?>.php" data-mcf-own class="report-filters">
 <?php relSelect('periodo','Período',['semana'=>'Semana','mes'=>'Mês','trimestre'=>'Trimestre','semestre'=>'Semestre','ano'=>'Ano','personalizado'=>'Personalizado','36meses'=>'Últimos 36 meses até a referência','ytd'=>'Acumulado anual até a referência'],$f);?>
 <label>Data de referência<input type="date" name="referencia" value="<?=relH($f['referencia'])?>" required></label>

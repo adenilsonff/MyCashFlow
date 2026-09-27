@@ -99,11 +99,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         setInterval(atualizarRelogio, 1000);
     </script>
 <link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../../assets/css/padrao.css') ?>">
+<link rel="stylesheet" href="/MyCashFlow/assets/css/consistencia.css?v=<?= filemtime(__DIR__.'/../../assets/css/consistencia.css') ?>">
 </head>
 
-<body onload="atualizarRelogio()">
+<body class="mcf-auth" onload="atualizarRelogio()">
 
-<header>
+<header class="mcf-site-header">
     <h1>MyCashFlow</h1>
     <p id="relogio"></p>
 </header>
@@ -152,7 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <?= mcfCsrfField() ?></form>
 </main>
 
-<footer>
+<footer class="mcf-site-footer">
     <p>MyCashFlow © 2026 - Sistema de Finanças Pessoais</p>
 </footer>
 

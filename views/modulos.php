@@ -66,7 +66,7 @@ require __DIR__.'/../includes/menu.php';
 <a href="configuracao.php">← Configuração</a>
 <section class="config-modulos">
 
-<h2>Módulos do sistema</h2>
+<h2 class="mcf-page-title">Módulos do sistema</h2>
 
 <p class="perfil-ajuda">
 Escolha os módulos que deseja utilizar no MyCashFlow. Desativar um módulo não exclui seus dados.

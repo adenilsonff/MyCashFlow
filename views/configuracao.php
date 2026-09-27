@@ -19,7 +19,7 @@ require __DIR__.'/../includes/menu.php';
 
 <main class="perfil conta-configuracao">
 
-<h2>Minha conta</h2>
+<h2 class="mcf-page-title">Minha conta</h2>
 <p class="perfil-intro">Gerencie seus dados, permissões e as contas que você acompanha.</p>
 
 <div class="conta-atalhos">

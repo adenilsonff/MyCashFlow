@@ -66,7 +66,7 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/menu.php';
 ?>
 <main class="patrimonio-layout">
-    <h1>Patrimônio</h1>
+    <h1 class="mcf-page-title">Patrimônio</h1>
     <p class="patrimonio-intro">Seu patrimônio financeiro: disponibilidades e posições atuais de investimentos a valor de mercado, em reais.</p>
     <div class="patrimonio-resumo">
         <section class="patrimonio-destaque"><h2>Patrimônio Financeiro Total</h2><strong><?= patrimonioMoeda($total) ?></strong></section>

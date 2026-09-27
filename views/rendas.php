@@ -316,7 +316,7 @@ $meses = [
 
     <div class="cabecalho-rendas">
         <div>
-            <h1>Receitas</h1>
+            <h1 class="mcf-page-title">Receitas</h1>
             <p><?= htmlspecialchars($meses[$mes - 1]) ?>/<?= $ano ?> · <?= $rotulosClassificacao[$filtroClassificacao] ?></p>
         </div>
 

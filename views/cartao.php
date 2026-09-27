@@ -1516,7 +1516,7 @@ function tokenCartao()
             <?php endif; ?>
             <header class="cc-top">
                 <div>
-                    <h1>
+                    <h1 class="mcf-page-title">
                         Cartão de Crédito
                     </h1>
                     <p>
@@ -2015,5 +2015,4 @@ function tokenCartao()
                 }
             });
         </script>
-    </body>
-</html>
+    <?php include __DIR__ . '/../includes/footer.php'; ?>

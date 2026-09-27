@@ -1391,7 +1391,7 @@ $melhorResultado =
 
             <div>
 
-                <h1>
+                <h1 class="mcf-page-title">
 
                     Simulador de Proventos
 

@@ -34,7 +34,7 @@ $cssPagina='/MyCashFlow/assets/css/compartilhamento.css';
 require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php';
 ?>
 <main class="compartilhamento">
-<h2>Visão conjunta</h2>
+<h2 class="mcf-page-title">Visão conjunta</h2>
 <p>Consulte uma pessoa ou componha um total. Cada lançamento e operação permanece na conta do titular.</p>
 <p><a href="compartilhamento.php">Gerenciar permissões</a></p>
 <div class="links-modulos"><?php foreach (mcfModulosCompartilhaveis() as $m=>$rotulo): ?><a href="visao_conjunta.php?modulo=<?= $e($m) ?>"<?= $m===$modulo ? ' aria-current="page"' : '' ?>><?= $e($rotulo) ?></a><?php endforeach; ?></div>

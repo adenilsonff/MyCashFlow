@@ -559,7 +559,7 @@ $conferenciaCorreta =
     <div class="daytrade-rel-cabecalho">
 
         <div>
-            <h1>Relatório de Day Trade</h1>
+            <h1 class="mcf-page-title">Relatório de Day Trade</h1>
 
             <p>
                 Consolidação das operações registradas em

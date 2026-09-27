@@ -440,7 +440,7 @@ if (!extension_loaded('bcmath')) {
         <p><a href="investimentos_operacoes.php">Corrigir operações registradas</a> · <a data-mcf-own href="visao_conjunta.php?modulo=investimentos">Visão conjunta dos investimentos autorizados</a></p>
         <div class="acoes-top">
             <div>
-                <h1>Investimentos</h1>
+                <h1 class="mcf-page-title">Investimentos</h1>
 
                 <p>
                     Acompanhe suas posições e acesse suas carteiras de investimentos.

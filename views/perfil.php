@@ -20,7 +20,7 @@ require __DIR__.'/../includes/header.php';
 require __DIR__.'/../includes/menu.php';
 ?>
 <main class="perfil">
-<h2>Meu perfil</h2>
+<h2 class="mcf-page-title">Meu perfil</h2>
 <p>Atualize seus dados de identificação e sua senha.</p>
 <?php if ($erro): ?><p class="perfil-erro" role="alert"><?= $escape($erro) ?></p><?php endif; ?>
 <?php if ($sucesso): ?><p class="perfil-sucesso" role="status"><?= $escape($sucesso) ?></p><?php endif; ?>

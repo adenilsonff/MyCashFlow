@@ -27,7 +27,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <main class="proventos-layout">
         <div class="cabecalho-proventos">
             <div>
-                <h1>Proventos</h1>
+                <h1 class="mcf-page-title">Proventos</h1>
                 <p>
                     Acompanhe seus proventos e simule oportunidades de investimento.
                 </p>

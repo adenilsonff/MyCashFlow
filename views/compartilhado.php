@@ -22,7 +22,7 @@ require __DIR__.'/../includes/header.php'; require __DIR__.'/../includes/menu.ph
 ?>
 <main class="compartilhamento">
 <p><a href="compartilhamento.php">← Compartilhados comigo</a></p>
-<h2><?= $e(mcfModulosCompartilhaveis()[$modulo]) ?></h2>
+<h2 class="mcf-page-title"><?= $e(mcfModulosCompartilhaveis()[$modulo]) ?></h2>
 <?php if ($modulo==='investimentos'): ?><p><a href="visao_conjunta.php?modulo=investimentos&amp;pessoas[]=<?= (int)$pessoa['proprietario_id'] ?>">Ver valor de mercado, lucro/prejuízo e compor total conjunto</a></p><?php endif; ?>
 <?php if (($pessoa['nivel'] ?? '')==='edicao'): ?><p><a href="<?= $e(mcfEntradasEdicao()[$modulo]) ?>?compartilhamento=<?= $id ?>">Gerenciar este módulo do titular</a></p><?php endif; ?>
 <div class="aviso"><strong>Consultando dados de <?= $e($pessoa['nome'] ?: $pessoa['email']) ?></strong><br><?= $e($pessoa['email']) ?> · Somente leitura. Você continua conectado à sua própria conta.</div>

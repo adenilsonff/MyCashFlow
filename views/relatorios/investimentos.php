@@ -1182,7 +1182,7 @@ $totalAtivosCarteiraInternacional =
 
         <div>
 
-            <h1>
+            <h1 class="mcf-page-title">
                 Relatório de Investimentos
             </h1>
 

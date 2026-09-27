@@ -519,7 +519,7 @@ $av_modal =
 
         <div class="av-top">
             <div>
-                <h1>Investimentos Nacionais</h1>
+                <h1 class="mcf-page-title">Investimentos Nacionais</h1>
                 <p>Consulte suas posições na B3 e registre compras e vendas.</p>
             </div>
 

@@ -33,7 +33,7 @@ $cssPagina='/MyCashFlow/assets/css/perfil.css';require __DIR__.'/../includes/hea
 function backupH($v){return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');}
 ?>
 <main class="perfil conta-configuracao">
-<a href="configuracao.php">← Configuração</a><h2>Backup da minha conta</h2>
+<a href="configuracao.php">← Configuração</a><h2 class="mcf-page-title">Backup da minha conta</h2>
 <p>Conta conectada: <strong><?=backupH($_SESSION['usuario_email'])?></strong></p>
 <?php if($erro):?><p role="alert"><?=backupH($erro)?></p><?php endif;?>
 <?php if($sucesso):?><p class="perfil-sucesso" role="status"><?=backupH($sucesso)?></p><?php endif;?>

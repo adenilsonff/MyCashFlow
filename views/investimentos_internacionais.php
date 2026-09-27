@@ -830,7 +830,7 @@ $av_modal =
 
         <div class="av-top">
             <div>
-                <h1>Investimentos Internacionais</h1>
+                <h1 class="mcf-page-title">Investimentos Internacionais</h1>
 
                 <p>
                     Gerencie suas posições em dólares e operações fracionadas.

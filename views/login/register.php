@@ -27,9 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Cadastro - MyCashFlow</title>
     <link rel="stylesheet" href="/MyCashFlow/assets/css/style-auth.css">
 <link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../../assets/css/padrao.css') ?>">
+<link rel="stylesheet" href="/MyCashFlow/assets/css/consistencia.css?v=<?= filemtime(__DIR__.'/../../assets/css/consistencia.css') ?>">
 </head>
-<body>
-    <header>
+<body class="mcf-auth">
+    <header class="mcf-site-header">
         <h1>MyCashFlow</h1>
     </header>
 
@@ -91,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?= mcfCsrfField() ?></form>
     </main>
 
-    <footer>
+    <footer class="mcf-site-footer">
         <p>MyCashFlow © 2026 - Sistema de Finanças Pessoais</p>
     </footer>
 </body>

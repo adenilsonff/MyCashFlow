@@ -14,7 +14,7 @@ include __DIR__.'/../includes/menu.php';
 ?>
 <main class="analise" id="analise-app" data-user="<?= mcfUsuarioId() ?><?= !empty($GLOBALS['mcf_contexto']) ? ':dono:'.mcfDonoId() : '' ?>" data-compartilhamento="<?= (int)($GLOBALS['mcf_contexto']['id'] ?? 0) ?>" data-context-version="<?= (int)($GLOBALS['mcf_contexto']['versao'] ?? 0) ?>" data-csrf="<?= htmlspecialchars($csrf,ENT_QUOTES,'UTF-8') ?>">
 <?php if (!mcfContextoPode($conn,'investimentos')): ?><p>Operações e preço médio estão ocultos: o titular ainda não autorizou consulta aos investimentos.</p><?php endif; ?>
-  <div class="an-heading"><div><p class="an-eyebrow">SUA CARTEIRA EM PERSPECTIVA</p><h1>Análise</h1><p>Observe os preços, acompanhe suas operações e registre suas ideias.</p></div><span class="an-badge">Mercado brasileiro · BRL</span></div>
+  <div class="an-heading"><div><p class="an-eyebrow">SUA CARTEIRA EM PERSPECTIVA</p><h1 class="mcf-page-title">Análise</h1><p>Observe os preços, acompanhe suas operações e registre suas ideias.</p></div><span class="an-badge">Mercado brasileiro · BRL</span></div>
   <p id="an-feedback" class="an-feedback" role="status" aria-live="polite" hidden></p>
   <div class="an-layout">
     <aside class="an-panel an-assets"><h2>Meus ativos</h2>

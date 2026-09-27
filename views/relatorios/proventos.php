@@ -531,7 +531,7 @@ $conferenciaCorreta =
     <div class="proventos-rel-cabecalho">
 
         <div>
-            <h1>Relatório de Proventos</h1>
+            <h1 class="mcf-page-title">Relatório de Proventos</h1>
 
             <p>
                 Direitos calculados pela posição histórica

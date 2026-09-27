@@ -37,7 +37,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
         <div>
 
-            <h1>Relatórios</h1>
+            <h1 class="mcf-page-title">Relatórios</h1>
 
             <p>
                 Consulte e analise suas informações financeiras

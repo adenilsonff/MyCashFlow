@@ -1,0 +1,97 @@
+/* Escala visual única para telas. PDFs e impressão conservam seus estilos próprios. */
+@media screen {
+    :root {
+        --mcf-text:#2c3e50;
+        --mcf-muted:#52616f;
+        --mcf-line:#d9e1e8;
+        --mcf-control:44px;
+        --mcf-gap:16px;
+        --mcf-shadow:0 3px 10px rgba(44,62,80,.07);
+    }
+    html body { font-family:Arial,sans-serif; font-size:16px; line-height:1.5; color:var(--mcf-text); }
+    body .mcf-site-header { box-sizing:border-box; position:relative; padding:24px 20px; background:#2c3e50; color:white; text-align:center; }
+    body .mcf-site-header h1 { font:700 32px/1.2 Arial,sans-serif; margin:0 0 8px; color:white; }
+    body .mcf-site-header p { margin:0; font-size:14px; line-height:1.5; }
+    body .mcf-site-footer { padding:16px 20px; font:14px/1.5 Arial,sans-serif; background:#2c3e50; color:white; text-align:center; }
+    body .mcf-site-footer p { margin:0; }
+    body > main[class] { box-sizing:border-box; width:100%; min-width:0; max-width:1400px; margin:0 auto; padding:24px; font:16px/1.5 Arial,sans-serif; color:var(--mcf-text); }
+    body main .mcf-page-title { font:700 28px/1.25 Arial,sans-serif; letter-spacing:normal; color:var(--mcf-text); text-align:left; margin:0 0 8px; align-self:stretch; }
+    body main :is(h2,h3) { font-family:Arial,sans-serif; line-height:1.35; color:var(--mcf-text); }
+    body main h2 { font-size:20px; }
+    body main h3 { font-size:18px; }
+    body main .patrimonio-destaque h2 { color:white; }
+    body main :is(.card h3,.conta-atalho strong,.relatorio-card h2) { font-size:18px; }
+    body main :is(.cabecalho-contas,.cabecalho-rendas,.cc-top,.av-top,.dashboard-cabecalho,.an-heading,.report-intro) { background:transparent; color:var(--mcf-text); text-align:left; padding:0; margin:0 0 24px; gap:16px; }
+    body main :is(.cabecalho-contas,.cabecalho-rendas,.cc-top,.av-top,.dashboard-cabecalho,.an-heading,.report-intro) p { font-size:14px; line-height:1.5; color:var(--mcf-muted); margin:6px 0 0; }
+    body main :is(.an-eyebrow,.report-intro>span) { font-size:12px; }
+    body main .report-intro { margin-top:16px; }
+    body main :is(.card,.card-resumo,.av-card,.cc-card,.an-panel,.patrimonio-secao,.card-lista,.card-cadastro,.report-document,.conta-atalho) { border-radius:8px; border:1px solid var(--mcf-line); box-shadow:var(--mcf-shadow); }
+    body main :is(.cards-container,.conta-atalhos,.top-cards,.resumo-contas,.resumo-rendas) { gap:16px; }
+    body .perfil section,body .compartilhamento section { border-radius:8px; box-shadow:var(--mcf-shadow); padding:24px; margin:24px 0; }
+    body .perfil:not(.conta-configuracao) section { max-width:800px; }
+    body main .conta-atalho { padding:24px; border-top:4px solid #34495e; }
+    body main .conta-atalho-acao { font-size:14px; min-height:44px; box-sizing:border-box; display:inline-flex; align-items:center; }
+    body .modulo-opcao small { font-size:12px; }
+    body .modulo-opcao { height:auto; min-height:60px; }
+
+    /* Ações: mesma tipografia e área de toque, sem alterar os controles do gráfico. */
+    html body :is(main,dialog,[class*="modal-"]) :is(button,.btn-padrao,.btn-datacom,.btn-saldos,.btn-acao,.btn-linha,.av-button,.mcf-button):not(:where(.an-line-handle,#an-chart *)) {
+        box-sizing:border-box; min-height:var(--mcf-control); height:auto; padding:10px 16px; border-radius:5px;
+        font:700 14px/20px Arial,sans-serif; text-decoration:none; vertical-align:middle;
+    }
+    body main :is(.perfil a:not(.conta-atalho),.compartilhamento a) { box-sizing:border-box; min-height:44px; font-size:14px; line-height:20px; padding:10px 16px; }
+    html body :is(main,dialog,[class*="modal-"]) :is(.btn-padrao,.btn-datacom,.btn-saldos,.av-primary,.cc-primary,.primary,.mcf-button) { background:#2c3e50; color:white; border:1px solid #2c3e50; }
+    html body :is(main,dialog,[class*="modal-"]) :is(.btn-secundario,.secundario,.btn-ajustar,.btn-editar,.btn-linha.editar) { background:white; color:#2c3e50; border:1px solid #aebdc9; }
+    html body :is(main,dialog,[class*="modal-"]) :is(.btn-excluir,.cc-danger,.btn-linha.excluir) { background:#fff4f4; color:#a52626; border:1px solid #dca9a9; }
+    html body :is(main,dialog,[class*="modal-"]) button:disabled { opacity:.55; cursor:not-allowed; }
+    body .dashboard-layout .grafico-filtro button { background:#2c3e50; color:white; border:1px solid #2c3e50; }
+    html body :is(main,dialog,[class*="modal-"]) :is(input,select,textarea):not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not(#an-chart *) {
+        box-sizing:border-box; min-height:44px; max-width:100%; padding:10px 12px; border:1px solid #aebdc9; border-radius:5px; background:white; color:#2c3e50; font:400 16px/22px Arial,sans-serif;
+    }
+    html body :is(main,dialog,[class*="modal-"]) label { font-family:Arial,sans-serif; font-size:14px; line-height:1.5; }
+    html body :is(main,dialog,[class*="modal-"]) input:is([type=checkbox],[type=radio]) { width:18px; height:18px; min-height:0; accent-color:#34495e; flex-shrink:0; }
+    body main :is(.acoes-contas,.acoes-rendas,.av-actions,.cc-actions,.saldos-acoes,.botoes-operacoes) { display:flex; flex-wrap:wrap; gap:8px; }
+    body main .acoes-taxa { display:flex; flex-wrap:wrap; gap:8px; }
+    body main .acoes-taxa>button.btn-padrao { flex:1 1 160px; }
+    body main table:not(#an-chart table) { font-family:Arial,sans-serif; font-size:14px; line-height:1.5; }
+    body main table:not(#an-chart table) :is(th,td) { font-size:14px; padding:12px; font-variant-numeric:tabular-nums; }
+    body main table:not(#an-chart table) th { font-weight:700; }
+    body :is(main,dialog) :is(a,button,input,select,textarea,summary):focus-visible { outline:3px solid #28688b; outline-offset:3px; }
+
+    /* Janelas: cabeçalho claro independente do cabeçalho principal. */
+    html body dialog { color:#2c3e50; border:1px solid #d9e1e8; border-radius:8px; max-height:calc(100dvh - 32px); max-width:calc(100vw - 32px); }
+    html body dialog::backdrop { background:rgba(20,32,44,.55); }
+    html body dialog :is(header,footer) { background:white; color:#2c3e50; text-align:left; }
+    html body dialog header { border-bottom:1px solid #d9e1e8; padding-bottom:16px; }
+    html body dialog footer { border-top:1px solid #d9e1e8; padding-top:16px; }
+    html body :is(dialog,.modal-conteudo,.saldos-modal-conteudo,.modal-box) h2,
+    html body dialog header h2 { font:700 20px/1.35 Arial,sans-serif; color:#2c3e50; text-align:left; }
+    html body :is(.modal-conteudo,.saldos-modal-conteudo,.modal-box) { border-radius:8px; padding:24px; max-height:calc(100dvh - 32px); overflow-y:auto; }
+    html body :is(dialog,.modal-conteudo,.saldos-modal-conteudo,.modal-box) :is([data-close][aria-label],.modal-fechar,.fechar-modal,.saldos-modal-fechar,.saldos-fechar) { min-width:44px; min-height:44px; padding:8px; font-size:22px; }
+
+    /* Autenticação segue a mesma escala, com formulário de leitura confortável. */
+    body.mcf-auth { min-height:100dvh; height:auto; }
+    body.mcf-auth main { display:flex; justify-content:center; align-items:center; padding:24px 16px; }
+    body.mcf-auth :is(main>form,.mcf-auth-card) { box-sizing:border-box; width:100%; max-width:440px; margin:0; padding:24px; background:white; border:1px solid #d9e1e8; border-radius:8px; box-shadow:var(--mcf-shadow); }
+    body.mcf-auth h2 { font:700 24px/1.3 Arial,sans-serif; text-align:left; margin:0 0 24px; }
+    body.mcf-auth .mcf-button { display:inline-flex; align-items:center; }
+    @media(max-width:1000px) {
+        body .mcf-site-header .mcf-account-links { position:static; transform:none; margin:16px 0 0; justify-content:center; }
+    }
+    @media(max-width:768px) {
+        body > main[class] { padding:16px; }
+        body main .mcf-page-title { font-size:24px; overflow-wrap:anywhere; }
+        body .mcf-site-header { padding:20px 16px; }
+        body .mcf-site-header h1 { font-size:28px; }
+        body main :is(.cabecalho-contas,.cabecalho-rendas,.cc-top,.av-top,.dashboard-cabecalho,.an-heading) { align-items:flex-start; flex-direction:column; }
+        body main .dashboard-usuario { align-items:flex-start; }
+        body main :is(.acoes-contas,.acoes-rendas,.av-actions,.cc-actions,.saldos-acoes) { width:100%; flex-direction:row; }
+        body main :is(.acoes-contas,.acoes-rendas,.av-actions,.cc-actions,.saldos-acoes)>button[class] { flex:1 1 160px; }
+        body .perfil section,body .compartilhamento section { padding:16px; }
+        body main :is(.report-filters,.report-document,.an-panel,.patrimonio-secao) { padding:16px; }
+        html body :is(.modal-conteudo,.saldos-modal-conteudo,.modal-box) { padding:20px; }
+    }
+    @media(max-width:480px) {
+        body main :is(.acoes-contas,.acoes-rendas,.av-actions,.cc-actions,.saldos-acoes)>button[class] { flex-basis:100%; }
+    }
+}

@@ -19,7 +19,7 @@ $aviso=$_SESSION['operacao_corrigida'] ?? null;unset($_SESSION['operacao_corrigi
 $e=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES | ENT_SUBSTITUTE,'UTF-8');$cssPagina='/MyCashFlow/assets/css/compartilhamento.css';
 require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php';
 ?>
-<main class="compartilhamento"><h2>Corrigir operações registradas</h2>
+<main class="compartilhamento"><h2 class="mcf-page-title">Corrigir operações registradas</h2>
 <p>Correções alteram o histórico financeiro desta conta. Uma correção ou exclusão que cause venda sem posição suficiente será rejeitada.</p>
 <div class="links-modulos"><a href="investimentos.php">Voltar à carteira</a><a href="investimentos_operacoes.php?mercado=nacional">Nacionais</a><a href="investimentos_operacoes.php?mercado=internacional">Internacionais</a></div>
 <?php if ($erro): ?><p class="aviso erro" role="alert"><?= $e($erro) ?></p><?php endif; ?><?php if ($aviso): ?><p class="aviso" role="status"><?= $e($aviso) ?></p><?php endif; ?>

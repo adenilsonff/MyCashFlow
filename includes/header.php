@@ -10,10 +10,11 @@
 <link rel="stylesheet" href="<?php echo htmlspecialchars($cssPagina); if ($cssPagina === '/MyCashFlow/assets/css/compartilhamento.css') echo '?v='.filemtime(__DIR__.'/../assets/css/compartilhamento.css'); ?>">
 <?php endif; ?>
 <link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../assets/css/padrao.css') ?>">
+<link rel="stylesheet" href="/MyCashFlow/assets/css/consistencia.css?v=<?= filemtime(__DIR__.'/../assets/css/consistencia.css') ?>">
 </head>
 <body>
 
-<header>
+<header class="mcf-site-header">
 <h1>MyCashFlow</h1>
 <?php if (isset($_SESSION['usuario_id'])): require_once __DIR__.'/perfil.php'; ?>
 <p><a data-mcf-own href="/MyCashFlow/views/perfil.php" class="mcf-profile-link"><?= htmlspecialchars(mcfRotuloUsuario(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></a></p>

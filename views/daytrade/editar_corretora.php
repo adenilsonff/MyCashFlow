@@ -470,6 +470,7 @@ content="width=device-width, initial-scale=1.0"
 <?php include __DIR__ . '/../../includes/menu.php'; ?>
 
 <main class="acoes-layout">
+<h1 class="mcf-page-title">Editar corretora</h1>
 
 <div class="card-lista editar-corretora-topo">
 
