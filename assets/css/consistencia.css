@@ -54,8 +54,18 @@
     body main .acoes-taxa { display:flex; flex-wrap:wrap; gap:8px; }
     body main .acoes-taxa>button.btn-padrao { flex:1 1 160px; }
     body main table:not(#an-chart table) { font-family:Arial,sans-serif; font-size:14px; line-height:1.5; }
-    body main table:not(#an-chart table) :is(th,td) { font-size:14px; padding:12px; font-variant-numeric:tabular-nums; }
+    body main table:not(#an-chart table) :is(th,td) { font-size:13px; line-height:18px; padding:6px 10px; font-variant-numeric:tabular-nums; }
     body main table:not(#an-chart table) th { font-weight:700; }
+    /* Listas compactas: controles da linha não herdam a altura dos formulários. */
+    html body main table:not(#an-chart table) :is(button,.btn-padrao,.btn-datacom,.btn-saldos,.btn-acao,.btn-linha,.av-button,.mcf-button) {
+        min-height:30px; height:auto; padding:4px 8px; font-size:12px; line-height:18px;
+    }
+    html body main table:not(#an-chart table) :is(input,select):not(#an-chart *):not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]) {
+        min-height:30px; height:auto; padding:4px 8px; font-size:13px; line-height:20px;
+    }
+    @media(max-width:768px) {
+        html body main table:not(#an-chart table) :is(input,select):not([type=checkbox]):not([type=radio]) { font-size:16px; }
+    }
     body :is(main,dialog) :is(a,button,input,select,textarea,summary):focus-visible { outline:3px solid #28688b; outline-offset:3px; }
 
     /* Janelas: cabeçalho claro independente do cabeçalho principal. */
