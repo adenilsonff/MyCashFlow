@@ -37,3 +37,24 @@ body table:not(#an-chart table) > tfoot > tr > :is(td,th), body table:not(#an-ch
     header .mcf-account-links a { width:100px; height:40px; font-size:14px; }
 }
 @media print { body table:not(#an-chart table) { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+
+/* Atalhos da conta seguem as medidas dos links principais do menu. */
+header .mcf-account-links a,
+#mcf-menu > a,
+#mcf-menu .mcf-menu-row > a {
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    font-size:16px;
+    font-weight:700;
+    line-height:18px;
+    height:34px;
+    min-height:34px;
+    padding:8px 15px;
+    white-space:nowrap;
+}
+header .mcf-account-links a { width:auto; }
+@media (max-width:768px) {
+    header .mcf-account-links a,
+    #mcf-menu > a,
+    #mcf-menu .mcf-menu-row > a { height:44px; min-height:44px; }
+}
