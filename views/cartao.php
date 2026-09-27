@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__.'/../config.php';
-
 require_once __DIR__ . '/../config.php';
 
 if (session_status() !== PHP_SESSION_ACTIVE) session_start();
@@ -206,14 +204,15 @@ function adicionarMeses(DateTime $dataBase, $quantidade)
 | Marcar fatura como paga
 |--------------------------------------------------------------------------
 */
-if (isset($_POST['atualizar_fatura_paga'])) {
+if (isset($_POST['atualizar_fatura_paga']) || isset($_POST['atualizar_fatura_aberta'])) {
+    $situacaoFatura = isset($_POST['atualizar_fatura_aberta']) ? 0 : 1;
     $mesSelecionado = (int) ($_POST['mes'] ?? 0);
     $anoSelecionado = (int) ($_POST['ano'] ?? 0);
 
     if ($mesSelecionado >= 1 && $mesSelecionado <= 12 && $anoSelecionado >= 2000 && $anoSelecionado <= 2100) {
         $stmt = $conn->prepare(
             'UPDATE cartoes 
-             SET paga = 1 
+             SET paga = ? 
              WHERE usuario_id = @mcf_usuario_id AND MONTH(data) = ? AND YEAR(data) = ?'
         );
 
@@ -221,7 +220,7 @@ if (isset($_POST['atualizar_fatura_paga'])) {
             die('Erro ao preparar atualização da fatura: ' . 'Falha de banco de dados.');
         }
 
-        $stmt->bind_param('ii', $mesSelecionado, $anoSelecionado);
+        $stmt->bind_param('iii', $situacaoFatura, $mesSelecionado, $anoSelecionado);
 
         if (!$stmt->execute()) {
             die('Erro ao marcar fatura como paga: ' . 'Falha de banco de dados.');
@@ -269,52 +268,20 @@ if (isset($_POST['deletar_cartao'])) {
     $inicio = sprintf('%04d-%02d-01', $ano, $mes);
     $fim = (new DateTime($inicio))->modify('+1 month')->format('Y-m-d');
     try {
-        $conn->begin_transaction();
-        $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id) AS compras WHERE id = ? FOR UPDATE');
-        if (!$stmt) {
-            throw new Exception('Falha ao localizar compra.');
-        }
-        $stmt->bind_param('i', $compraId);
-        if (!$stmt->execute()) {
-            throw new Exception('Falha ao localizar compra.');
-        }
-        $stmt->close();
-        $stmt = $conn->prepare('SELECT id FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND data >= ? AND data < ? LIMIT 1');
-        if (!$stmt) {
-            throw new Exception('Falha ao verificar competência.');
-        }
-        $stmt->bind_param('iss', $compraId, $inicio, $fim);
-        if (!$stmt->execute()) {
-            throw new Exception('Falha ao verificar competência.');
-        }
-        $existe = $stmt->get_result()->num_rows > 0;
-        $stmt->close();
-        if (!$existe) {
-            throw new Exception('A compra não possui parcela no mês selecionado.');
-        }
-        $stmt = $conn->prepare('DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?');
-        if (!$stmt) {
-            throw new Exception('Falha ao preparar exclusão.');
-        }
-        $stmt->bind_param('is', $compraId, $inicio);
-        if (!$stmt->execute()) {
-            throw new Exception('Falha ao excluir parcelas.');
-        }
-        $stmt->close();
-        $stmt = $conn->prepare('DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? AND NOT EXISTS (SELECT 1 FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ?)');
-        if (!$stmt) {
-            throw new Exception('Falha ao preparar exclusão da compra.');
-        }
-        $stmt->bind_param('ii', $compraId, $compraId);
-        if (!$stmt->execute()) {
-            throw new Exception('Falha ao excluir compra.');
-        }
-        $stmt->close();
-        $conn->commit();
+        ccTransacaoCartao($conn, function () use ($conn, $compraId, $inicio, $fim) {
+            $compra = ccRows($conn, 'SELECT id FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? FOR UPDATE', 'i', [$compraId]);
+            if (!$compra || !ccRows($conn, 'SELECT id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ? AND data < ? LIMIT 1', 'iss', [$compraId, $inicio, $fim])) {
+                throw new RuntimeException('Compra indisponível neste mês.');
+            }
+            ccExec($conn, 'DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?', 'is', [$compraId, $inicio]);
+            if (ccRows($conn, 'SELECT id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? LIMIT 1', 'i', [$compraId])) {
+                ccAtualizarTotalCompra($conn, $compraId);
+            } else {
+                ccExec($conn, 'DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ?', 'i', [$compraId]);
+            }
+        });
         $_SESSION['cartao_aviso'] = 'Parcelas excluídas do mês selecionado em diante. Histórico anterior preservado.';
-    }
-    catch (Throwable $e) {
-        $conn->rollback();
+    } catch (Throwable $e) {
         $_SESSION['cartao_aviso'] = 'Não foi possível excluir. Nenhuma alteração foi confirmada.';
     }
     voltarPagina($paginaAtual, $mes, $ano);
@@ -370,22 +337,20 @@ if (isset($_POST['ajustar_valor'])) {
     }
     $novoValor = (float) str_replace(',', '.', trim($entradaValor));
 
-    if ($id > 0) {
-        $stmt = $conn->prepare(
-            'UPDATE cartoes SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
-        );
-
-        if (!$stmt) {
-            die('Erro ao preparar ajuste: ' . 'Falha de banco de dados.');
-        }
-
-        $stmt->bind_param('di', $novoValor, $id);
-
-        if (!$stmt->execute()) {
-            die('Erro ao ajustar valor: ' . 'Falha de banco de dados.');
-        }
-
-        $stmt->close();
+    try {
+        ccTransacaoCartao($conn, function () use ($conn, $id, $novoValor) {
+            $parcelas = ccRows($conn, 'SELECT compra_id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND id = ?', 'i', [$id]);
+            if (!$parcelas) throw new RuntimeException('Parcela indisponível.');
+            $compraId = (int) $parcelas[0]['compra_id'];
+            if (!ccRows($conn, 'SELECT id FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? FOR UPDATE', 'i', [$compraId])) {
+                throw new RuntimeException('Compra indisponível.');
+            }
+            ccExec($conn, 'UPDATE cartoes SET valor = ? WHERE usuario_id = @mcf_usuario_id AND id = ?', 'di', [$novoValor, $id]);
+            ccAtualizarTotalCompra($conn, $compraId);
+        });
+        $_SESSION['cartao_aviso'] = 'Parcela e total da compra atualizados.';
+    } catch (Throwable $e) {
+        $_SESSION['cartao_aviso'] = 'Não foi possível ajustar. Nenhuma alteração foi confirmada.';
     }
 
     voltarPagina($paginaAtual, $mes, $ano);
@@ -469,6 +434,40 @@ class CcRevisao extends RuntimeException {
         parent::__construct($descricao);
         $this->indice = $indice;
         $this->opcoes = $opcoes;
+    }
+}
+class CcRevisaoParcela extends RuntimeException {
+    public $indice;
+    public function __construct($indice, $descricao) {
+        parent::__construct($descricao);
+        $this->indice = $indice;
+    }
+}
+function ccParcelaSemPrefixo($texto) {
+    // Somente sufixo isolado: não captura datas completas, códigos ou barras no meio do nome.
+    if (preg_match('/^(.*\S)\s+\(?([0-9]{1,3})\s*\/\s*([0-9]{1,3})\)?$/u', trim($texto), $m)) {
+        $parcela = (int) $m[2]; $total = (int) $m[3];
+        if ($parcela >= 1 && $total > 1 && $total >= $parcela && $total <= 120) {
+            return ['parcela' => $parcela, 'total' => $total, 'nome' => trim($m[1])];
+        }
+    }
+    return null;
+}
+function ccAtualizarTotalCompra($conn, $compraId) {
+    ccExec($conn, 'UPDATE compras SET valor_total = (SELECT COALESCE(SUM(valor),0) FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ?) WHERE usuario_id = @mcf_usuario_id AND id = ?', 'ii', [$compraId, $compraId]);
+}
+function ccTransacaoCartao($conn, callable $acao) {
+    $lock = ccRows($conn, "SELECT GET_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id), 10) AS adquirido");
+    if ((int) $lock[0]['adquirido'] !== 1) throw new RuntimeException('Outra alteração está em andamento.');
+    try {
+        $conn->begin_transaction();
+        $acao();
+        $conn->commit();
+    } catch (Throwable $e) {
+        $conn->rollback();
+        throw $e;
+    } finally {
+        ccRows($conn, "SELECT RELEASE_LOCK(CONCAT('mycashflow_cartao_', @mcf_usuario_id))");
     }
 }
 function ccLerOfx($conteudo)
@@ -664,7 +663,8 @@ function ccImportar(
     $mesPadrao,
     $anoPadrao,
     $reprocessar = false,
-    array $escolhas = []
+    array $escolhas = [],
+    array $parcelasConfirmadas = []
 ) {
     $hash = hash('sha256', $conteudo);
     [$mf, $af] = obterReferenciaFatura($arquivo, $mesPadrao, $anoPadrao);
@@ -730,6 +730,13 @@ function ccImportar(
             $credito = strtoupper($item['TRNTYPE']) === 'CREDIT' || $valorBanco > 0;
             $valor = $credito ? -abs($valorBanco) : abs($valorBanco);
             $dados = $credito ? ['parcela' => 1, 'total' => 1, 'nome' => $nome] : extrairParcela($nome);
+            $sugestao = !$credito && $dados['total'] === 1 && $dados['nome'] === $nome ? ccParcelaSemPrefixo($nome) : null;
+            if ($sugestao !== null) {
+                if (!array_key_exists($indice, $parcelasConfirmadas)) {
+                    throw new CcRevisaoParcela($indice, $nome . ' — R$ ' . number_format($valor, 2, ',', '.') . '. Interpretar como parcela ' . $sugestao['parcela'] . ' de ' . $sugestao['total'] . '?');
+                }
+                if ($parcelasConfirmadas[$indice] === 1) $dados = $sugestao;
+            }
             $np = $dados['parcela'];
             $tp = $dados['total'];
             $nomeBanco = $dados['nome'] ?: $nome;
@@ -925,14 +932,20 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
             ) {
                 throw new RuntimeException('Revisão expirada. Envie novamente o OFX.');
             }
-            $opcao = filter_var($_POST['correspondencia'] ?? null, FILTER_VALIDATE_INT);
-            $validas = array_column($pendente['opcoes'], 'id');
-            if (
-                $opcao === false || ($opcao !== 0 && !in_array($opcao, array_map('intval', $validas), true))
-            ) {
-                throw new RuntimeException('Selecione uma correspondência válida.');
+            if (($pendente['tipo'] ?? '') === 'parcela') {
+                $decisao = $_POST['interpretar_parcela'] ?? null;
+                if (!in_array($decisao, ['0', '1'], true)) throw new RuntimeException('Confirme o parcelamento.');
+                $pendente['parcelas_confirmadas'][$pendente['indice']] = (int) $decisao;
+            } else {
+                $opcao = filter_var($_POST['correspondencia'] ?? null, FILTER_VALIDATE_INT);
+                $validas = array_column($pendente['opcoes'], 'id');
+                if (
+                    $opcao === false || ($opcao !== 0 && !in_array($opcao, array_map('intval', $validas), true))
+                ) {
+                    throw new RuntimeException('Selecione uma correspondência válida.');
+                }
+                $pendente['escolhas'][$pendente['indice']] = $opcao;
             }
-            $pendente['escolhas'][$pendente['indice']] = $opcao;
         }
         else {
             if (!isset($_FILES['fatura']) || $_FILES['fatura']['error'] !== UPLOAD_ERR_OK) {
@@ -955,9 +968,15 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
                 'mes' => $mes,
                 'ano' => $ano,
                 'reprocessar' => isset($_POST['reprocessar']),
-                'escolhas' => []
+                'escolhas' => [],
+                'parcelas_confirmadas' => [],
+                'titular' => (int) ccRows($conn, 'SELECT @mcf_usuario_id AS id')[0]['id']
             ];
             unset($_SESSION['cc_pendente']);
+        }
+        if (($pendente['titular'] ?? null) !== (int) ccRows($conn, 'SELECT @mcf_usuario_id AS id')[0]['id']) {
+            unset($_SESSION['cc_pendente']);
+            throw new RuntimeException('Envie o arquivo novamente nesta conta.');
         }
         [$destinoMes, $destinoAno, $avisoOfx] = ccImportar(
             $conn,
@@ -966,13 +985,23 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
             $pendente['mes'],
             $pendente['ano'],
             $pendente['reprocessar'],
-            $pendente['escolhas']
+            $pendente['escolhas'],
+            $pendente['parcelas_confirmadas'] ?? []
         );
         unset($_SESSION['cc_pendente']);
         $_SESSION['cartao_aviso'] = $avisoOfx;
         voltarPagina($paginaAtual, $destinoMes, $destinoAno);
     }
+    catch (CcRevisaoParcela $e) {
+        $pendente['tipo'] = 'parcela';
+        $pendente['indice'] = $e->indice;
+        $pendente['descricao'] = $e->getMessage();
+        $pendente['token'] = bin2hex(random_bytes(16));
+        $_SESSION['cc_pendente'] = $pendente;
+        $_SESSION['cartao_aviso'] = 'Confirme se os números indicam parcelas ou fazem parte da descrição. Nenhum lançamento deste arquivo foi gravado.';
+    }
     catch (CcRevisao $e) {
+        $pendente['tipo'] = 'compra';
         $pendente['indice'] = $e->indice;
         $pendente['opcoes'] = $e->opcoes;
         $pendente['descricao'] = mcfMensagemErro($e);
@@ -1319,6 +1348,10 @@ function tokenCartao()
                 font-size: 20px;
                 margin: 0
             }
+
+            body .cc-dialog header h2 {
+                color: #fff;
+            }
             
             .cc-dialog label {
                 display: block;
@@ -1417,13 +1450,13 @@ function tokenCartao()
                     Importação aguardando revisão
                 </strong>
                 <button type="button" data-open="cc-revisao">
-                    Revisar correspondência
+                    Revisar importação
                 </button>
             </div>
             <dialog id="cc-revisao" class="cc-dialog" aria-labelledby="cc-revisao-title">
                 <header>
                     <h2 id="cc-revisao-title">
-                        Identificar compra
+                        <?= ($revisao['tipo'] ?? '') === 'parcela' ? 'Confirmar parcelamento' : 'Identificar compra' ?>
                     </h2>
                     <button type="button" data-close aria-label="Fechar">
                         ×
@@ -1433,11 +1466,19 @@ function tokenCartao()
                     <?= escapar($revisao['descricao']) ?>
                 </p>
                 <p>
-                    Há mais de um cadastro compatível. Se forem duplicatas antigas, escolher um não apaga os demais; eles precisam ser revisados separadamente.
+                    <?= ($revisao['tipo'] ?? '') === 'parcela' ? 'Números como 01/03 também podem representar uma data. Confirme como este lançamento deve ser importado. Ao parcelar, serão criadas as parcelas anteriores e futuras da compra.' : 'Há mais de um cadastro compatível. Se forem duplicatas antigas, escolher um não apaga os demais; eles precisam ser revisados separadamente.' ?>
                 </p>
                 <form method="post" action="<?= escapar($acaoFormulario) ?>">
                     <?php tokenCartao(); ?>
                     <input type="hidden" name="revisao_token" value="<?= escapar($revisao['token']) ?>">
+                    <?php if (($revisao['tipo'] ?? '') === 'parcela'): ?>
+                    <label for="cc-interpretar-parcela">Como importar esta compra?</label>
+                    <select id="cc-interpretar-parcela" name="interpretar_parcela" required>
+                        <option value="">Selecione</option>
+                        <option value="1">Sim, os números indicam parcelas</option>
+                        <option value="0">Não, manter como compra única e preservar a descrição</option>
+                    </select>
+                    <?php else: ?>
                     <label for="cc-correspondencia">
                         A qual compra pertence este lançamento?
                     </label>
@@ -1461,6 +1502,7 @@ function tokenCartao()
                             É outra compra: criar um cadastro separado
                         </option>
                     </select>
+                    <?php endif; ?>
                     <footer>
                         <button name="cancelar_revisao" formnovalidate>
                             Cancelar importação
@@ -1526,9 +1568,9 @@ function tokenCartao()
                     <button
                         type="button"
                         data-open="cc-pagar"
-                        <?= !$quantidadeFatura || $pagasFatura === $quantidadeFatura ? 'disabled' : '' ?>
+                        <?= !$quantidadeFatura ? 'disabled' : '' ?>
                     >
-                        <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'Fatura paga' : 'Marcar fatura completa como paga' ?>
+                        <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'Reabrir fatura paga' : 'Marcar fatura completa como paga' ?>
                     </button>
                 </div>
                 <div
@@ -1899,7 +1941,7 @@ function tokenCartao()
         <dialog id="cc-pagar" class="cc-dialog" aria-labelledby="cc-pagar-title">
             <header>
                 <h2 id="cc-pagar-title">
-                    Marcar fatura como paga
+                    <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'Reabrir fatura' : 'Marcar fatura como paga' ?>
                 </h2>
                 <button type="button" data-close aria-label="Fechar">
                     ×
@@ -1910,11 +1952,11 @@ function tokenCartao()
                 <input type="hidden" name="mes" value="<?= $mes ?>">
                 <input type="hidden" name="ano" value="<?= $ano ?>">
                 <p>
-                    Marcar todas as parcelas de
+                    <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'Reabrir todas as parcelas de' : 'Marcar todas as parcelas de' ?>
                     <?= escapar($meses[$mes - 1]) ?>
                     /
                     <?= $ano ?>
-                    como pagas?
+                    <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'e deixá-las em aberto?' : 'como pagas?' ?>
                 </p>
                 <p>
                     Esta ação inclui todas as categorias da fatura,
@@ -1925,8 +1967,8 @@ function tokenCartao()
                     <button type="button" data-close>
                         Cancelar
                     </button>
-                    <button class="cc-primary" name="atualizar_fatura_paga">
-                        Confirmar pagamento
+                    <button class="cc-primary" name="<?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'atualizar_fatura_aberta' : 'atualizar_fatura_paga' ?>">
+                        <?= $quantidadeFatura && $pagasFatura === $quantidadeFatura ? 'Confirmar reabertura' : 'Confirmar pagamento' ?>
                     </button>
                 </footer>
             <?= mcfCsrfField() ?></form>
