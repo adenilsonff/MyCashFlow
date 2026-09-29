@@ -527,6 +527,7 @@ $conferenciaCorreta =
 <?php include("../../includes/menu.php"); ?>
 
 <main class="proventos-rel-layout">
+<a class="mcf-back" href="relatorios.php">← Voltar para Relatórios</a>
 
     <div class="proventos-rel-cabecalho">
 

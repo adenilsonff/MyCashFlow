@@ -20,6 +20,7 @@ require __DIR__.'/../includes/header.php';
 require __DIR__.'/../includes/menu.php';
 ?>
 <main class="perfil">
+<a class="mcf-back" href="configuracao.php">← Voltar para Configuração</a>
 <h2 class="mcf-page-title">Meu perfil</h2>
 <p>Atualize seus dados de identificação e sua senha.</p>
 <?php if ($erro): ?><p class="perfil-erro" role="alert"><?= $escape($erro) ?></p><?php endif; ?>

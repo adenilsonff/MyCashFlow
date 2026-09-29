@@ -25,6 +25,7 @@ if (!isset($_SESSION['usuario_id'])) {
     <?php include("../includes/menu.php"); ?>
 
     <main class="proventos-layout">
+<a class="mcf-back" href="investimentos.php">← Voltar para Investimentos</a>
         <div class="cabecalho-proventos">
             <div>
                 <h1 class="mcf-page-title">Proventos</h1>

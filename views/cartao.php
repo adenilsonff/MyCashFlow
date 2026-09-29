@@ -268,19 +268,8 @@ if (isset($_POST['deletar_cartao'])) {
     $inicio = sprintf('%04d-%02d-01', $ano, $mes);
     $fim = (new DateTime($inicio))->modify('+1 month')->format('Y-m-d');
     try {
-        ccTransacaoCartao($conn, function () use ($conn, $compraId, $inicio, $fim) {
-            $compra = ccRows($conn, 'SELECT id FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? FOR UPDATE', 'i', [$compraId]);
-            if (!$compra || !ccRows($conn, 'SELECT id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ? AND data < ? LIMIT 1', 'iss', [$compraId, $inicio, $fim])) {
-                throw new RuntimeException('Compra indisponível neste mês.');
-            }
-            ccExec($conn, 'DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?', 'is', [$compraId, $inicio]);
-            if (ccRows($conn, 'SELECT id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? LIMIT 1', 'i', [$compraId])) {
-                ccAtualizarTotalCompra($conn, $compraId);
-            } else {
-                ccExec($conn, 'DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ?', 'i', [$compraId]);
-            }
-        });
-        $_SESSION['cartao_aviso'] = 'Parcelas excluídas do mês selecionado em diante. Histórico anterior preservado.';
+        ccExcluirCompra($conn, $compraId, $inicio, $fim);
+        $_SESSION['cartao_aviso'] = 'Parcelas excluídas do mês selecionado em diante. Histórico preservado e recriação automática bloqueada.';
     } catch (Throwable $e) {
         $_SESSION['cartao_aviso'] = 'Não foi possível excluir. Nenhuma alteração foi confirmada.';
     }
@@ -362,35 +351,15 @@ if (isset($_POST['ajustar_valor'])) {
 |--------------------------------------------------------------------------
 */
 if (isset($_POST['atualizar_categoria'])) {
-    $compraId = (int) ($_POST['compra_id'] ?? 0);
-    $categoria = $_POST['categoria'] ?? 'pessoal';
-
-    if (
-        !in_array(
-            $categoria,
-            ['pessoal', 'conjunta', 'unica'],
-            true
-        )
-    ) {
-        $categoria = 'pessoal';
-    }
-
-    if ($compraId > 0) {
-        $stmt = $conn->prepare(
-            'UPDATE compras SET categoria = ? WHERE usuario_id = @mcf_usuario_id AND id = ?'
+    try {
+        $_SESSION['cartao_aviso'] = ccClassificarCompra(
+            $conn,
+            (int) ($_POST['compra_id'] ?? 0),
+            $_POST['categoria'] ?? '',
+            isset($_POST['repetir_categoria'])
         );
-
-        if (!$stmt) {
-            die('Erro ao preparar categoria: ' . 'Falha de banco de dados.');
-        }
-
-        $stmt->bind_param('si', $categoria, $compraId);
-
-        if (!$stmt->execute()) {
-            die('Erro ao atualizar categoria: ' . 'Falha de banco de dados.');
-        }
-
-        $stmt->close();
+    } catch (Throwable $e) {
+        $_SESSION['cartao_aviso'] = 'Não foi possível classificar. Confira a categoria e tente novamente.';
     }
 
     voltarPagina($paginaAtual, $mes, $ano);
@@ -536,6 +505,101 @@ function ccPermiteNomeRecorrente(array $compra)
         && (float) $compra['valor_total'] > 0;
 }
 
+function ccClassificarCompra($conn, $compraId, $categoria, $repetir)
+{
+    if (!in_array($categoria, ['pessoal', 'conjunta', 'unica'], true)) {
+        throw new RuntimeException('Selecione uma categoria válida.');
+    }
+
+    $quantidade = 0;
+
+    ccTransacaoCartao($conn, function () use (
+        $conn, $compraId, $categoria, $repetir, &$quantidade
+    ) {
+        $compras = ccRows(
+            $conn,
+            'SELECT * FROM compras
+             WHERE usuario_id = @mcf_usuario_id AND id = ? FOR UPDATE',
+            'i',
+            [$compraId]
+        );
+
+        if (!$compras) {
+            throw new RuntimeException('A compra não está mais disponível.');
+        }
+
+        $compra = $compras[0];
+        $descricao = $compra['nome_original'] ?? $compra['nome'];
+        $permite = ccPermiteNomeRecorrente($compra);
+        $chave = ccChaveNomeRecorrente($descricao);
+
+        if ($repetir && (!$permite || trim($descricao) === '')) {
+            throw new RuntimeException('A repetição é exclusiva para cobranças OFX positivas sem parcelamento.');
+        }
+
+        if ($repetir) {
+            ccExec(
+                $conn,
+                'INSERT INTO cartao_categorias_recorrentes
+                    (usuario_id, chave_descricao, descricao_original, categoria)
+                 VALUES (@mcf_usuario_id, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                    descricao_original = VALUES(descricao_original),
+                    categoria = VALUES(categoria)',
+                'sss',
+                [$chave, $descricao, $categoria]
+            );
+
+            $cobrancas = ccRows(
+                $conn,
+                "SELECT id, nome, nome_original FROM compras
+                 WHERE usuario_id = @mcf_usuario_id
+                   AND origem = 'ofx' AND total_parcelas = 1 AND valor_total > 0"
+            );
+
+            foreach ($cobrancas as $cobranca) {
+                $original = $cobranca['nome_original'] ?? $cobranca['nome'];
+
+                if (ccChaveNomeRecorrente($original) !== $chave) {
+                    continue;
+                }
+
+                ccExec(
+                    $conn,
+                    'UPDATE compras SET categoria = ?
+                     WHERE usuario_id = @mcf_usuario_id AND id = ?',
+                    'si',
+                    [$categoria, (int) $cobranca['id']]
+                );
+
+                $quantidade++;
+            }
+        } else {
+            ccExec(
+                $conn,
+                'UPDATE compras SET categoria = ?
+                 WHERE usuario_id = @mcf_usuario_id AND id = ?',
+                'si',
+                [$categoria, $compraId]
+            );
+
+            if ($permite) {
+                ccExec(
+                    $conn,
+                    'DELETE FROM cartao_categorias_recorrentes
+                     WHERE usuario_id = @mcf_usuario_id AND chave_descricao = ?',
+                    's',
+                    [$chave]
+                );
+            }
+        }
+    });
+
+    return $repetir
+        ? 'Categoria aplicada a ' . $quantidade . ' cobrança(s) e às futuras com a mesma descrição. Nomes e valores preservados.'
+        : 'Categoria salva nesta compra e suas parcelas. Repetição automática desativada para cobranças independentes; outras compras foram mantidas.';
+}
+
 function ccRenomearCompra($conn, $compraId, $nome, $repetir)
 {
     if ($nome === '' || mb_strlen($nome, 'UTF-8') > 255) {
@@ -656,6 +720,109 @@ function ccRenomearCompra($conn, $compraId, $nome, $repetir)
     }
 }
 
+class CcRevisaoExclusao extends RuntimeException
+{
+    public $exclusao;
+
+    public function __construct(array $exclusao, $descricao)
+    {
+        parent::__construct($descricao);
+        $this->exclusao = $exclusao;
+    }
+}
+
+function ccIdentidadeImportacao($credito, $descricao, $data, $parcelas, $primeiroMes, $fitid)
+{
+    return hash(
+        'sha256',
+        'v2|' . ($credito ? 'credito' : 'compra') . '|' . normalizarTexto($descricao)
+        . '|' . $data . '|' . $parcelas . '|' . $primeiroMes
+        . ($parcelas === 1 ? '|' . $fitid : '')
+    );
+}
+
+function ccExcluirCompra($conn, $compraId, $inicio, $fim)
+{
+    ccTransacaoCartao($conn, function () use ($conn, $compraId, $inicio, $fim) {
+        $compras = ccRows(
+            $conn,
+            'SELECT * FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ? FOR UPDATE',
+            'i',
+            [$compraId]
+        );
+        $parcelas = ccRows(
+            $conn,
+            'SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? ORDER BY parcela',
+            'i',
+            [$compraId]
+        );
+        $selecionadas = array_filter($parcelas, function ($parcela) use ($inicio, $fim) {
+            return $parcela['data'] >= $inicio && $parcela['data'] < $fim;
+        });
+
+        if (!$compras || !$selecionadas) {
+            throw new RuntimeException('Compra indisponível neste mês.');
+        }
+
+        $compra = $compras[0];
+
+        if ($compra['origem'] === 'ofx') {
+            $mesesInicio = [];
+
+            foreach ($parcelas as $parcela) {
+                $primeiroMes = adicionarMeses(
+                    new DateTime($parcela['data']),
+                    1 - (int) $parcela['parcela']
+                )->format('Y-m');
+                $mesesInicio[$primeiroMes] = true;
+            }
+
+            $totalParcelas = (int) $compra['total_parcelas'];
+            $fitid = $parcelas[0]['fitid'] ?? '';
+
+            if (count($mesesInicio) !== 1 || ($totalParcelas === 1 && $fitid === '')) {
+                throw new RuntimeException('Não foi possível identificar a compra com segurança para proteger a exclusão.');
+            }
+
+            $original = $compra['nome_original'] ?? $compra['nome'];
+            $chave = ccIdentidadeImportacao(
+                (float) $compra['valor_total'] < 0,
+                $original,
+                $compra['data_compra'],
+                $totalParcelas,
+                array_key_first($mesesInicio),
+                $fitid
+            );
+
+            ccExec(
+                $conn,
+                'INSERT INTO cartao_exclusoes
+                    (usuario_id, chave_importacao, excluir_desde, nome, nome_original, categoria, versao)
+                 VALUES (@mcf_usuario_id, ?, ?, ?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE
+                    excluir_desde = LEAST(excluir_desde, VALUES(excluir_desde)),
+                    nome = VALUES(nome), nome_original = VALUES(nome_original),
+                    categoria = VALUES(categoria), versao = VALUES(versao)',
+                'ssssss',
+                [$chave, $inicio, $compra['nome'], $original, $compra['categoria'], bin2hex(random_bytes(16))]
+            );
+        }
+
+        ccExec(
+            $conn,
+            'DELETE FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? AND data >= ?',
+            'is',
+            [$compraId, $inicio]
+        );
+
+        if (ccRows($conn, 'SELECT id FROM cartoes WHERE usuario_id = @mcf_usuario_id AND compra_id = ? LIMIT 1', 'i', [$compraId])) {
+            ccAtualizarTotalCompra($conn, $compraId);
+        } else {
+            ccExec($conn, 'DELETE FROM compras WHERE usuario_id = @mcf_usuario_id AND id = ?', 'i', [$compraId]);
+        }
+    });
+}
+
 function ccImportar(
     $conn,
     $conteudo,
@@ -664,7 +831,8 @@ function ccImportar(
     $anoPadrao,
     $reprocessar = false,
     array $escolhas = [],
-    array $parcelasConfirmadas = []
+    array $parcelasConfirmadas = [],
+    array $exclusoesConfirmadas = []
 ) {
     $hash = hash('sha256', $conteudo);
     [$mf, $af] = obterReferenciaFatura($arquivo, $mesPadrao, $anoPadrao);
@@ -692,6 +860,8 @@ function ccImportar(
                 'Este arquivo já foi importado. Para conferir novamente os valores, use Reprocessar no modal de importação.'
             ];
         }
+        $exclusoesMantidas = 0;
+        $projecoesBloqueadas = 0;
         $processadas = 0;
         $ignoradas = 0;
         $usadas = [];
@@ -748,10 +918,47 @@ function ccImportar(
             $periodoFim = $periodoFim === null ? $dataSql : max($periodoFim, $dataSql);
             $base = dataNoMes($af, $mf, (int) $dataOriginal->format('d'));
             $primeiroMes = adicionarMeses($base, 1 - $np)->format('Y-m');
-            $chave = hash(
-                'sha256',
-                'v2|' . ($credito ? 'credito' : 'compra') . '|' . normalizarTexto($nomeBanco) . '|' . $dataSql . '|' . $tp . '|' . $primeiroMes . ($tp === 1 ? '|' . $fitid : '')
+            $chave = ccIdentidadeImportacao($credito, $nomeBanco, $dataSql, $tp, $primeiroMes, $fitid);
+            $exclusoes = ccRows(
+                $conn,
+                'SELECT * FROM cartao_exclusoes
+                 WHERE usuario_id = @mcf_usuario_id AND chave_importacao = ?',
+                's',
+                [$chave]
             );
+            $exclusao = $exclusoes[0] ?? null;
+            $snapshotExclusao = $exclusao;
+
+            if ($exclusao && $inicio >= $exclusao['excluir_desde']) {
+                $decisao = $exclusoesConfirmadas[$chave] ?? null;
+
+                if (!is_array($decisao)
+                    || ($decisao['versao'] ?? '') !== $exclusao['versao']
+                    || !in_array($decisao['restaurar'] ?? null, [0, 1], true)
+                ) {
+                    throw new CcRevisaoExclusao(
+                        $exclusao,
+                        $exclusao['nome'] . ' — excluída a partir de '
+                        . date('m/Y', strtotime($exclusao['excluir_desde']))
+                        . '. O OFX contém ' . $nomeBanco . ', parcela ' . $np . '/' . $tp
+                        . ', no valor de R$ ' . number_format($valor, 2, ',', '.') . '.'
+                    );
+                }
+
+                if ($decisao['restaurar'] === 0) {
+                    $exclusoesMantidas++;
+                    continue;
+                }
+
+                ccExec(
+                    $conn,
+                    'DELETE FROM cartao_exclusoes
+                     WHERE usuario_id = @mcf_usuario_id AND chave_importacao = ?',
+                    's',
+                    [$chave]
+                );
+                $exclusao = null;
+            }
             // FITID é conferido dentro da competência, pois não identifica a compra inteira.
             $porFitid = ccRows(
                 $conn,
@@ -812,6 +1019,7 @@ function ccImportar(
             }
             else {
                 $nomeExibido = $nomeBanco;
+                $categoriaNova = 'pessoal';
 
                 if (!$credito && $tp === 1) {
                     $regrasNome = ccRows(
@@ -827,17 +1035,45 @@ function ccImportar(
                     }
                 }
 
+                if (!$credito && $tp === 1) {
+                    $regrasCategoria = ccRows(
+                        $conn,
+                        'SELECT categoria FROM cartao_categorias_recorrentes
+                         WHERE usuario_id = @mcf_usuario_id AND chave_descricao = ?',
+                        's',
+                        [ccChaveNomeRecorrente($nomeBanco)]
+                    );
+
+                    if ($regrasCategoria && in_array(
+                        $regrasCategoria[0]['categoria'],
+                        ['pessoal', 'conjunta', 'unica'],
+                        true
+                    )) {
+                        $categoriaNova = $regrasCategoria[0]['categoria'];
+                    }
+                }
+
+                if ($snapshotExclusao) {
+                    $nomeExibido = $snapshotExclusao['nome'];
+                    $categoriaNova = $snapshotExclusao['categoria'];
+                }
+
                 ccExec(
                     $conn,
-                    "INSERT INTO compras (usuario_id, nome, nome_original, categoria, valor_total, total_parcelas, data_compra, origem, identificador_ofx) VALUES (@mcf_usuario_id, ?, ?, 'pessoal', ?, ?, ?, 'ofx', ?)",
-                    'ssdiss',
-                    [$nomeExibido, $nomeBanco, round($valor * $tp, 2), $tp, $dataSql, $chave]
+                    "INSERT INTO compras (usuario_id, nome, nome_original, categoria, valor_total, total_parcelas, data_compra, origem, identificador_ofx) VALUES (@mcf_usuario_id, ?, ?, ?, ?, ?, ?, 'ofx', ?)",
+                    'sssdiss',
+                    [$nomeExibido, $nomeBanco, $categoriaNova, round($valor * $tp, 2), $tp, $dataSql, $chave]
                 );
                 $compraId = (int) $conn->insert_id;
             }
             $usadas[$compraId] = true;
             for ($p = 1; $p <= $tp; $p++) {
                 $dataParcela = adicionarMeses($base, $p - $np)->format('Y-m-d');
+
+                if ($exclusao && $dataParcela >= $exclusao['excluir_desde']) {
+                    $projecoesBloqueadas++;
+                    continue;
+                }
                 $existentes = ccRows(
                     $conn,
                     'SELECT id, data FROM (SELECT * FROM cartoes WHERE usuario_id = @mcf_usuario_id) AS cartoes WHERE compra_id = ? AND parcela = ?',
@@ -890,7 +1126,7 @@ function ccImportar(
         return [
             $mf,
             $af,
-            $processadas . ' lançamentos conferidos com o OFX. ' . $ignoradas . ' pagamentos/valores zero ignorados. Nomes, categorias e pagamentos preservados.'
+            $processadas . ' lançamentos conferidos com o OFX. ' . $ignoradas . ' pagamentos/valores zero ignorados. ' . $exclusoesMantidas . ' lançamentos mantidos excluídos; ' . $projecoesBloqueadas . ' projeções bloqueadas por exclusão. Nomes, categorias e pagamentos existentes preservados.'
         ];
     }
     catch (Throwable $e) {
@@ -932,7 +1168,19 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
             ) {
                 throw new RuntimeException('Revisão expirada. Envie novamente o OFX.');
             }
-            if (($pendente['tipo'] ?? '') === 'parcela') {
+            if (($pendente['tipo'] ?? '') === 'exclusao') {
+                $decisao = $_POST['restaurar_exclusao'] ?? null;
+
+                if (!in_array($decisao, ['0', '1'], true)) {
+                    throw new RuntimeException('Escolha manter a exclusão ou restaurar.');
+                }
+
+                $registro = $pendente['exclusao'];
+                $pendente['exclusoes_confirmadas'][$registro['chave_importacao']] = [
+                    'versao' => $registro['versao'],
+                    'restaurar' => (int) $decisao
+                ];
+            } elseif (($pendente['tipo'] ?? '') === 'parcela') {
                 $decisao = $_POST['interpretar_parcela'] ?? null;
                 if (!in_array($decisao, ['0', '1'], true)) throw new RuntimeException('Confirme o parcelamento.');
                 $pendente['parcelas_confirmadas'][$pendente['indice']] = (int) $decisao;
@@ -970,6 +1218,7 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
                 'reprocessar' => isset($_POST['reprocessar']),
                 'escolhas' => [],
                 'parcelas_confirmadas' => [],
+                'exclusoes_confirmadas' => [],
                 'titular' => (int) ccRows($conn, 'SELECT @mcf_usuario_id AS id')[0]['id']
             ];
             unset($_SESSION['cc_pendente']);
@@ -986,11 +1235,20 @@ if (isset($_POST['upload_fatura']) || isset($_POST['resolver_ofx'])) {
             $pendente['ano'],
             $pendente['reprocessar'],
             $pendente['escolhas'],
-            $pendente['parcelas_confirmadas'] ?? []
+            $pendente['parcelas_confirmadas'] ?? [],
+            $pendente['exclusoes_confirmadas'] ?? []
         );
         unset($_SESSION['cc_pendente']);
         $_SESSION['cartao_aviso'] = $avisoOfx;
         voltarPagina($paginaAtual, $destinoMes, $destinoAno);
+    }
+    catch (CcRevisaoExclusao $e) {
+        $pendente['tipo'] = 'exclusao';
+        $pendente['exclusao'] = $e->exclusao;
+        $pendente['descricao'] = $e->getMessage();
+        $pendente['token'] = bin2hex(random_bytes(16));
+        $_SESSION['cc_pendente'] = $pendente;
+        $_SESSION['cartao_aviso'] = 'O arquivo contém uma compra excluída. Revise antes de continuar; nenhuma alteração deste arquivo foi gravada.';
     }
     catch (CcRevisaoParcela $e) {
         $pendente['tipo'] = 'parcela';
@@ -1063,6 +1321,13 @@ $regrasNomes = ccRows(
 
 $chavesNomes = array_fill_keys(array_column($regrasNomes, 'chave_descricao'), true);
 
+$regrasCategorias = ccRows(
+    $conn,
+    'SELECT chave_descricao FROM cartao_categorias_recorrentes
+     WHERE usuario_id = @mcf_usuario_id'
+);
+$chavesCategorias = array_fill_keys(array_column($regrasCategorias, 'chave_descricao'), true);
+
 while ($linha = $resultado->fetch_assoc()) {
     $totalFatura += (float) $linha['valor'];
     $quantidadeFatura++;
@@ -1075,6 +1340,10 @@ while ($linha = $resultado->fetch_assoc()) {
     $linha['permite_nome_recorrente'] = ccPermiteNomeRecorrente($linha);
     $linha['repetir_nome'] = $linha['permite_nome_recorrente'] && isset(
         $chavesNomes[ccChaveNomeRecorrente($linha['nome_original'] ?? $linha['nome'])]
+    );
+
+    $linha['repetir_categoria'] = $linha['permite_nome_recorrente'] && isset(
+        $chavesCategorias[ccChaveNomeRecorrente($linha['nome_original'] ?? $linha['nome'])]
     );
 
     $cartoes[] = $linha;
@@ -1304,6 +1573,35 @@ function tokenCartao()
                 padding: 6px 8px
             }
             
+            .cc-categoria {
+                display: inline-block;
+                padding: 5px 9px;
+                border: 1px solid transparent;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: nowrap;
+            }
+
+            .cc-categoria-pessoal {
+                color: #174a8b;
+                background-color: #eaf2ff;
+                border-color: #bdd5f5;
+            }
+
+            .cc-categoria-conjunta {
+                color: #63338b;
+                background-color: #f3eafa;
+                border-color: #d9bee9;
+            }
+
+            .cc-categoria-unica {
+                color: #85400d;
+                background-color: #fff1df;
+                border-color: #f0c995;
+            }
+
             .cc-status {
                 white-space: nowrap;
                 font-size: 12px
@@ -1456,7 +1754,7 @@ function tokenCartao()
             <dialog id="cc-revisao" class="cc-dialog" aria-labelledby="cc-revisao-title">
                 <header>
                     <h2 id="cc-revisao-title">
-                        <?= ($revisao['tipo'] ?? '') === 'parcela' ? 'Confirmar parcelamento' : 'Identificar compra' ?>
+                        <?= ($revisao['tipo'] ?? '') === 'exclusao' ? 'Compra excluída no OFX' : (($revisao['tipo'] ?? '') === 'parcela' ? 'Confirmar parcelamento' : 'Identificar compra') ?>
                     </h2>
                     <button type="button" data-close aria-label="Fechar">
                         ×
@@ -1466,12 +1764,19 @@ function tokenCartao()
                     <?= escapar($revisao['descricao']) ?>
                 </p>
                 <p>
-                    <?= ($revisao['tipo'] ?? '') === 'parcela' ? 'Números como 01/03 também podem representar uma data. Confirme como este lançamento deve ser importado. Ao parcelar, serão criadas as parcelas anteriores e futuras da compra.' : 'Há mais de um cadastro compatível. Se forem duplicatas antigas, escolher um não apaga os demais; eles precisam ser revisados separadamente.' ?>
+                    <?= ($revisao['tipo'] ?? '') === 'exclusao' ? 'Manter a exclusão ignora esta cobrança e preserva o bloqueio para futuras importações. Restaurar libera a recriação das parcelas, inclusive futuras. Isso não cancela cobranças no banco; manter a exclusão pode deixar o total do sistema diferente da fatura.' : (($revisao['tipo'] ?? '') === 'parcela' ? 'Números como 01/03 também podem representar uma data. Confirme como este lançamento deve ser importado. Ao parcelar, serão criadas as parcelas anteriores e futuras da compra.' : 'Há mais de um cadastro compatível. Se forem duplicatas antigas, escolher um não apaga os demais; eles precisam ser revisados separadamente.') ?>
                 </p>
                 <form method="post" action="<?= escapar($acaoFormulario) ?>">
                     <?php tokenCartao(); ?>
                     <input type="hidden" name="revisao_token" value="<?= escapar($revisao['token']) ?>">
-                    <?php if (($revisao['tipo'] ?? '') === 'parcela'): ?>
+                    <?php if (($revisao['tipo'] ?? '') === 'exclusao'): ?>
+                    <label for="cc-restaurar-exclusao">Como tratar esta compra?</label>
+                    <select id="cc-restaurar-exclusao" name="restaurar_exclusao" required>
+                        <option value="">Selecione</option>
+                        <option value="0">Manter excluída e continuar a importação</option>
+                        <option value="1">Restaurar as parcelas e permitir próximas importações</option>
+                    </select>
+                    <?php elseif (($revisao['tipo'] ?? '') === 'parcela'): ?>
                     <label for="cc-interpretar-parcela">Como importar esta compra?</label>
                     <select id="cc-interpretar-parcela" name="interpretar_parcela" required>
                         <option value="">Selecione</option>
@@ -1623,7 +1928,11 @@ function tokenCartao()
                                     </small>
                                 </td>
                                 <td>
-                                    <?= escapar(rotuloCategoria($cartao['categoria'])) ?>
+                                    <span
+                                        class="cc-categoria cc-categoria-<?= escapar(in_array($cartao['categoria'], ['pessoal', 'conjunta', 'unica'], true) ? $cartao['categoria'] : 'pessoal') ?>"
+                                    >
+                                        <?= escapar(rotuloCategoria($cartao['categoria'])) ?>
+                                    </span>
                                 </td>
                                 <td>
                                     <?= date('d/m/Y', strtotime($cartao['data'])) ?>
@@ -1897,6 +2206,28 @@ function tokenCartao()
                     </option>
                     <?php endforeach; ?>
                 </select>
+                <div id="cc-categoria-recorrente" hidden>
+                    <label class="cc-check" for="cc-repetir-categoria">
+                        <input
+                            type="checkbox"
+                            id="cc-repetir-categoria"
+                            name="repetir_categoria"
+                            value="1"
+                        >
+                        Aplicar esta categoria às cobranças atuais e futuras com a mesma descrição
+                    </label>
+                    <small>
+                        Inclui os outros meses já cadastrados, mesmo fora do filtro atual.
+                        A regra de nomes é independente e não será alterada.
+                    </small>
+                    <small>
+                        Desmarcar e salvar desativa a regra futura e altera somente esta compra.
+                        As categorias já salvas nos outros meses permanecem.
+                    </small>
+                    <small>
+                        Descrição usada: <span id="cc-descricao-categoria"></span>
+                    </small>
+                </div>
                 <?php elseif ($tipoModal === 'ajustar'): ?>
                 <p>
                     O ajuste altera somente esta parcela. Use valor negativo para um estorno. Uma nova conferência deste mês pelo OFX substitui o ajuste pelo valor do banco.
@@ -1924,7 +2255,7 @@ function tokenCartao()
                     em diante? As parcelas anteriores serão preservadas.
                 </p>
                 <small>
-                    Uma nova fatura OFX que contenha esta compra poderá recriar as parcelas, conforme a regra atual de importação.
+                    A exclusão será lembrada nas próximas importações. Se a compra voltar no OFX, você decidirá se mantém a exclusão ou restaura as parcelas.
                 </small>
                 <?php endif; ?>
                 <footer>
@@ -1999,6 +2330,17 @@ function tokenCartao()
 
                     const categoria = modal.querySelector('[name=categoria]');
                     if (categoria) categoria.value = row.categoria;
+                    const repetirCategoria = modal.querySelector('[name=repetir_categoria]');
+
+                    if (repetirCategoria) {
+                        const permite = Boolean(row.permite_nome_recorrente);
+
+                        modal.querySelector('#cc-categoria-recorrente').hidden = !permite;
+                        repetirCategoria.disabled = !permite;
+                        repetirCategoria.checked = permite && Boolean(row.repetir_categoria);
+                        modal.querySelector('#cc-descricao-categoria').textContent =
+                            row.nome_original || row.nome;
+                    }
                     const valor = modal.querySelector('[name=novo_valor]');
                     if (valor) valor.value = Number(row.valor).toFixed(2);
                 }

@@ -1,0 +1,12 @@
+-- Execute no banco MyCashFlow antes de substituir views/cartao.php.
+-- Preferências de categoria independentes das preferências de nome.
+-- Não altera os lançamentos existentes até o usuário marcar a opção e salvar.
+CREATE TABLE IF NOT EXISTS cartao_categorias_recorrentes (
+    usuario_id INT NOT NULL,
+    chave_descricao CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    descricao_original VARCHAR(255) NOT NULL,
+    categoria VARCHAR(20) NOT NULL,
+    PRIMARY KEY (usuario_id, chave_descricao)
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci;

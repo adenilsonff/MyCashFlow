@@ -1284,6 +1284,7 @@ $instituicoes = instituicoesSaldo();
 <?php include __DIR__ . '/../includes/menu.php'; ?>
 
 <main class="saldos-layout">
+<a class="mcf-back" href="patrimonio.php">← Voltar para Patrimônio</a>
 
     <div class="saldos-cabecalho">
 

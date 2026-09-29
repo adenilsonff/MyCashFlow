@@ -63,7 +63,7 @@ require __DIR__.'/../includes/header.php';
 require __DIR__.'/../includes/menu.php';
 ?>
 <main class="perfil conta-configuracao">
-<a href="configuracao.php">← Configuração</a>
+<a class="mcf-back" href="configuracao.php">← Voltar para Configuração</a>
 <section class="config-modulos">
 
 <h2 class="mcf-page-title">Módulos do sistema</h2>

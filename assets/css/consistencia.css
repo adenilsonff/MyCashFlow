@@ -105,3 +105,23 @@
         body main :is(.acoes-contas,.acoes-rendas,.av-actions,.cc-actions,.saldos-acoes)>button[class] { flex-basis:100%; }
     }
 }
+
+@media screen {
+    html body main a.mcf-back { display:inline-flex; align-items:center; width:auto; min-height:32px; box-sizing:border-box; padding:5px 10px; margin:0 0 16px; border:1px solid #aebdc9; border-radius:5px; background:#fff; color:#2c3e50; font:700 13px/20px Arial,sans-serif; text-decoration:none; }
+    html body main a.mcf-back:hover { background:#e8eef3; border-color:#758b9d; }
+    html body main a.mcf-back:focus-visible { outline:3px solid #28688b; outline-offset:3px; }
+}
+
+/* Resumo de Patrimônio na mesma escala dos cards de Despesas e Receitas. */
+@media screen {
+    body main .patrimonio-resumo { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin:0 0 20px; background:transparent; box-shadow:none; border-radius:0; overflow:visible; }
+    body main .patrimonio-resumo section { display:flex; flex-direction:column; gap:5px; padding:16px 18px; background:white; border:1px solid var(--mcf-line); border-radius:8px; box-shadow:var(--mcf-shadow); }
+    body main .patrimonio-resumo h2 { margin:0; font:400 13px/1.5 Arial,sans-serif; color:#6c757d; }
+    body main .patrimonio-resumo strong { font:700 21px/1.5 Arial,sans-serif; }
+    body main .patrimonio-resumo .patrimonio-destaque { background:#2c3e50; color:white; }
+    body main .patrimonio-resumo .patrimonio-destaque h2 { color:white; }
+    @media(max-width:700px) {
+        body main .patrimonio-resumo { grid-template-columns:1fr; }
+        body main .patrimonio-resumo section { padding:14px; }
+    }
+}

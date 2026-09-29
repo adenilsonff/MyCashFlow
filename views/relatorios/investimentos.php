@@ -1177,6 +1177,7 @@ $totalAtivosCarteiraInternacional =
 <?php include("../../includes/menu.php"); ?>
 
 <main class="investimentos-rel-layout">
+<a class="mcf-back" href="relatorios.php">← Voltar para Relatórios</a>
 
     <div class="investimentos-rel-cabecalho">
 

@@ -34,6 +34,7 @@ $cssPagina='/MyCashFlow/assets/css/compartilhamento.css';
 require __DIR__.'/../includes/header.php';require __DIR__.'/../includes/menu.php';
 ?>
 <main class="compartilhamento">
+<a class="mcf-back" href="compartilhamento.php">← Voltar para Compartilhamento</a>
 <h2 class="mcf-page-title">Visão conjunta</h2>
 <p>Consulte uma pessoa ou componha um total. Cada lançamento e operação permanece na conta do titular.</p>
 <p><a href="compartilhamento.php">Gerenciar permissões</a></p>

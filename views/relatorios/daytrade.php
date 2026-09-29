@@ -555,6 +555,7 @@ $conferenciaCorreta =
 <?php include("../../includes/menu.php"); ?>
 
 <main class="daytrade-rel-layout">
+<a class="mcf-back" href="relatorios.php">← Voltar para Relatórios</a>
 
     <div class="daytrade-rel-cabecalho">
 
