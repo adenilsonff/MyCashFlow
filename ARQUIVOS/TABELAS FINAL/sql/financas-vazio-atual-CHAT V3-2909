@@ -1248,7 +1248,7 @@ ALTER TABLE `analise_marcacoes`
 -- AUTO_INCREMENT de tabela `cartoes`
 --
 ALTER TABLE `cartoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `clientes`
@@ -1266,13 +1266,13 @@ ALTER TABLE `compartilhamentos`
 -- AUTO_INCREMENT de tabela `compras`
 --
 ALTER TABLE `compras`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `contas`
 --
 ALTER TABLE `contas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `contas_financeiras`
@@ -1302,7 +1302,7 @@ ALTER TABLE `div_datacom`
 -- AUTO_INCREMENT de tabela `historico_alteracoes`
 --
 ALTER TABLE `historico_alteracoes`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `investimentos_internacionais`
@@ -1320,13 +1320,13 @@ ALTER TABLE `investimentos_nacionais`
 -- AUTO_INCREMENT de tabela `metas_anuais`
 --
 ALTER TABLE `metas_anuais`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `metas_contribuicoes`
 --
 ALTER TABLE `metas_contribuicoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `metas_fechamentos`
@@ -1344,7 +1344,7 @@ ALTER TABLE `movimentacoes_financeiras`
 -- AUTO_INCREMENT de tabela `ofx_importacoes`
 --
 ALTER TABLE `ofx_importacoes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `operacoes`
@@ -1368,13 +1368,13 @@ ALTER TABLE `rendas`
 -- AUTO_INCREMENT de tabela `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de tabela `usuario_modulos`
 --
 ALTER TABLE `usuario_modulos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Restrições para tabelas despejadas
