@@ -1,0 +1,73 @@
+CREATE TABLE `metas_anuais` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ano` smallint(4) NOT NULL,
+  `meta_mensal` decimal(15,2) NOT NULL DEFAULT 1000.00,
+  `meta_basica` decimal(15,2) NOT NULL DEFAULT 12000.00,
+  `referencia_pontuais` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `meta_sonho` decimal(15,2) NOT NULL DEFAULT 50000.00,
+  `meta_desafio` decimal(15,2) NOT NULL DEFAULT 65000.00,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_metas_anuais_usuario_ano` (`usuario_id`,`ano`),
+  CONSTRAINT `fk_metas_anuais_usuario`
+    FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `metas_fechamentos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `ano` smallint(4) NOT NULL,
+  `mes` tinyint(2) NOT NULL,
+  `meta` decimal(15,2) NOT NULL DEFAULT 1000.00,
+  `conseguido` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `observacao` varchar(255) DEFAULT NULL,
+  `fechado_em` datetime DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_metas_fechamentos_usuario_ano_mes` (`usuario_id`,`ano`,`mes`),
+  KEY `idx_metas_fechamentos_periodo` (`usuario_id`,`ano`,`mes`),
+  CONSTRAINT `fk_metas_fechamentos_usuario`
+    FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `chk_metas_fechamentos_mes`
+    CHECK (`mes` BETWEEN 1 AND 12)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+CREATE TABLE `metas_contribuicoes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `usuario_id` int(11) NOT NULL,
+  `data` date NOT NULL,
+  `tipo` enum(
+    'decimo_terceiro',
+    'ferias',
+    'restituicao_ir',
+    'servico_extra',
+    'dividendo',
+    'day_trade',
+    'outro'
+  ) NOT NULL,
+  `descricao` varchar(150) NOT NULL,
+  `valor_recebido` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `valor_guardado` decimal(15,2) NOT NULL DEFAULT 0.00,
+  `percentual_guardado` decimal(5,2) DEFAULT NULL,
+  `origem_tabela` varchar(50) DEFAULT NULL,
+  `origem_id` int(11) DEFAULT NULL,
+  `observacao` varchar(255) DEFAULT NULL,
+  `criado_em` timestamp NOT NULL DEFAULT current_timestamp(),
+  `atualizado_em` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `idx_metas_contribuicoes_usuario_data` (`usuario_id`,`data`),
+  KEY `idx_metas_contribuicoes_origem` (`origem_tabela`,`origem_id`),
+  CONSTRAINT `fk_metas_contribuicoes_usuario`
+    FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

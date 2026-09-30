@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/../config.php';
+
 $uid=mcfUsuarioId();
 $modulos = mcfModulosDisponiveis();
 
@@ -41,8 +42,10 @@ $stmt = $conn->prepare(
      FROM usuario_modulos
      WHERE usuario_id = ?'
 );
+
 $stmt->bind_param('i', $uid);
 $stmt->execute();
+
 $resultadoModulos = $stmt->get_result();
 
 while ($linha = $resultadoModulos->fetch_assoc()) {
@@ -57,13 +60,16 @@ foreach ($modulos as $chave => $dados) {
     }
 }
 
-
 $cssPagina='/MyCashFlow/assets/css/perfil.css?v='.filemtime(__DIR__.'/../assets/css/perfil.css');
+
 require __DIR__.'/../includes/header.php';
 require __DIR__.'/../includes/menu.php';
 ?>
+
 <main class="perfil conta-configuracao">
+
 <a class="mcf-back" href="configuracao.php">← Voltar para Configuração</a>
+
 <section class="config-modulos">
 
 <h2 class="mcf-page-title">Módulos do sistema</h2>
@@ -139,6 +145,14 @@ Escolha os módulos que deseja utilizar no MyCashFlow. Desativar um módulo não
 </label>
 
 <label class="modulo-opcao">
+<input type="checkbox" name="modulos[]" value="reservas" <?= $estadoModulos['reservas'] ? 'checked' : '' ?>>
+<span>
+<strong>Reservas e Metas</strong>
+<small>Acompanhamento de reservas, contribuições e metas financeiras.</small>
+</span>
+</label>
+
+<label class="modulo-opcao">
 <input type="checkbox" name="modulos[]" value="analise" <?= $estadoModulos['analise'] ? 'checked' : '' ?>>
 <span>
 <strong>Análise</strong>
@@ -161,5 +175,7 @@ Escolha os módulos que deseja utilizar no MyCashFlow. Desativar um módulo não
 </form>
 
 </section>
+
 </main>
+
 <?php require __DIR__.'/../includes/footer.php'; ?>

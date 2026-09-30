@@ -66,6 +66,18 @@ $menuItens = [
         ]
     ],
     [
+        'rotulo' => 'Reservas e Metas',
+        'destino' => 'reservas/index.php',
+        'modulo' => 'reservas',
+        'filhos' => [],
+        'relacionadas' => [
+            'reservas/fechamento.php',
+            'reservas/contribuicoes.php',
+            'reservas/metas.php',
+            'reservas/historico.php'
+        ]
+    ],
+    [
         'rotulo' => 'Análise',
         'destino' => 'analise.php',
         'modulo' => 'analise',
