@@ -1,82 +1,3 @@
-
-assim entendi então faz sentido
-
-21:09
-Isso mesmo. Nas parceladas, basta renomear e salvar: todas as parcelas recebem o nome.
-
-A caixa serve para repetir o nome em cobranças separadas, como as mensalidades do Spotify.
-
-21:09
-agora uma verificação por exemplo em junho a conta spotify coloquei como cliente/reembolsavel, porem nos meses seguintes ela esta apenas como particular
-
-21:11
-Sim, hoje isso é esperado: a opção de repetir aplica apenas o nome, não a categoria. Como cada mensalidade do Spotify é uma compra separada, as novas cobranças entram como Particular.
-
-Nas compras parceladas, a categoria já acompanha todas as parcelas.
-
-Podemos acrescentar, ao classificar o Spotify, uma opção independente: “Aplicar esta categoria às cobranças atuais e futuras com a mesma descrição”. Marcando Cliente/Reembolsável, ela atualizaria os meses já cadastrados e manteria essa categoria nas próximas importações.
-
-21:11
-seria bom 
-
-21:24
-Pronto, preparei e testei a opção. Não alterei seu sistema instalado.
-
-Aplique nesta ordem:
-
-Execute o SQL de categorias recorrentes.
-Substitua views/cartao.php pelo PHP completo atualizado.
-Substitua includes/backup_conta.php pelo arquivo de backup atualizado, para guardar também essa preferência.
-Depois, no Spotify, clique em Classificar, escolha Cliente/Reembolsável e marque “Aplicar esta categoria às cobranças atuais e futuras com a mesma descrição”.
-
-Isso atualiza os meses já cadastrados e as próximas mensalidades, sem mudar nomes ou valores. Não precisa reimportar as faturas.
-
-21:30
-nao entendi eu substituo os arquivos ou você ja o fez
-
-21:42
-Você precisa substituir os arquivos. Eu preparei e testei as versões atualizadas, mas não substituí os arquivos do seu sistema nem executei o SQL no seu banco.
-
-Vamos por partes: primeiro execute o SQL da nova tabela. Depois seguimos com a substituição dos dois arquivos PHP.
-
-21:42
-perfeito funcionou certinho, agora olhando essa parte do sistema e analisando toda estrutura acha que tem mais alguma melhoria a fazer ou algo a acrescentar que seria bom 
-
-21:51
-Pelo que revisamos e você já testou, a página está bem completa para o uso mensal. Eu priorizaria estas melhorias:
-
-Controle de reembolsos de clientes. Hoje a categoria separa as despesas, mas não registra se o cliente já devolveu o dinheiro. Seria útil informar cliente, valor recebido e saldo pendente, inclusive para reembolso parcial. Esse controle deve ser separado de “fatura paga”: você pode pagar o cartão antes de receber do cliente.
-
-Distinguir parcelas previstas das conferidas pelo OFX. Os meses futuros já têm projeções. Uma indicação de “Prevista” ou “Conferida na fatura” deixaria claro quais valores ainda podem mudar quando o arquivo do mês chegar.
-
-Impedir que parcelas excluídas reapareçam sem aviso. Hoje uma importação posterior pode recriá-las. Poderíamos registrar a exclusão e pedir sua decisão caso a compra volte a aparecer no OFX.
-
-Resumo da conferência após importar. Mostrar quantas compras entraram, quais parcelas tiveram valor atualizado e quais créditos foram encontrados. Isso facilitaria entender diferenças sem procurar linha por linha.
-
-Eu começaria pelo controle de reembolsos, porque completa exatamente o uso que você descreveu: saber não apenas quanto foi gasto para clientes, mas quanto ainda falta receber. Não acrescentaria novos cards à tela principal; esse controle pode ficar nas ações da linha e no filtro Cliente/Reembolsável.
-
-21:51
-vamos fazer o 3 impedir que parcelas excluidas reapareçam
-
-21:59
-Pronto, preparei e testei a proteção. Ainda não substituí os arquivos nem alterei seu banco.
-
-Aplique nesta ordem:
-
-Execute o SQL de exclusões protegidas.
-Substitua views/cartao.php pelo PHP completo atualizado.
-Substitua includes/backup_conta.php pelo backup atualizado.
-Quando uma compra excluída aparecer novamente no OFX, você escolherá Manter excluída ou Restaurar as parcelas. Reimportar uma fatura antiga também não recriará as parcelas futuras bloqueadas.
-
-A proteção vale para exclusões feitas após essa atualização. As anteriores não tinham registro para o sistema reconhecer.
-
-22:06
-
-
-
-MYCASHFLOW
-outputs
-backup_conta.php
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){http_response_code(404);exit;}
@@ -115,3 +36,17 @@ function mcfBackupValidar(mysqli $c,string $json): array {
 }
 function mcfBackupRestaurar(mysqli $c,int $uid,array $data): int {
     // Revalidar também na confirmação. O arquivo nunca é executado como SQL.
+    $data=mcfBackupValidar($c,json_encode($data,JSON_THROW_ON_ERROR));
+    $c->query('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE');$c->begin_transaction();
+    try{
+        $s=$c->prepare('SELECT id FROM usuarios WHERE id=? FOR UPDATE');$s->bind_param('i',$uid);$s->execute();if(!$s->get_result()->fetch_assoc())throw new DomainException('Conta de destino inexistente.');$s->close();
+        foreach(mcfBackupTabelas() as $t){$s=$c->prepare("SELECT usuario_id FROM `$t` WHERE usuario_id=? FOR UPDATE");$s->bind_param('i',$uid);$s->execute();if($s->get_result()->num_rows)throw new DomainException('A restauração exige uma conta vazia, inclusive preferências de módulos. Nenhum dado foi substituído.');$s->close();}
+        $s=$c->prepare('SET @mcf_usuario_id=?, @mcf_ator_id=?, @mcf_convite_id=0, @mcf_convite_versao=0');$s->bind_param('ii',$uid,$uid);$s->execute();$s->close();
+        $maps=[];$count=0;$links=['corretora_taxas'=>['corretora_id'=>'corretoras'],'operacoes'=>['corretora_id'=>'corretoras'],'cartoes'=>['compra_id'=>'compras'],'movimentacoes_financeiras'=>['conta_id'=>'contas_financeiras']];
+        foreach($data['tabelas'] as $t=>$rows){foreach($rows as $row){$old=$row['id']??null;unset($row['id']);$row['usuario_id']=$uid;
+            foreach($links[$t]??[] as $field=>$parent){$source=$row[$field];if(!isset($maps[$parent][$source]))throw new DomainException('O backup possui vínculo ausente: '.$t.'.');$row[$field]=$maps[$parent][$source];}
+            if($t==='movimentacoes_financeiras'&&$row['origem_id']!==null){$parent=match($row['origem_modulo']){'receita'=>'rendas','despesa'=>'contas','cartao'=>'cartoes','provento'=>'div_datacom','daytrade'=>'operacoes',default=>null};if(!$parent||!isset($maps[$parent][$row['origem_id']]))throw new DomainException('Vínculo de origem não reconhecido. Solicite restauração assistida; nenhum registro foi importado.');$row['origem_id']=$maps[$parent][$row['origem_id']];}
+            $fields=implode(',',array_map(fn($k)=>'`'.$k.'`',array_keys($row)));$marks=implode(',',array_fill(0,count($row),'?'));$s=$c->prepare("INSERT INTO `$t` ($fields) VALUES ($marks)");$values=array_values($row);$s->bind_param(str_repeat('s',count($values)),...$values);$s->execute();if($old!==null)$maps[$t][$old]=$c->insert_id;$s->close();$count++;
+        }}$c->commit();return $count;
+    }catch(Throwable $e){$c->rollback();throw $e;}
+}
