@@ -24,7 +24,8 @@ $menuItens = [
         'destino' => 'patrimonio.php',
         'modulo' => 'patrimonio',
         'filhos' => [
-            ['Contas e saldos', 'saldos.php', 'patrimonio']
+            ['Contas e saldos', 'saldos.php', 'patrimonio'],
+            ['Reservas e metas', 'reservas.php', 'patrimonio']
         ],
         'relacionadas' => []
     ],
@@ -63,18 +64,6 @@ $menuItens = [
             'div_valor.php',
             'div_compra.php',
             'daytrade/editar_corretora.php'
-        ]
-    ],
-    [
-        'rotulo' => 'Reservas e Metas',
-        'destino' => 'reservas/index.php',
-        'modulo' => 'reservas',
-        'filhos' => [],
-        'relacionadas' => [
-            'reservas/fechamento.php',
-            'reservas/contribuicoes.php',
-            'reservas/metas.php',
-            'reservas/historico.php'
         ]
     ],
     [

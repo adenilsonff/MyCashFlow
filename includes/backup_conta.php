@@ -2,9 +2,9 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){http_response_code(404);exit;}
 const MCF_BACKUP_MAX=10485760;
-function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','usuario_modulos'=>'Preferências de módulos'];}
+function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','rm_fontes'=>'Origens das reservas','rm_partes'=>'Saldos das reservas','rm_objetivos'=>'Objetivos de reserva','rm_reposicoes'=>'Reposições pendentes','rm_metas'=>'Metas anuais','rm_eventos'=>'Histórico de reservas','usuario_modulos'=>'Preferências de módulos'];}
 function mcfBackupTabelas(): array {
-    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','usuario_modulos'];
+    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos','usuario_modulos'];
 }
 function mcfBackupColunas(mysqli $c,string $t): array {return array_column($c->query("SHOW COLUMNS FROM `$t`")->fetch_all(MYSQLI_ASSOC),'Field');}
 function mcfBackupGerar(mysqli $c,int $uid): string {
@@ -20,13 +20,15 @@ function mcfBackupValidar(mysqli $c,string $json): array {
     if(strlen($json)>MCF_BACKUP_MAX)throw new DomainException('Arquivo maior que 10 MB.');
     try{$data=json_decode($json,true,64,JSON_THROW_ON_ERROR);}catch(JsonException $e){throw new DomainException('Arquivo JSON inválido.');}
     if(!is_array($data)||($data['formato']??'')!=='MyCashFlow-conta'||($data['versao']??null)!==1||!is_int($data['usuario_origem']??null)||$data['usuario_origem']<1||!is_array($data['tabelas']??null))throw new DomainException('Formato de backup não reconhecido.');
-    // Aceitar as duas versões anteriores sem inventar exclusões históricas.
-    $esperadas=mcfBackupTabelas();
-    $semExclusoes=array_values(array_diff($esperadas,['cartao_exclusoes']));
-    $semCategorias=array_values(array_diff($esperadas,['cartao_exclusoes','cartao_categorias_recorrentes']));
-    if(in_array(array_keys($data['tabelas']),[$semExclusoes,$semCategorias],true)){
-        $originais=$data['tabelas'];$data['tabelas']=[];
-        foreach($esperadas as $t)$data['tabelas'][$t]=$originais[$t]??[];
+    // Versões anteriores não possuíam reservas. Não criar saldos históricos.
+    $esperadas = mcfBackupTabelas();
+    $reservas = ['rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos'];
+    $semReservas = array_values(array_diff($esperadas, $reservas));
+    $semExclusoes = array_values(array_diff($semReservas, ['cartao_exclusoes']));
+    $semCategorias = array_values(array_diff($semReservas, ['cartao_exclusoes','cartao_categorias_recorrentes']));
+    if (in_array(array_keys($data['tabelas']), [$semReservas,$semExclusoes,$semCategorias], true)) {
+        $originais = $data['tabelas']; $data['tabelas'] = [];
+        foreach ($esperadas as $t) { $data['tabelas'][$t] = $originais[$t] ?? []; }
     }
     if(array_keys($data['tabelas'])!==mcfBackupTabelas())throw new DomainException('Lista de tabelas incompatível. Use a mesma versão do MyCashFlow.');
     $count=0;
@@ -42,10 +44,24 @@ function mcfBackupRestaurar(mysqli $c,int $uid,array $data): int {
         $s=$c->prepare('SELECT id FROM usuarios WHERE id=? FOR UPDATE');$s->bind_param('i',$uid);$s->execute();if(!$s->get_result()->fetch_assoc())throw new DomainException('Conta de destino inexistente.');$s->close();
         foreach(mcfBackupTabelas() as $t){$s=$c->prepare("SELECT usuario_id FROM `$t` WHERE usuario_id=? FOR UPDATE");$s->bind_param('i',$uid);$s->execute();if($s->get_result()->num_rows)throw new DomainException('A restauração exige uma conta vazia, inclusive preferências de módulos. Nenhum dado foi substituído.');$s->close();}
         $s=$c->prepare('SET @mcf_usuario_id=?, @mcf_ator_id=?, @mcf_convite_id=0, @mcf_convite_versao=0');$s->bind_param('ii',$uid,$uid);$s->execute();$s->close();
-        $maps=[];$count=0;$links=['corretora_taxas'=>['corretora_id'=>'corretoras'],'operacoes'=>['corretora_id'=>'corretoras'],'cartoes'=>['compra_id'=>'compras'],'movimentacoes_financeiras'=>['conta_id'=>'contas_financeiras']];
+        $maps=[];$count=0;$links=['corretora_taxas'=>['corretora_id'=>'corretoras'],'operacoes'=>['corretora_id'=>'corretoras'],'cartoes'=>['compra_id'=>'compras'],'movimentacoes_financeiras'=>['conta_id'=>'contas_financeiras'],'rm_fontes'=>['conta_id'=>'contas_financeiras','renda_id'=>'rendas']];
         foreach($data['tabelas'] as $t=>$rows){foreach($rows as $row){$old=$row['id']??null;unset($row['id']);$row['usuario_id']=$uid;
-            foreach($links[$t]??[] as $field=>$parent){$source=$row[$field];if(!isset($maps[$parent][$source]))throw new DomainException('O backup possui vínculo ausente: '.$t.'.');$row[$field]=$maps[$parent][$source];}
+            foreach($links[$t]??[] as $field=>$parent){$source=$row[$field];if($t==='rm_fontes'&&$field==='renda_id'&&$source===null)continue;if(!isset($maps[$parent][$source]))throw new DomainException('O backup possui vínculo ausente: '.$t.'.');$row[$field]=$maps[$parent][$source];}
             if($t==='movimentacoes_financeiras'&&$row['origem_id']!==null){$parent=match($row['origem_modulo']){'receita'=>'rendas','despesa'=>'contas','cartao'=>'cartoes','provento'=>'div_datacom','daytrade'=>'operacoes',default=>null};if(!$parent||!isset($maps[$parent][$row['origem_id']]))throw new DomainException('Vínculo de origem não reconhecido. Solicite restauração assistida; nenhum registro foi importado.');$row['origem_id']=$maps[$parent][$row['origem_id']];}
+            if ($t === 'rm_eventos') {
+                $detalhes = json_decode($row['detalhes'], true, 512, JSON_THROW_ON_ERROR);
+                if (isset($detalhes['fechamento']['contas'])) {
+                    $contas = [];
+                    foreach ($detalhes['fechamento']['contas'] as $idConta => $valor) {
+                        if (!isset($maps['contas_financeiras'][$idConta])) { throw new DomainException('Conta da conferência ausente no backup.'); }
+                        $contas[$maps['contas_financeiras'][$idConta]] = $valor;
+                    }
+                    $detalhes['fechamento']['contas'] = $contas;
+                }
+                foreach (array_keys($detalhes['partes'] ?? []) as $indice) { $detalhes['partes'][$indice]['usuario_id'] = $uid; }
+                if (isset($detalhes['reposicao'])) { $detalhes['reposicao']['usuario_id'] = $uid; }
+                $row['detalhes'] = json_encode($detalhes, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            }
             $fields=implode(',',array_map(fn($k)=>'`'.$k.'`',array_keys($row)));$marks=implode(',',array_fill(0,count($row),'?'));$s=$c->prepare("INSERT INTO `$t` ($fields) VALUES ($marks)");$values=array_values($row);$s->bind_param(str_repeat('s',count($values)),...$values);$s->execute();if($old!==null)$maps[$t][$old]=$c->insert_id;$s->close();$count++;
         }}$c->commit();return $count;
     }catch(Throwable $e){$c->rollback();throw $e;}

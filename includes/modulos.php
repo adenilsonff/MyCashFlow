@@ -35,10 +35,6 @@ function mcfModulosDisponiveis(): array
             'nome' => 'Day Trade',
             'pai' => 'investimentos'
         ],
-        'reservas' => [
-            'nome' => 'Reservas e Metas',
-            'pai' => null
-        ],
         'analise' => [
             'nome' => 'Análise',
             'pai' => null
@@ -89,6 +85,7 @@ function mcfModuloDaRota(string $rota): ?string
     $rotas = [
         '/views/patrimonio.php' => 'patrimonio',
         '/views/saldos.php' => 'patrimonio',
+        '/views/reservas.php' => 'patrimonio',
 
         '/views/contas.php' => 'despesas',
 
@@ -107,12 +104,6 @@ function mcfModuloDaRota(string $rota): ?string
 
         '/views/daytrade.php' => 'daytrade',
         '/views/daytrade/editar_corretora.php' => 'daytrade',
-
-        '/views/reservas/index.php' => 'reservas',
-        '/views/reservas/fechamento.php' => 'reservas',
-        '/views/reservas/contribuicoes.php' => 'reservas',
-        '/views/reservas/metas.php' => 'reservas',
-        '/views/reservas/historico.php' => 'reservas',
 
         '/views/analise.php' => 'analise',
         '/views/analise/api.php' => 'analise',

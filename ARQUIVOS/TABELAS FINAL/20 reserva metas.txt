@@ -1,0 +1,73 @@
+-- Executar uma vez no banco do MyCashFlow. Não altera dados existentes.
+-- Valores monetários deste módulo são guardados em centavos inteiros.
+CREATE TABLE IF NOT EXISTS rm_fontes (
+    usuario_id INT NOT NULL,
+    chave CHAR(32) NOT NULL,
+    conta_id INT NOT NULL,
+    renda_id INT NULL,
+    data DATE NOT NULL,
+    origem VARCHAR(30) NOT NULL,
+    descricao VARCHAR(255) NOT NULL,
+    valor BIGINT NOT NULL,
+    PRIMARY KEY (usuario_id, chave),
+    UNIQUE KEY rm_receita_unica (usuario_id, renda_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rm_partes (
+    usuario_id INT NOT NULL,
+    chave CHAR(32) NOT NULL,
+    fonte_chave CHAR(32) NOT NULL,
+    bolso VARCHAR(40) NOT NULL,
+    valor BIGINT NOT NULL,
+    meta_ano INT NOT NULL DEFAULT 0,
+    meta_mes INT NOT NULL DEFAULT 0,
+    meta_grupo VARCHAR(20) NOT NULL DEFAULT '',
+    PRIMARY KEY (usuario_id, chave),
+    KEY rm_fonte (usuario_id, fonte_chave)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rm_objetivos (
+    usuario_id INT NOT NULL,
+    chave CHAR(32) NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    alvo BIGINT NOT NULL DEFAULT 0,
+    prazo DATE NULL,
+    PRIMARY KEY (usuario_id, chave)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rm_reposicoes (
+    usuario_id INT NOT NULL,
+    chave CHAR(32) NOT NULL,
+    bolso VARCHAR(40) NOT NULL,
+    data DATE NOT NULL,
+    motivo VARCHAR(255) NOT NULL,
+    valor BIGINT NOT NULL,
+    reposto BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (usuario_id, chave)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rm_metas (
+    usuario_id INT NOT NULL,
+    ano INT NOT NULL,
+    mensal BIGINT NOT NULL DEFAULT 100000,
+    decimo_primeira BIGINT NOT NULL DEFAULT 0,
+    decimo_segunda BIGINT NOT NULL DEFAULT 0,
+    ferias BIGINT NOT NULL DEFAULT 0,
+    restituicao BIGINT NOT NULL DEFAULT 0,
+    sonho BIGINT NOT NULL DEFAULT 5000000,
+    desafio BIGINT NOT NULL DEFAULT 6500000,
+    PRIMARY KEY (usuario_id, ano)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rm_eventos (
+    usuario_id INT NOT NULL,
+    chave CHAR(32) NOT NULL,
+    criado_em DATETIME(6) NOT NULL,
+    data DATE NOT NULL,
+    acao VARCHAR(30) NOT NULL,
+    descricao VARCHAR(1000) NOT NULL,
+    detalhes LONGTEXT NOT NULL,
+    estornado TINYINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (usuario_id, chave),
+    KEY rm_historico (usuario_id, criado_em)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
