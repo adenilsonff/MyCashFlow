@@ -1,0 +1,18 @@
+.mcf-etiqueta{display:inline-flex;align-items:center;max-width:100%;padding:4px 10px;border:1px solid transparent;border-radius:999px;font-size:.8rem;font-weight:700;line-height:1.4;white-space:normal;vertical-align:middle}
+.mcf-etiqueta--unica{background:#eef2f6;color:#334155;border-color:#b8c5d3}
+.mcf-etiqueta--parcelada{background:#fff2cf;color:#754600;border-color:#d7af52}
+.mcf-etiqueta--recorrente{background:#eee7ff;color:#54318b;border-color:#bba4df}
+.mcf-etiqueta--pessoal,.mcf-etiqueta--regular{background:#e3efff;color:#17467e;border-color:#9dbfe8}
+.mcf-etiqueta--conjunta,.mcf-etiqueta--extra{background:#dcf4eb;color:#145e48;border-color:#8bc9b5}
+.mcf-api-aviso{box-sizing:border-box;margin:18px auto;padding:16px 20px;width:calc(100% - 40px);max-width:1440px;border:1px solid #d8af56;border-left:5px solid #ae7000;border-radius:10px;background:#fff7e5;color:#65420b;line-height:1.5;overflow-wrap:anywhere}
+.mcf-api-aviso>strong{display:block;font-size:1rem}.mcf-api-aviso p{margin:7px 0}.mcf-api-aviso summary{cursor:pointer;font-weight:600}.mcf-api-aviso li{margin:6px 0}.mcf-api-aviso small{display:block;margin-top:6px}
+.mcf-api-tentar{display:inline-block;margin-top:10px;padding:7px 12px;background:#fff;border:1px solid #ae7000;border-radius:6px;color:#65420b;font-weight:700;text-decoration:none;cursor:pointer}
+.mcf-api-tentar:focus-visible{outline:3px solid #215da8;outline-offset:3px}
+#an-api-aviso{width:100%;margin:12px 0}#an-api-aviso[hidden]{display:none}
+@media(max-width:600px){.mcf-api-aviso{width:calc(100% - 24px);padding:12px}.mcf-etiqueta{font-size:.75rem;padding:3px 8px}}
+@media print{.mcf-api-tentar{display:none}.mcf-etiqueta{border-color:#64748b;print-color-adjust:exact}}
+
+/* Destaque permanente do acesso à central de avisos. */
+header .mcf-account-links a[href="/MyCashFlow/views/avisos.php"] { background:#c62828; color:#fff; }
+header .mcf-account-links a[href="/MyCashFlow/views/avisos.php"]:hover { background:#a51f1f; color:#fff; }
+header .mcf-account-links a[href="/MyCashFlow/views/avisos.php"]:focus-visible { outline:3px solid #fff; outline-offset:3px; }

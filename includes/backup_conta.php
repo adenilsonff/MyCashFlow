@@ -2,9 +2,9 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){http_response_code(404);exit;}
 const MCF_BACKUP_MAX=10485760;
-function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','rm_fontes'=>'Origens das reservas','rm_partes'=>'Saldos das reservas','rm_objetivos'=>'Objetivos de reserva','rm_reposicoes'=>'Reposições pendentes','rm_metas'=>'Metas anuais','rm_eventos'=>'Histórico de reservas','usuario_modulos'=>'Preferências de módulos'];}
+function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','rm_fontes'=>'Origens das reservas','rm_partes'=>'Saldos das reservas','rm_objetivos'=>'Objetivos de reserva','rm_reposicoes'=>'Reposições pendentes','rm_metas'=>'Metas anuais','rm_eventos'=>'Histórico de reservas','usuario_modulos'=>'Preferências de módulos','notificacao_cartoes'=>'Lembretes de fechamento dos cartões'];}
 function mcfBackupTabelas(): array {
-    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos','usuario_modulos'];
+    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos','usuario_modulos','notificacao_cartoes'];
 }
 function mcfBackupColunas(mysqli $c,string $t): array {return array_column($c->query("SHOW COLUMNS FROM `$t`")->fetch_all(MYSQLI_ASSOC),'Field');}
 function mcfBackupGerar(mysqli $c,int $uid): string {
@@ -23,10 +23,11 @@ function mcfBackupValidar(mysqli $c,string $json): array {
     // Versões anteriores não possuíam reservas. Não criar saldos históricos.
     $esperadas = mcfBackupTabelas();
     $reservas = ['rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos'];
-    $semReservas = array_values(array_diff($esperadas, $reservas));
+    $semNotificacoes = array_values(array_diff($esperadas, ['notificacao_cartoes']));
+    $semReservas = array_values(array_diff($semNotificacoes, $reservas));
     $semExclusoes = array_values(array_diff($semReservas, ['cartao_exclusoes']));
     $semCategorias = array_values(array_diff($semReservas, ['cartao_exclusoes','cartao_categorias_recorrentes']));
-    if (in_array(array_keys($data['tabelas']), [$semReservas,$semExclusoes,$semCategorias], true)) {
+    if (in_array(array_keys($data['tabelas']), [$semNotificacoes,$semReservas,$semExclusoes,$semCategorias], true)) {
         $originais = $data['tabelas']; $data['tabelas'] = [];
         foreach ($esperadas as $t) { $data['tabelas'][$t] = $originais[$t] ?? []; }
     }

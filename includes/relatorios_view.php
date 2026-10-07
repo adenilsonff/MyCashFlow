@@ -82,7 +82,7 @@ function relConteudo(array $r,bool $pdf=false,bool $detalhado=false): string {
     <?php if(!$pdf||$detalhado):?>
     <<?=$pdf?'div':'details'?> id="detail-<?=$pi?>" class="details"><?php if($pdf):?><h3>Lançamentos · <?=count($p['detalhes'])?> registros</h3><?php else:?><summary>Ver lançamentos · <?=count($p['detalhes'])?> registros</summary><?php endif;?>
     <?php if(!$pdf):?><p>Selecione um período na tabela para filtrar os lançamentos. <button type="button" class="reset-detail">Mostrar todos</button></p><?php endif;?>
-    <table><thead><tr><th>Data</th><th>Titular</th><th>Descrição</th><th>Módulo / natureza</th><th>Situação atual</th><th>Valor</th></tr></thead><tbody>
+    <table class="rel-detail-table"><thead><tr><th>Data</th><th>Titular</th><th>Descrição</th><th>Módulo / natureza</th><th>Situação atual</th><th>Valor</th></tr></thead><tbody>
     <?php foreach($p['detalhes'] as $d):?><tr data-row-group="<?=relH($d['grupo'])?>"><td><?=relH($d['data'])?></td><td><?=relH($d['titular'])?></td><td><?=relH($d['nome'])?></td><td><?=relH($d['modulo'].' / '.$d['categoria'])?></td><td><?=$d['realizado']?'Pago/recebido':($d['data']<$r['hoje']?'Vencido':'Pendente')?></td><td><?=relMoeda($d['centavos'])?></td></tr><?php endforeach;?>
     </tbody></table></<?=$pdf?'div':'details'?>><?php endif;?></section><?php endforeach;
     return ob_get_clean();

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../includes/valores.php';
 require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -64,18 +65,7 @@ function diasRestantes($dataVencimento, $paga)
     return $dias === 1 ? "1 dia" : $dias . " dias";
 }
 
-function normalizarValor($valor)
-{
-    $valor = trim((string)$valor);
-    $valor = str_replace(['R$', ' '], '', $valor);
-
-    if (strpos($valor, ',') !== false) {
-        $valor = str_replace('.', '', $valor);
-        $valor = str_replace(',', '.', $valor);
-    }
-
-    return (float)$valor;
-}
+function normalizarValor($valor) { return mcfValorMonetario($valor); }
 
 function gerarGrupoRecorrencia()
 {
@@ -86,7 +76,14 @@ function gerarGrupoRecorrencia()
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$erroValor='';
+if ($_SERVER['REQUEST_METHOD']==='POST') {
+    $campoValor=isset($_POST['nova_conta'])?'valor':(isset($_POST['ajustar_valor'])?'novo_valor':null);
+    try {if($campoValor!==null) normalizarValor($_POST[$campoValor]??'');}
+    catch(DomainException $e) {$erroValor=$e->getMessage();http_response_code(422);}
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
     if (isset($_POST['nova_conta'])) {
         $nome = trim($_POST['nomeConta'] ?? '');
         $tipo = $_POST['tipoConta'] ?? '';
@@ -331,6 +328,7 @@ if ($categoriaFiltro === 'pessoal') {
 <?php include("../includes/menu.php"); ?>
 
 <main class="contas-container">
+<?php if($erroValor!==''): ?><p class="mcf-api-aviso" role="alert"><?= htmlspecialchars($erroValor,ENT_QUOTES,'UTF-8') ?> Nenhum lançamento foi alterado.</p><?php endif; ?>
     <div class="cabecalho-contas">
         <div>
             <h1 class="mcf-page-title">Despesas</h1>
@@ -451,14 +449,11 @@ if ($categoriaFiltro === 'pessoal') {
                             </td>
 
                             <td>
-                                <?= htmlspecialchars($rotuloTipo) ?>
+                                <?= mcfEtiqueta($c['tipo'], $rotuloTipo) ?>
                             </td>
 
                             <td>
-                                <?= $c['categoria'] === 'conjunta'
-                                    ? 'Conjunta'
-                                    : 'Pessoal'
-                                ?>
+                                <?= mcfEtiqueta($c['categoria'], $c['categoria'] === 'conjunta' ? 'Conjunta' : 'Pessoal') ?>
                             </td>
 
                             <td>

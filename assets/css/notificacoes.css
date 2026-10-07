@@ -1,0 +1,11 @@
+.notificacoes-resumo {display:flex;flex-wrap:wrap;align-items:center;gap:.75rem 1.5rem;background:#e7f3fa;border:1px solid #b7d7eb;border-radius:8px;padding:1rem;margin:1.25rem 0;}
+.notificacoes .notificacao {padding:1.2rem .75rem;}
+.notificacoes .notificacao-urgente {border-left:4px solid #b84a22;padding-left:1rem;background:#fff8f2;}
+.notificacoes h4 {font-size:1.05rem;margin:.75rem 0;overflow-wrap:anywhere;}
+.notificacao-tipo {display:inline-block;border:1px solid #b7c8d5;border-radius:5px;background:#edf2f6;padding:.25rem .55rem;font-size:.85rem;font-weight:600;}
+.notificacoes .notificacao-cartao-form {display:flex;align-items:end;flex-wrap:wrap;gap:1rem;margin:.75rem 0;}
+.notificacao-cartao-form label {display:grid;gap:.4rem;max-width:100%;}
+.notificacoes .notificacao-remover {margin:.75rem 0 1rem;}
+.notificacoes .notificacoes-vazio {padding:1rem;background:#f5f8fa;border-radius:5px;}
+.notificacoes .links-modulos {align-items:center;}
+@media(max-width:600px){.notificacoes .notificacao-cartao-form label {width:100%;}.notificacoes .acoes {align-items:stretch;}.notificacoes .acoes a,.notificacoes .acoes form {width:100%;box-sizing:border-box;}.notificacoes .acoes button {width:100%;}.notificacoes section{padding:1rem;}}

@@ -64,6 +64,9 @@ $tipos = ['corrente' => 'Corrente', 'poupanca' => 'Poupança', 'carteira' => 'Ca
 $cssPagina = '/MyCashFlow/assets/css/style-patrimonio.css';
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/menu.php';
+$cotacoesAviso=[];
+foreach($carteiras as $carteiraAviso){foreach($carteiraAviso['posicoes'] as $posicaoAviso){if(isset($posicaoAviso['api']))$cotacoesAviso[]=$posicaoAviso['api'];}if($carteiraAviso['cambio'])$cotacoesAviso[]=$carteiraAviso['cambio'];}
+echo mcfAvisoMercado($cotacoesAviso);
 ?>
 <main class="patrimonio-layout">
     <h1 class="mcf-page-title">Patrimônio</h1>

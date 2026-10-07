@@ -4,6 +4,7 @@ if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
 // Consulta única de saldos usada por Saldos e Patrimônio.
 function saldosListarContas($conn, $usuario_id) {
 $contas = [];
+$hoje=(new DateTimeImmutable('today',new DateTimeZone('America/Sao_Paulo')))->format('Y-m-d');
 
 $stmt = $conn->prepare("
     SELECT
@@ -16,11 +17,11 @@ $stmt = $conn->prepare("
         cf.data_saldo_inicial,
         cf.ativa,
         COUNT(mf.id) AS quantidade_movimentacoes,
-        cf.saldo_inicial +
+        CASE WHEN cf.data_saldo_inicial <= ? THEN cf.saldo_inicial ELSE 0 END +
         COALESCE(
             SUM(
                 CASE
-                    WHEN mf.data < cf.data_saldo_inicial THEN 0
+                    WHEN mf.data < cf.data_saldo_inicial OR mf.data > ? THEN 0
                     WHEN mf.tipo IN (
                         'entrada',
                         'transferencia_entrada'
@@ -53,7 +54,7 @@ $stmt = $conn->prepare("
         cf.nome ASC
 ");
 
-$stmt->bind_param('i', $usuario_id);
+$stmt->bind_param('ssi', $hoje, $hoje, $usuario_id);
 $stmt->execute();
 
 $resultado = $stmt->get_result();

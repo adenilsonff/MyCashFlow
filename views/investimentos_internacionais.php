@@ -818,7 +818,7 @@ $av_modal =
     data-modal-inicial="<?= internacionalEscape($av_modal) ?>"
 >
     <?php include('../includes/header.php'); ?>
-    <?php include('../includes/menu.php'); ?>
+    <?php include('../includes/menu.php'); echo mcfAvisoMercado(array_merge(array_column($posicoes, 'api'), array_values($cambio ?? []))); ?>
 
     <main class="av-page">
         <a

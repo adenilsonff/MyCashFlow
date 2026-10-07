@@ -1,4 +1,5 @@
 <?php if (PHP_SAPI !== 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) { http_response_code(404); exit; } ?>
+<?php require_once __DIR__.'/comunicacao.php'; ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -11,6 +12,7 @@
 <?php endif; ?>
 <link rel="stylesheet" href="/MyCashFlow/assets/css/padrao.css?v=<?= filemtime(__DIR__.'/../assets/css/padrao.css') ?>">
 <link rel="stylesheet" href="/MyCashFlow/assets/css/consistencia.css?v=<?= filemtime(__DIR__.'/../assets/css/consistencia.css') ?>">
+<link rel="stylesheet" href="/MyCashFlow/assets/css/comunicacao.css?v=<?= filemtime(__DIR__.'/../assets/css/comunicacao.css') ?>">
 </head>
 <body>
 
@@ -21,13 +23,14 @@
 <?php endif; ?>
 
 <?php if (isset($_SESSION['usuario_id'], $conn)):
-require_once __DIR__.'/compartilhamento_melhorias.php'; $novosAvisos=count(mcfAvisos($conn)); ?>
+require_once __DIR__.'/compartilhamento_melhorias.php'; require_once __DIR__.'/notificacoes.php'; $avisosCompartilhamento=mcfAvisos($conn); $novosAvisos=count($avisosCompartilhamento)+count(array_filter(mcfNotificacoesDaSessao($conn),static fn($a)=>!$a['lido'])); ?>
 <div class="mcf-account-links">
 <a data-mcf-own href="/MyCashFlow/views/avisos.php">Avisos<?= $novosAvisos ? ' ('.$novosAvisos.($novosAvisos===1?' novo)':' novos)') : '' ?></a>
 <a data-mcf-own href="/MyCashFlow/views/historico.php">Histórico</a>
 </div>
 <?php endif; ?>
 </header>
+<?php require __DIR__.'/avisos_popup.php'; ?>
 
 <?php if (!empty($GLOBALS['mcf_contexto'])): $contexto=$GLOBALS['mcf_contexto']; ?>
 <aside class="mcf-owner-notice" role="status">

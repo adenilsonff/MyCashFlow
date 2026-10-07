@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../includes/valores.php';
 require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -56,18 +57,7 @@ function criarDataRecorrente(DateTime $dataInicial, $mesesAdicionar)
     return $data;
 }
 
-function normalizarValor($valor)
-{
-    $valor = trim((string)$valor);
-    $valor = str_replace(['R$', ' '], '', $valor);
-
-    if (strpos($valor, ',') !== false) {
-        $valor = str_replace('.', '', $valor);
-        $valor = str_replace(',', '.', $valor);
-    }
-
-    return (float)$valor;
-}
+function normalizarValor($valor) { return mcfValorMonetario($valor); }
 
 function gerarGrupoRecorrencia()
 {
@@ -78,7 +68,14 @@ function gerarGrupoRecorrencia()
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$erroValor='';
+if ($_SERVER['REQUEST_METHOD']==='POST') {
+    $campoValor=isset($_POST['nova_renda'])?'valor':(isset($_POST['ajustar_valor'])?'novo_valor':null);
+    try {if($campoValor!==null) normalizarValor($_POST[$campoValor]??'');}
+    catch(DomainException $e) {$erroValor=$e->getMessage();http_response_code(422);}
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
     if (isset($_POST['nova_renda'])) {
         $nome = trim($_POST['nome'] ?? '');
         $descricao = trim($_POST['descricao'] ?? '');
@@ -313,6 +310,7 @@ $meses = [
 <?php include("../includes/menu.php"); ?>
 
 <main class="rendas-layout">
+<?php if($erroValor!==''): ?><p class="mcf-api-aviso" role="alert"><?= htmlspecialchars($erroValor,ENT_QUOTES,'UTF-8') ?> Nenhum lançamento foi alterado.</p><?php endif; ?>
 
     <div class="cabecalho-rendas">
         <div>
@@ -387,6 +385,7 @@ $meses = [
                     <tr>
                         <th>Nome</th>
                         <th>Tipo</th>
+                        <th>Classificação</th>
                         <th>Descrição</th>
                         <th>Data</th>
                         <th>Valor</th>
@@ -401,7 +400,7 @@ $meses = [
                 <?php if (empty($rendas)) { ?>
 
                     <tr>
-                        <td colspan="8" class="sem-registros">
+                        <td colspan="9" class="sem-registros">
                             Nenhuma receita encontrada neste período.
                         </td>
                     </tr>
@@ -420,10 +419,11 @@ $meses = [
 
                             <td>
                                 <?= htmlspecialchars($r['nome']) ?>
-                                <span class="renda-classificacao"><?= $r['classificacao'] === 'extra' ? 'Extra' : 'Regular' ?></span>
+                                
                             </td>
 
-                            <td><?= htmlspecialchars($rotuloTipo) ?></td>
+                            <td><?= mcfEtiqueta($r['tipo'], $rotuloTipo) ?></td>
+                            <td><?= mcfEtiqueta($r['classificacao'], $r['classificacao'] === 'extra' ? 'Extra' : 'Regular') ?></td>
 
                             <td>
                                 <?= htmlspecialchars($r['descricao']) ?>
@@ -523,7 +523,7 @@ $meses = [
 
                 <tfoot>
                     <tr>
-                        <td colspan="4">
+                        <td colspan="5">
                             Total
                         </td>
 

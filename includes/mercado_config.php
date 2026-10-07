@@ -10,5 +10,5 @@ return [
     'retry_after' => 60,
     'stale_max' => 604800,
     'batch_size' => 10,
-    'cache_dir' => sys_get_temp_dir() . '/mycashflow-mercado-' . substr(hash('sha256', __DIR__), 0, 16),
+    'cache_dir' => __DIR__ . '/cache/mercado',
 ];

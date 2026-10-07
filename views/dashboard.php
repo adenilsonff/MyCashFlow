@@ -562,6 +562,7 @@ $cssPagina = "/MyCashFlow/assets/css/style-dashboard.css";
 
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/menu.php';
+echo mcfAvisoMercado(isset($cambio['USD']) ? [$cambio['USD']] : []);
 ?>
 
 <main class="dashboard-layout">
@@ -844,7 +845,7 @@ Ver investimentos · US$ 1 = R$
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/MyCashFlow/assets/js/vendor/chartjs-4.5.1/chart.umd.min.js"></script>
 
 <script>
 const moeda = new Intl.NumberFormat('pt-BR', {

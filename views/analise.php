@@ -42,6 +42,7 @@ include __DIR__.'/../includes/menu.php';
         <div class="an-drawing-toolbar"><button id="an-draw-line" type="button" aria-pressed="false" disabled>Desenhar linha</button><span id="an-drawing-hint">Desenhe uma linha ou arraste o botão ↕ de uma marcação. Esc cancela.</span></div>
         <p id="an-preferences-status" class="an-muted" role="status">Preferências, bloqueios e visibilidade são lembrados neste navegador, por usuário.</p>
         <div id="an-ohlc" class="an-ohlc" aria-live="off">Selecione um candle para consultar seus preços.</div>
+        <aside id="an-api-aviso" class="mcf-api-aviso" role="status" hidden><strong id="an-api-titulo"></strong><p id="an-api-texto"></p><button id="an-api-tentar" class="mcf-api-tentar" type="button">Tentar novamente</button></aside>
         <div class="an-chart-wrap"><div id="an-chart" aria-label="Gráfico interativo de preços e volume"></div><div id="an-chart-empty" class="an-chart-empty">Escolha um ativo na lista ou adicione um código para começar.</div></div>
         <p id="an-source" class="an-source">Histórico fornecido pela BRAPI. Não é um feed de execução em tempo real.</p>
         <p class="an-disclaimer">Preço médio é o custo atual da sua posição. Eventos corporativos e ajustes da fonte podem afetar a comparação com compras antigas. Visões semanais e mensais usam somente os dias disponíveis; as extremidades podem ser parciais.</p>

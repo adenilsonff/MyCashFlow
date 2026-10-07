@@ -167,7 +167,7 @@ final class AnaliseHistorico {
                 $payload['message']='A fonte informou mudança de código do ativo. Revise o ticker antes de comparar com sua carteira.';
             }
             $good=$payload['ok']?$payload:($cached['good']??null);
-            if (!$payload['ok'] && $payload['code']==='unavailable' && $good && time()-$good['fetched_at']<172800) {
+            if (!$payload['ok'] && $payload['code']==='unavailable' && $good) {
                 $payload=$good+['message'=>$payload['message']]; $payload['stale']=true;
             }
             $next=time()+($payload['ok'] && !$payload['stale']?($interval==='1d'?1800:300):60);

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../includes/valores.php';
 require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -19,24 +20,7 @@ if (empty($_SESSION['csrf_saldos'])) {
 
 $csrf = $_SESSION['csrf_saldos'];
 
-function normalizarValorSaldo($valor) {
-    $valor = trim((string)$valor);
-
-    if ($valor === '') {
-        return 0;
-    }
-
-    $valor = str_replace(['R$', ' '], '', $valor);
-
-    if (strpos($valor, ',') !== false && strpos($valor, '.') !== false) {
-        $valor = str_replace('.', '', $valor);
-        $valor = str_replace(',', '.', $valor);
-    } else {
-        $valor = str_replace(',', '.', $valor);
-    }
-
-    return is_numeric($valor) ? (float)$valor : 0;
-}
+function normalizarValorSaldo($valor) { return mcfValorMonetario($valor === '' ? '0' : $valor, true, '9999999999999.99'); }
 
 function dataSaldoValida($data) {
     $obj = DateTime::createFromFormat('Y-m-d', $data);
@@ -240,7 +224,13 @@ $tiposContaPermitidos = [
     'outros'
 ];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$erroValor='';
+if ($_SERVER['REQUEST_METHOD']==='POST') {
+    try { foreach(['saldo_inicial','valor'] as $campoValor) if(array_key_exists($campoValor,$_POST)) normalizarValorSaldo($_POST[$campoValor]); }
+    catch(DomainException $e) {$erroValor=$e->getMessage();http_response_code(422);}
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
     $tokenRecebido = $_POST['csrf'] ?? '';
 
     if (
@@ -1284,6 +1274,8 @@ $instituicoes = instituicoesSaldo();
 <?php include __DIR__ . '/../includes/menu.php'; ?>
 
 <main class="saldos-layout">
+<?php if($erroValor!==''): ?><p class="mcf-api-aviso" role="alert"><?= htmlspecialchars($erroValor,ENT_QUOTES,'UTF-8') ?> Nenhum lançamento foi alterado.</p><?php endif; ?>
+<p class="mcf-api-aviso">O saldo disponível considera somente o saldo inicial e as movimentações com data até hoje. Lançamentos futuros permanecem cadastrados.</p>
 <a class="mcf-back" href="patrimonio.php">← Voltar para Patrimônio</a>
 
     <div class="saldos-cabecalho">

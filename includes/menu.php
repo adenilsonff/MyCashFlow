@@ -24,8 +24,7 @@ $menuItens = [
         'destino' => 'patrimonio.php',
         'modulo' => 'patrimonio',
         'filhos' => [
-            ['Contas e saldos', 'saldos.php', 'patrimonio'],
-            ['Reservas e metas', 'reservas.php', 'patrimonio']
+            ['Contas e saldos', 'saldos.php', 'patrimonio']
         ],
         'relacionadas' => []
     ],
@@ -65,6 +64,13 @@ $menuItens = [
             'div_compra.php',
             'daytrade/editar_corretora.php'
         ]
+    ],
+    [
+        'rotulo' => 'Reservas e metas',
+        'destino' => 'reservas.php',
+        'modulo' => 'reservas',
+        'filhos' => [],
+        'relacionadas' => []
     ],
     [
         'rotulo' => 'Análise',
@@ -213,6 +219,7 @@ href="<?= $menuEscape($menuBase . $menuFilhoDestino) ?>"
 <?php endforeach; ?>
 
 </nav>
+<?php require_once __DIR__.'/compartilhamento_melhorias.php'; mcfSeletorConta($conn); ?>
 
 <script>
 (() => {

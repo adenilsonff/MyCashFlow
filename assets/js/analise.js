@@ -58,6 +58,7 @@
     else {state.asset=null;state.operations=[];state.annotations=[];state.request++;state.controller?.abort();clearChart('Adicione um ativo para começar.');renderPrivate();$('an-symbol').textContent='Sua lista está vazia';$('an-category').textContent='ACOMPANHAMENTO';$('an-average').textContent='—';$('an-quantity').textContent='—';$('an-unwatch').hidden=true;}
   }
   function clearChart(message) {
+    marketNotice();
     state.raw=[];state.bars=[];state.history=null;averages?.update();
     if(chart){candle.setData([]);line.setData([]);volume.setData([]);markerApi.setMarkers([]);clearLines();}
     $('an-close').textContent='—';$('an-chart-empty').textContent=message;$('an-chart-empty').hidden=false;
@@ -188,12 +189,16 @@
     $('an-average').textContent=money(asset.preco_medio);$('an-quantity').textContent=Number(asset.quantidade).toLocaleString('pt-BR');$('an-unwatch').hidden=!asset.acompanhando;
     await load();
   }
+  function marketNotice(title='',message='') {
+    $('an-api-aviso').hidden=!title;$('an-api-titulo').textContent=title;$('an-api-texto').textContent=message;
+  }
+  $('an-api-tentar').addEventListener('click',()=>load());
   async function load() {
     if(!state.asset)return;
     const request=++state.request;state.controller?.abort();state.controller=new AbortController();
     const target=selectedData(),interval=$('an-interval').value, providerInterval=['1wk','1mo'].includes(interval)?'1d':interval;
     clearChart('Carregando histórico…');feedback(state.asset.erro||'',!!state.asset.erro);
-    $('an-refresh').disabled=true;
+    marketNotice();$('an-refresh').disabled=true;$('an-api-tentar').disabled=true;
     try {
       // Primeiro os dados privados locais, depois a única consulta ao provedor.
       const privateData=await api('state',target,state.controller.signal);
@@ -201,10 +206,11 @@
       state.operations=privateData.operations;state.annotations=privateData.annotations;updatePosition(privateData.position);renderPrivate();
       const h=await api('history',{...target,range:$('an-range').value,interval:providerInterval},state.controller.signal);
       if(request!==state.request)return;
-      if(!h.ok){if(h.code==='plan' && providerInterval!=='1d'){state.blocked.add(`${target.ticker}|${interval}`);updateIntervals();}clearChart(h.message);return;}
+      if(!h.ok){if(h.code==='plan' && providerInterval!=='1d'){state.blocked.add(`${target.ticker}|${interval}`);updateIntervals();}clearChart(h.message);marketNotice('Histórico indisponível',h.message+' Seus registros e marcações continuam disponíveis.');return;}
       state.history=h;state.raw=h.bars;renderChart();
-    }catch(e){if(e.name!=='AbortError'&&request===state.request){clearChart(e.message);feedback(e.message,true);}}
-    finally{if(request===state.request)$('an-refresh').disabled=false;}
+      if(h.stale)marketNotice('Exibindo histórico salvo', 'Não foi possível atualizar agora. Última consulta bem-sucedida: '+new Date(h.fetched_at*1000).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})+' (Brasília). Os preços podem estar desatualizados.');
+    }catch(e){if(e.name!=='AbortError'&&request===state.request){clearChart(e.message);feedback(e.message,true);marketNotice('Não foi possível atualizar o gráfico',e.message);}}
+    finally{if(request===state.request){$('an-refresh').disabled=false;$('an-api-tentar').disabled=false;}}
   }
   function openEditor(m,initialPrice){
     if(!state.asset || state.saving)return;

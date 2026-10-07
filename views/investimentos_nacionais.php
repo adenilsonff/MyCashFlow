@@ -512,7 +512,7 @@ $av_modal =
 </head>
 <body class="av-body" data-modal-inicial="<?= acoesEscape($av_modal) ?>">
     <?php include('../includes/header.php'); ?>
-    <?php include('../includes/menu.php'); ?>
+    <?php include('../includes/menu.php'); echo mcfAvisoMercado(array_merge(array_column($posicoes, 'api'), [])); ?>
 
     <main class="av-page">
         <a class="av-back" href="investimentos.php">← Resumo de Investimentos</a>

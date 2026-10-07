@@ -49,10 +49,9 @@ final class MercadoApi {
         $q['error']=$entry['error'] ?? '';
         $age=isset($q['fetched_at'])?$this->now()-$q['fetched_at']:0;
         $q['stale']=$q['price']!==null && $age>=$this->cfg['ttl'];
-        if ($q['price']!==null && $age>$this->cfg['stale_max']) {
-            $q['price']=null; $q['stale']=false;
-            $q['error']='A última consulta expirou e não foi utilizada no resultado.';
-        }
+        // Preserva o último preço válido; a idade nunca o transforma em zero/ausente.
+        $q['stale']=$q['price']!==null && ($q['stale'] || !empty($q['error']));
+        $q['very_old']=$q['price']!==null && $age>$this->cfg['stale_max'];
         return $q;
     }
     private function save($key,$quote,$error,$s,$currency) {
@@ -289,6 +288,7 @@ function mercadoLegenda($q) {
         ->setTimezone(new DateTimeZone('America/Sao_Paulo'))->format('d/m/Y H:i');
     if ($q['price']===null) $parts[]=$q['error'] ?: 'Preço indisponível';
     elseif ($q['stale']) $parts[]='Última consulta disponível; atualização pendente';
+    if (!empty($q['very_old'])) $parts[]='Cotação salva há mais de 7 dias; valores calculados são estimativas desatualizadas';
     if (!empty($q['changed'])) $parts[]='Código atual informado pela API: '.$q['symbol'];
     return implode(' · ',$parts);
 }

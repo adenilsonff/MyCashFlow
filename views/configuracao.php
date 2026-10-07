@@ -23,6 +23,7 @@ require __DIR__.'/../includes/menu.php';
 <p class="perfil-intro">Gerencie seus dados, permissões e as contas que você acompanha.</p>
 
 <div class="conta-atalhos">
+<a class="conta-atalho" href="avisos.php"><strong>Central de avisos</strong><span>Consulte lembretes financeiros e configure o fechamento dos cartões.</span><span class="conta-atalho-acao">Consultar avisos →</span></a>
 
 <a class="conta-atalho" href="modulos.php">
 <strong>Módulos do sistema</strong>

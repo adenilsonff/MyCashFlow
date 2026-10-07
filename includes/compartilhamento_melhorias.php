@@ -23,6 +23,7 @@ function mcfSeletorConta(mysqli $c): void {
  if(!is_string($m)||!isset(mcfModulosCompartilhaveis()[$m])) return;
  $actor=mcfUsuarioId();$s=$c->prepare("SELECT c.id,u.nome,u.email FROM compartilhamentos c JOIN compartilhamento_modulos m ON m.compartilhamento_id=c.id JOIN usuarios u ON u.id=c.proprietario_id WHERE c.leitor_id=? AND c.estado='ativo' AND m.modulo=? AND u.status_assinatura='ativo' AND u.data_expiracao>=CURDATE() ORDER BY u.nome,u.email");
  $s->bind_param('is',$actor,$m);$s->execute();$rows=$s->get_result()->fetch_all(MYSQLI_ASSOC);$s->close();
+ if(!$rows && empty($GLOBALS['mcf_contexto']) && !in_array($route,['/views/compartilhado.php','/views/visao_conjunta.php'],true)) return;
  $selected=$GLOBALS['mcf_contexto']['id']??($route==='/views/compartilhado.php'?($_GET['id']??'minha'):($route==='/views/visao_conjunta.php'?'conjunta':'minha'));
  $e=static fn($v)=>htmlspecialchars((string)$v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
  echo '<form data-mcf-own method="get" action="/MyCashFlow/views/trocar_conta.php" class="mcf-account-selector"><input type="hidden" name="modulo" value="'.$e($m).'"><label>Conta neste módulo <select name="conta"><option value="minha"'.($selected==='minha'?' selected':'').'>Minha conta</option>';
