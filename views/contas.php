@@ -320,7 +320,7 @@ if ($categoriaFiltro === 'pessoal') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Despesas</title>
-    <link rel="stylesheet" href="../assets/css/style-contas.css?v=2">
+    <link rel="stylesheet" href="../assets/css/style-contas.css?v=3">
 </head>
 <body>
 
@@ -356,6 +356,21 @@ if ($categoriaFiltro === 'pessoal') {
             </button>
         </div>
     </div>
+
+    <form method="GET" class="filtro-categoria">
+        <input type="hidden" name="mes" value="<?= $mes ?>">
+        <input type="hidden" name="ano" value="<?= $ano ?>">
+        <label for="filtro-categoria">Mostrar</label>
+        <select id="filtro-categoria" name="categoria">
+            <?php foreach (['' => 'Todas as despesas', 'pessoal' => 'Pessoal', 'conjunta' => 'Conjunta'] as $chave => $rotulo): ?>
+            <option value="<?= $chave ?>" <?= $categoriaFiltro === $chave ? 'selected' : '' ?>><?= $rotulo ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit" class="btn-padrao">Filtrar</button>
+    </form>
+    <?php if ($categoriaFiltro !== ''): ?>
+    <p class="aviso-filtro">Os totais e percentuais abaixo consideram apenas as despesas da categoria <?= strtolower($rotuloCategoria) ?> do período.</p>
+    <?php endif; ?>
 
     <div class="resumo-contas">
         <div class="card-resumo">
@@ -757,40 +772,7 @@ if ($categoriaFiltro === 'pessoal') {
                 </select>
             </label>
 
-            <label>
-                Categoria
-                <select name="categoria">
-                    <option
-                        value=""
-                        <?= $categoriaFiltro === ''
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        Todas
-                    </option>
-
-                    <option
-                        value="pessoal"
-                        <?= $categoriaFiltro === 'pessoal'
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        Pessoal
-                    </option>
-
-                    <option
-                        value="conjunta"
-                        <?= $categoriaFiltro === 'conjunta'
-                            ? 'selected'
-                            : ''
-                        ?>
-                    >
-                        Conjunta
-                    </option>
-                </select>
-            </label>
+            <input type="hidden" name="categoria" value="<?= htmlspecialchars($categoriaFiltro, ENT_QUOTES, 'UTF-8') ?>">
 
             <button
                 type="submit"

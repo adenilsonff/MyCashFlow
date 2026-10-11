@@ -512,3 +512,7 @@ align-items: flex-start;
 flex-direction: column;
 }
 }
+/* Filtro de categoria no mesmo padrão da tela de Receitas. */
+.filtro-categoria { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 15px; color: #2C3E50; }
+.filtro-categoria select { padding: 10px; max-width: 100%; border: 1px solid #CDD3D8; border-radius: 6px; background: white; font: inherit; }
+.contas-container .aviso-filtro { font-size: 13px; color: #526577; line-height: 1.5; }
