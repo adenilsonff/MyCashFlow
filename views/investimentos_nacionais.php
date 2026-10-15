@@ -16,6 +16,10 @@ require_once __DIR__ . '/../includes/mercado_api.php';
 require_once __DIR__ . '/../includes/carteiras_posicoes.php';
 
 $usuario_id = mcfDonoId();
+$tiposFiltro = [''=>'Todos os tipos','acao'=>'Ação','fii'=>'FII','etf'=>'ETF','bdr'=>'BDR'];
+$filtroTipo = is_string($_GET['filtro_tipo'] ?? null) && array_key_exists($_GET['filtro_tipo'], $tiposFiltro)
+    ? $_GET['filtro_tipo'] : '';
+
 
 function acoesEscape($valor) {
     return htmlspecialchars((string)$valor, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -308,7 +312,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             bin2hex(random_bytes(32));
 
     } catch (DomainException $e) {
-        $erro = mcfMensagemErro($e);
+        $erro = $e->getMessage();
 
     } catch (Throwable $e) {
         error_log(
@@ -328,12 +332,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($erro === '') {
-        header(
-            'Location: investimentos_nacionais.php' .
-            ($busca !== ''
-                ? '?' . http_build_query(['busca' => $busca])
-                : '')
-        );
+        header('Location: investimentos_nacionais.php?' . http_build_query(['busca' => $busca, 'filtro_tipo' => $filtroTipo]));
         exit;
     }
 }
@@ -367,6 +366,9 @@ try {
     $stmt->close();
 
     $posicoes = acoesConsolidar($operacoes);
+    if ($filtroTipo !== '') {
+        $posicoes = array_filter($posicoes, static fn($posicao) => $posicao['tipo_ativo'] === $filtroTipo);
+    }
 
     $tickers = array_values(
         array_unique(array_column($posicoes, 'ticker'))
@@ -415,7 +417,7 @@ try {
 
     $erro_carteira =
         $e instanceof DomainException
-            ? mcfMensagemErro($e) .
+            ? $e->getMessage() .
                 ' Confira o histórico antes de consolidar a carteira.'
             : 'Não foi possível carregar a carteira.';
 }
@@ -463,6 +465,9 @@ if ($busca !== '') {
 
         $ordens =
             $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        if ($filtroTipo !== '') {
+            $ordens = array_values(array_filter($ordens, static fn($ordem) => $ordem['tipo_ativo'] === $filtroTipo));
+        }
 
         $stmt->close();
 
@@ -508,7 +513,7 @@ $av_modal =
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Investimentos Nacionais</title>
-    <link rel="stylesheet" href="../assets/css/style-acoes.css?v=20260913">
+    <link rel="stylesheet" href="../assets/css/style-acoes.css?v=20261014">
 </head>
 <body class="av-body" data-modal-inicial="<?= acoesEscape($av_modal) ?>">
     <?php include('../includes/header.php'); ?>
@@ -540,6 +545,19 @@ $av_modal =
                 </button>
             </div>
         </div>
+
+        <form method="GET" class="av-filter">
+            <label for="filtro-tipo">Mostrar</label>
+            <select id="filtro-tipo" name="filtro_tipo">
+                <?php foreach ($tiposFiltro as $chave => $rotulo) { ?>
+                    <option value="<?= acoesEscape($chave) ?>" <?= $filtroTipo === $chave ? 'selected' : '' ?>><?= acoesEscape($rotulo) ?></option>
+                <?php } ?>
+            </select>
+            <button type="submit" class="av-primary">Filtrar</button>
+        </form>
+        <?php if ($filtroTipo !== '') { ?>
+            <p class="av-filter-note">As posições, os totais e a pesquisa de ordens consideram apenas o tipo <?= acoesEscape($tiposFiltro[$filtroTipo]) ?>.</p>
+        <?php } ?>
 
         <?php if ($mensagem !== '') { ?>
             <p class="av-success" role="status">
@@ -640,7 +658,7 @@ $av_modal =
                         <?php if (!$posicoes && $erro_carteira === '') { ?>
                             <tr>
                                 <td colspan="8" class="av-empty">
-                                    Nenhuma posição em carteira.
+                                    <?= $filtroTipo !== '' ? 'Nenhuma posição em carteira para o tipo selecionado.' : 'Nenhuma posição em carteira.' ?>
                                     Use “Nova operação” para registrar uma compra.
                                 </td>
                             </tr>
@@ -1065,6 +1083,7 @@ $av_modal =
 
         <div class="av-dialog-content">
             <form method="GET" class="av-search">
+                <input type="hidden" name="filtro_tipo" value="<?= acoesEscape($filtroTipo) ?>">
                 <label for="busca">
                     Ticker ou data (DD/MM/AAAA ou AAAA-MM-DD)
                 </label>
@@ -1087,7 +1106,7 @@ $av_modal =
 
                     <a
                         class="av-button"
-                        href="investimentos_nacionais.php"
+                        href="investimentos_nacionais.php?filtro_tipo=<?= urlencode($filtroTipo) ?>"
                     >
                         Limpar
                     </a>

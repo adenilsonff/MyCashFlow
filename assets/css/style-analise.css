@@ -9,3 +9,8 @@
 .an-drawing-layer{max-width:100%}
 
 .an-ma-panel{margin-top:16px;border:1px solid #dce5eb;border-radius:8px;padding:12px}.an-ma-panel summary{cursor:pointer;font-size:13px;font-weight:600}.an-ma-row{display:grid;grid-template-columns:90px minmax(120px,1fr) 85px 55px;gap:10px;align-items:center;border-top:1px solid #edf1f4;padding-top:12px;margin-top:12px}.an-ma-row label{min-width:0}.an-ma-row label:first-child{display:flex;align-items:center;gap:5px}.analise .an-ma-row input,.analise .an-ma-row select{margin:5px 0 0;max-width:100%}.an-ma-status{grid-column:1/-1;color:#506477;font-size:12px;padding-bottom:6px}@media(max-width:760px){.an-ma-row{grid-template-columns:1fr 1fr}.an-ma-row label:first-child{grid-column:1/-1}}
+
+/* Cards preservam sua altura dentro da lista rolável. */
+.analise .an-asset { flex:0 0 auto; height:auto; min-height:76px; overflow:hidden; white-space:normal; }
+.analise .an-asset small { display:block; line-height:1.45; overflow-wrap:anywhere; }
+.analise .an-asset-top { flex-wrap:wrap; }

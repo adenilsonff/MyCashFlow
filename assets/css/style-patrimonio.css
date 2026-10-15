@@ -28,3 +28,14 @@ nav { flex-wrap: wrap; gap: 8px 12px; }
     .patrimonio-secao { padding: 16px; }
     .patrimonio-layout table { min-width: 620px; }
 }
+
+/* Mesmas cores de identificação usadas nas carteiras de investimentos. */
+.patrimonio-layout .av-tipo-ativo { font-weight: bold; }
+.patrimonio-layout .av-tipo-acao,
+.patrimonio-layout .av-tipo-stock { color: #1f6fb2; }
+.patrimonio-layout .av-tipo-fii,
+.patrimonio-layout .av-tipo-reit { color: #7b3fb3; }
+.patrimonio-layout .av-tipo-etf { color: #a85d00; }
+.patrimonio-layout .av-tipo-bdr,
+.patrimonio-layout .av-tipo-adr { color: #2e7d32; }
+.patrimonio-layout .av-tipo-cripto { background: #fff0ce; color: #725000; }

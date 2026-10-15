@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/../config.php';
 require_once __DIR__.'/../includes/valores.php';
+require_once __DIR__.'/../includes/recorrencias_rendas.php';
 require_once __DIR__ . '/../config.php';
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -143,6 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
                     }
                 }
                 $stmt->close();
+                if ($tipo === 'recorrente') {
+                    mcfRendasRegistrar($conn,$grupoRecorrencia,$dataInformado,$dataFormatada,$nome,$descricao,$valor,$classificacao);
+                }
                 if (!$conn->commit()) {
                     throw new RuntimeException('Não foi possível concluir o cadastro.');
                 }
@@ -183,6 +187,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
 
         if ((!$ajustar || in_array($classificacao, ['regular', 'extra'], true)) && $id > 0 && is_finite($novoValor) && $novoValor >= 0 &&
             in_array($alcance, ['somente', 'proximos'], true)) {
+            $conn->begin_transaction();
+            try {
+            // Mesma ordem de bloqueio da geração: série antes dos lançamentos.
+            $lock=$conn->query('SELECT id FROM rendas_recorrencias WHERE usuario_id=@mcf_usuario_id ORDER BY id FOR UPDATE');
+            $lock->free();
             $stmt = $conn->prepare("
                 SELECT tipo, data, grupo_recorrencia
                 FROM (SELECT * FROM rendas WHERE usuario_id = @mcf_usuario_id) AS rendas WHERE id = ? LIMIT 1
@@ -201,6 +210,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
                     $grupoRecorrencia = $rendaSelecionada['grupo_recorrencia'];
                     $data = $rendaSelecionada['data'];
                     $tipoSelecionado = $rendaSelecionada['tipo'];
+                    if ($tipoSelecionado === 'recorrente') {
+                        if ($ajustar) {
+                            mcfRendasExecutar($conn,'UPDATE rendas_recorrencias SET valor=? WHERE usuario_id=@mcf_usuario_id AND grupo_recorrencia=?','ds',[$novoValor,$grupoRecorrencia])->close();
+                        } else {
+                            mcfRendasExecutar($conn,'UPDATE rendas_recorrencias SET ativa=0 WHERE usuario_id=@mcf_usuario_id AND grupo_recorrencia=?','s',[$grupoRecorrencia])->close();
+                        }
+                    }
                     if ($ajustar) {
                         $stmt = $conn->prepare("
                             UPDATE rendas SET valor = ?
@@ -230,6 +246,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $erroValor === '') {
                     $stmt->close();
                 }
             }
+            $conn->commit();
+            } catch(Throwable $e) {$conn->rollback();throw $e;}
         }
         voltarRendas($mes, $ano, $filtroClassificacao);
     }
@@ -795,7 +813,7 @@ function atualizarTipo() {
     aviso.hidden = tipo === 'unica';
     aviso.textContent = parcelada
         ? 'O valor informado será aplicado a cada parcela mensal.'
-        : 'Serão criados 12 lançamentos mensais a partir da data informada.';
+        : 'A receita continuará mensalmente nos próximos anos, até você excluir este e os próximos lançamentos.';
 }
 document.getElementById('nova-frequencia').addEventListener('change', atualizarTipo);
 atualizarTipo();

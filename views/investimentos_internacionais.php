@@ -16,6 +16,10 @@ require_once __DIR__ . '/../includes/mercado_api.php';
 require_once __DIR__ . '/../includes/carteiras_posicoes.php';
 
 $usuario_id = mcfDonoId();
+$tiposFiltro = [''=>'Todos os tipos','stock'=>'Stock','etf'=>'ETF','reit'=>'REIT','adr'=>'ADR','cripto'=>'Criptomoeda'];
+$filtroTipo = is_string($_GET['filtro_tipo'] ?? null) && array_key_exists($_GET['filtro_tipo'], $tiposFiltro)
+    ? $_GET['filtro_tipo'] : '';
+
 
 function internacionalEscape($v) {
     return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -544,17 +548,7 @@ if (
     }
 
     if ($erro === '') {
-        header(
-            'Location: investimentos_internacionais.php' .
-            (
-                $busca !== ''
-                    ? '?' .
-                        http_build_query(
-                            ['busca' => $busca]
-                        )
-                    : ''
-            )
-        );
+        header('Location: investimentos_internacionais.php?' . http_build_query(['busca' => $busca, 'filtro_tipo' => $filtroTipo]));
         exit;
     }
 }
@@ -597,6 +591,9 @@ if ($estrutura_ok) {
 
         $posicoes =
             internacionalConsolidar($ops);
+    if ($filtroTipo !== '') {
+        $posicoes = array_filter($posicoes, static fn($posicao) => $posicao['tipo_ativo'] === $filtroTipo);
+    }
 
         $tickers =
             array_values(
@@ -721,6 +718,9 @@ if ($busca !== '') {
             $stmt
                 ->get_result()
                 ->fetch_all(MYSQLI_ASSOC);
+        if ($filtroTipo !== '') {
+            $ordens = array_values(array_filter($ordens, static fn($ordem) => $ordem['tipo_ativo'] === $filtroTipo));
+        }
 
         $stmt->close();
 
@@ -809,7 +809,7 @@ $av_modal =
 
     <link
         rel="stylesheet"
-        href="../assets/css/style-acoes-internacionais.css?v=20260913"
+        href="../assets/css/style-acoes-internacionais.css?v=20261014"
     >
 </head>
 
@@ -854,6 +854,19 @@ $av_modal =
                 </button>
             </div>
         </div>
+
+        <form method="GET" class="av-filter">
+            <label for="filtro-tipo">Mostrar</label>
+            <select id="filtro-tipo" name="filtro_tipo">
+                <?php foreach ($tiposFiltro as $chave => $rotulo) { ?>
+                    <option value="<?= internacionalEscape($chave) ?>" <?= $filtroTipo === $chave ? 'selected' : '' ?>><?= internacionalEscape($rotulo) ?></option>
+                <?php } ?>
+            </select>
+            <button type="submit" class="av-primary">Filtrar</button>
+        </form>
+        <?php if ($filtroTipo !== '') { ?>
+            <p class="av-filter-note">As posições, os totais e a pesquisa de ordens consideram apenas o tipo <?= internacionalEscape($tiposFiltro[$filtroTipo]) ?>.</p>
+        <?php } ?>
 
         <?php if ($mensagem !== '') { ?>
             <p
@@ -1085,7 +1098,7 @@ $av_modal =
                         ) { ?>
                             <tr>
                                 <td colspan="8">
-                                    Nenhuma posição em carteira.
+                                    <?= $filtroTipo !== '' ? 'Nenhuma posição em carteira para o tipo selecionado.' : 'Nenhuma posição em carteira.' ?>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -1639,6 +1652,7 @@ $av_modal =
                 method="GET"
                 class="av-search"
             >
+                <input type="hidden" name="filtro_tipo" value="<?= internacionalEscape($filtroTipo) ?>">
                 <label for="busca">
                     Ticker ou data
                     (DD/MM/AAAA ou AAAA-MM-DD)
@@ -1664,7 +1678,7 @@ $av_modal =
 
                     <a
                         class="av-button"
-                        href="investimentos_internacionais.php"
+                        href="investimentos_internacionais.php?filtro_tipo=<?= urlencode($filtroTipo) ?>"
                     >
                         Limpar
                     </a>

@@ -155,3 +155,8 @@ color:#2e7d32;
 }
 
 
+
+/* Filtro de tipo no padrão das receitas e despesas. */
+.av-filter { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:15px; }
+.av-filter select { max-width:100%; padding:10px; border:1px solid #cdd3d8; border-radius:6px; background:white; color:#2c3e50; font:inherit; }
+.av-filter-note { margin:0 0 15px; color:#526577; font-size:13px; line-height:1.5; }

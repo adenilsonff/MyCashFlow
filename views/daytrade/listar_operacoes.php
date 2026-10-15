@@ -42,6 +42,7 @@ total_venda,
 valor_operacao,
 lucro_bruto,
 taxas,
+taxas_detalhes,
 deducao_1,
 lucro_desc,
 darf,
@@ -215,6 +216,7 @@ data-valor-compra="<?= number_format($valor_compra, 2, '.', '') ?>"
 data-valor-venda="<?= number_format($valor_venda, 2, '.', '') ?>"
 data-total-compra="<?= number_format($total_compra, 2, '.', '') ?>"
 data-total-venda="<?= number_format($total_venda, 2, '.', '') ?>"
+data-taxas-detalhes="<?= htmlspecialchars($operacao['taxas_detalhes'] ?? 'null', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
 data-taxas="<?= number_format($taxas, 2, '.', '') ?>"
 >
 Ajustar

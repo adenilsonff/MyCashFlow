@@ -8,22 +8,24 @@ $_SESSION['csrf_analise']=$_SESSION['csrf_analise']??bin2hex(random_bytes(32));
 $csrf=$_SESSION['csrf_analise'];
 session_write_close();
 header('Cache-Control: no-store, private');
-$cssPagina='/MyCashFlow/assets/css/style-analise.css?v=4';
+$cssPagina='/MyCashFlow/assets/css/style-analise.css?v=20261014';
 include __DIR__.'/../includes/header.php';
 include __DIR__.'/../includes/menu.php';
 ?>
 <main class="analise" id="analise-app" data-user="<?= mcfUsuarioId() ?><?= !empty($GLOBALS['mcf_contexto']) ? ':dono:'.mcfDonoId() : '' ?>" data-compartilhamento="<?= (int)($GLOBALS['mcf_contexto']['id'] ?? 0) ?>" data-context-version="<?= (int)($GLOBALS['mcf_contexto']['versao'] ?? 0) ?>" data-csrf="<?= htmlspecialchars($csrf,ENT_QUOTES,'UTF-8') ?>">
 <?php if (!mcfContextoPode($conn,'investimentos')): ?><p>Operações e preço médio estão ocultos: o titular ainda não autorizou consulta aos investimentos.</p><?php endif; ?>
-  <div class="an-heading"><div><p class="an-eyebrow">SUA CARTEIRA EM PERSPECTIVA</p><h1 class="mcf-page-title">Análise</h1><p>Observe os preços, acompanhe suas operações e registre suas ideias.</p></div><span class="an-badge">Mercado brasileiro · BRL</span></div>
+  <div class="an-heading"><div><p class="an-eyebrow">SUA CARTEIRA EM PERSPECTIVA</p><h1 class="mcf-page-title">Análise</h1><p>Observe os preços, acompanhe suas operações e registre suas ideias.</p></div><span class="an-badge" id="an-market">Nacionais e internacionais</span></div>
   <p id="an-feedback" class="an-feedback" role="status" aria-live="polite" hidden></p>
   <div class="an-layout">
     <aside class="an-panel an-assets"><h2>Meus ativos</h2>
-      <label for="an-search">Buscar na lista</label><input id="an-search" type="search" placeholder="Código do ativo" maxlength="10">
-      <label for="an-filter">Categoria</label><select id="an-filter"><option value="">Todos os ativos</option value="acao">Ações</option><option value="fii">FIIs</option><option value="etf">ETFs</option><option value="bdr">BDRs</option></select>
+      <label for="an-scope">Mostrar</label><select id="an-scope"><option value="carteira">Em carteira</option><option value="todos">Todos, incluindo encerrados</option><option value="acompanhando">Em acompanhamento</option></select>
+      <label for="an-market-filter">Mercado</label><select id="an-market-filter"><option value="">Todos os mercados</option><option value="nacional">Nacional</option><option value="internacional">Internacional</option></select>
+      <label for="an-search">Buscar na lista</label><input id="an-search" type="search" placeholder="Código do ativo" maxlength="20">
+      <label for="an-filter">Categoria</label><select id="an-filter"><option value="">Todas as categorias</option><option value="acao">Ações</option><option value="fii">FIIs</option><option value="etf">ETFs</option><option value="bdr">BDRs</option><option value="stock">Stock</option><option value="etf_us">ETF internacional</option><option value="reit">REIT</option><option value="adr">ADR</option><option value="cripto">Criptomoeda</option></select>
       <div id="an-assets-list" class="an-assets-list" aria-label="Ativos da carteira e acompanhamento"><p>Carregando seus ativos…</p></div>
       <details class="an-add"><summary>Acompanhar outro ativo</summary><form id="an-watch-form">
-        <label for="an-watch-ticker">Código</label><input id="an-watch-ticker" name="ticker" placeholder="Ex.: PETR4" pattern="[A-Za-z0-9]{1,10}" maxlength="10" required>
-        <label for="an-watch-type">Categoria</label><select id="an-watch-type" name="tipo_ativo"><option value="acao">Ação</option><option value="fii">FII</option><option value="etf">ETF</option><option value="bdr">BDR</option></select>
+        <label for="an-watch-ticker">Código</label><input id="an-watch-ticker" name="ticker" placeholder="Ex.: PETR4" pattern="[A-Za-z0-9][A-Za-z0-9.\-]{0,19}" maxlength="20" required>
+        <label for="an-watch-type">Categoria</label><select id="an-watch-type" name="tipo_ativo"><option value="acao">Ação</option><option value="fii">FII</option><option value="etf">ETF</option><option value="bdr">BDR</option><option value="stock">Stock</option><option value="etf_us">ETF internacional</option><option value="reit">REIT</option><option value="adr">ADR</option><option value="cripto">Criptomoeda</option></select>
         <button class="an-primary" type="submit">Adicionar à lista</button><small>O histórico depende da cobertura da fonte. Isso não registra uma compra.</small>
       </form></details>
     </aside>
@@ -44,7 +46,7 @@ include __DIR__.'/../includes/menu.php';
         <div id="an-ohlc" class="an-ohlc" aria-live="off">Selecione um candle para consultar seus preços.</div>
         <aside id="an-api-aviso" class="mcf-api-aviso" role="status" hidden><strong id="an-api-titulo"></strong><p id="an-api-texto"></p><button id="an-api-tentar" class="mcf-api-tentar" type="button">Tentar novamente</button></aside>
         <div class="an-chart-wrap"><div id="an-chart" aria-label="Gráfico interativo de preços e volume"></div><div id="an-chart-empty" class="an-chart-empty">Escolha um ativo na lista ou adicione um código para começar.</div></div>
-        <p id="an-source" class="an-source">Histórico fornecido pela BRAPI. Não é um feed de execução em tempo real.</p>
+        <p id="an-source" class="an-source">Histórico nacional pela BRAPI; internacional pelo Yahoo Finance. Não é um feed de execução em tempo real.</p>
         <p class="an-disclaimer">Preço médio é o custo atual da sua posição. Eventos corporativos e ajustes da fonte podem afetar a comparação com compras antigas. Visões semanais e mensais usam somente os dias disponíveis; as extremidades podem ser parciais.</p>
       </section>
       <div class="an-bottom">
@@ -57,7 +59,7 @@ include __DIR__.'/../includes/menu.php';
   <dialog id="an-dialog"><form id="an-mark-form"><h2 id="an-dialog-title">Nova marcação</h2><p id="an-mark-target" class="an-muted"></p><input type="hidden" name="id" value="0"><input type="hidden" name="versao" value="0">
     <label for="an-kind">Tipo</label><select id="an-kind" name="tipo"><option value="linha">Linha horizontal</option><option value="nota">Anotação</option></select>
     <label for="an-title">Título</label><input id="an-title" name="titulo" maxlength="80" required placeholder="Ex.: Meu ponto de atenção">
-    <div id="an-price-field"><label for="an-price">Preço (R$)</label><input id="an-price" name="preco" type="text" inputmode="decimal" maxlength="17" placeholder="Ex.: 32,50" required></div>
+    <div id="an-price-field"><label for="an-price" id="an-price-label">Preço (R$)</label><input id="an-price" name="preco" type="text" inputmode="decimal" maxlength="17" placeholder="Ex.: 32,50" required></div>
     <label for="an-color">Cor</label><input id="an-color" name="cor" type="color" value="#6366f1">
     <label for="an-note">Comentário</label><textarea id="an-note" name="texto" maxlength="2000" rows="4" placeholder="O que você deseja acompanhar?"></textarea>
     <p id="an-form-error" role="alert"></p><div class="an-dialog-actions"><button id="an-cancel" type="button">Cancelar</button><button class="an-primary" type="submit">Salvar marcação</button></div>

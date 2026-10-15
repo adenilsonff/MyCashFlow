@@ -2,9 +2,9 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'&&realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){http_response_code(404);exit;}
 const MCF_BACKUP_MAX=10485760;
-function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','rm_fontes'=>'Origens das reservas','rm_partes'=>'Saldos das reservas','rm_objetivos'=>'Objetivos de reserva','rm_reposicoes'=>'Reposições pendentes','rm_metas'=>'Metas anuais','rm_eventos'=>'Histórico de reservas','usuario_modulos'=>'Preferências de módulos','notificacao_cartoes'=>'Lembretes de fechamento dos cartões'];}
+function mcfBackupRotulos(): array {return ['clientes'=>'Clientes','contas_financeiras'=>'Contas financeiras','corretoras'=>'Corretoras','compras'=>'Compras no cartão','contas'=>'Despesas','rendas'=>'Receitas','investimentos_nacionais'=>'Investimentos nacionais','investimentos_internacionais'=>'Investimentos internacionais e cripto','div_datacom'=>'Eventos de proventos','operacoes'=>'Operações de day trade','corretora_taxas'=>'Taxas de corretoras','cartoes'=>'Parcelas de cartão','movimentacoes_financeiras'=>'Movimentações financeiras','cartao_nomes_recorrentes'=>'Nomes personalizados do cartão','cartao_categorias_recorrentes'=>'Categorias recorrentes do cartão','cartao_exclusoes'=>'Exclusões protegidas do cartão','ofx_importacoes'=>'Controle de importações OFX','analise_acompanhamento'=>'Ativos acompanhados','analise_marcacoes'=>'Linhas e notas de análise','rm_fontes'=>'Origens das reservas','rm_partes'=>'Saldos das reservas','rm_objetivos'=>'Objetivos de reserva','rm_reposicoes'=>'Reposições pendentes','rm_metas'=>'Metas anuais','rm_eventos'=>'Histórico de reservas','usuario_modulos'=>'Preferências de módulos','notificacao_cartoes'=>'Lembretes de fechamento dos cartões','rendas_recorrencias'=>'Continuidade das receitas'];}
 function mcfBackupTabelas(): array {
-    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos','usuario_modulos','notificacao_cartoes'];
+    return ['clientes','contas_financeiras','corretoras','compras','contas','rendas','investimentos_nacionais','investimentos_internacionais','div_datacom','operacoes','corretora_taxas','cartoes','movimentacoes_financeiras','cartao_nomes_recorrentes','cartao_categorias_recorrentes','cartao_exclusoes','ofx_importacoes','analise_acompanhamento','analise_marcacoes','rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos','usuario_modulos','notificacao_cartoes','rendas_recorrencias'];
 }
 function mcfBackupColunas(mysqli $c,string $t): array {return array_column($c->query("SHOW COLUMNS FROM `$t`")->fetch_all(MYSQLI_ASSOC),'Field');}
 function mcfBackupGerar(mysqli $c,int $uid): string {
@@ -23,15 +23,23 @@ function mcfBackupValidar(mysqli $c,string $json): array {
     // Versões anteriores não possuíam reservas. Não criar saldos históricos.
     $esperadas = mcfBackupTabelas();
     $reservas = ['rm_fontes','rm_partes','rm_objetivos','rm_reposicoes','rm_metas','rm_eventos'];
-    $semNotificacoes = array_values(array_diff($esperadas, ['notificacao_cartoes']));
+    $semRecorrencias = array_values(array_diff($esperadas, ['rendas_recorrencias']));
+    $semNotificacoes = array_values(array_diff($semRecorrencias, ['notificacao_cartoes']));
     $semReservas = array_values(array_diff($semNotificacoes, $reservas));
     $semExclusoes = array_values(array_diff($semReservas, ['cartao_exclusoes']));
     $semCategorias = array_values(array_diff($semReservas, ['cartao_exclusoes','cartao_categorias_recorrentes']));
-    if (in_array(array_keys($data['tabelas']), [$semNotificacoes,$semReservas,$semExclusoes,$semCategorias], true)) {
+    if (in_array(array_keys($data['tabelas']), [$semRecorrencias,$semNotificacoes,$semReservas,$semExclusoes,$semCategorias], true)) {
         $originais = $data['tabelas']; $data['tabelas'] = [];
         foreach ($esperadas as $t) { $data['tabelas'][$t] = $originais[$t] ?? []; }
     }
     if(array_keys($data['tabelas'])!==mcfBackupTabelas())throw new DomainException('Lista de tabelas incompatível. Use a mesma versão do MyCashFlow.');
+    // Backups anteriores guardavam apenas o total das taxas de day trade.
+    if (is_array($data['tabelas']['operacoes'] ?? null)) {
+        foreach ($data['tabelas']['operacoes'] as &$operacao) {
+            if (is_array($operacao) && !array_key_exists('taxas_detalhes',$operacao)) $operacao['taxas_detalhes']=null;
+        }
+        unset($operacao);
+    }
     $count=0;
     foreach($data['tabelas'] as $t=>$rows){if(!is_array($rows)||!array_is_list($rows))throw new DomainException('Registros inválidos.');$cols=mcfBackupColunas($c,$t);$ids=[];
         foreach($rows as $row){if(++$count>100000)throw new DomainException('Limite de registros excedido.');if(!is_array($row)||array_keys($row)!==$cols||(int)($row['usuario_id']??0)!==$data['usuario_origem'])throw new DomainException('Estrutura ou titular incompatível.');foreach($row as $v)if(!is_null($v)&&!is_scalar($v))throw new DomainException('Valor de campo inválido.');if(isset($row['id'])){if(!ctype_digit((string)$row['id'])||(int)$row['id']<1||isset($ids[$row['id']]))throw new DomainException('Identificador inválido ou repetido.');$ids[$row['id']]=true;}}

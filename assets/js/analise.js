@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   const $=id=>document.getElementById(id), app=$('analise-app'), C=window.AnaliseCore, L=window.LightweightCharts;
-  const money=v=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:4});
-  const types={acao:'Ação',fii:'FII',etf:'ETF',bdr:'BDR'};
+  const money=(v,currency=state.asset?.moeda||'BRL')=>v==null?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency,maximumFractionDigits:4});
+  const types={acao:'Ação',fii:'FII',etf:'ETF Brasil',bdr:'BDR',stock:'Stock',etf_us:'ETF internacional',reit:'REIT',adr:'ADR',cripto:'Criptomoeda'};
   const state={assets:[],asset:null,operations:[],annotations:[],raw:[],bars:[],history:null,request:0,controller:null,lines:[],blocked:new Set(),editor:null,saving:false};
   let chart, candle, line, volume, markerApi, lineTools, averages;
   const key=a=>a?`${a.ticker}|${a.tipo_ativo}`:'';
@@ -36,33 +36,38 @@
     return result;
   }
   function selectedData() {return {ticker:state.asset.ticker,tipo_ativo:state.asset.tipo_ativo};}
+  function visibleAssets() {
+    const term=$('an-search').value.toUpperCase().trim(),filter=$('an-filter').value,scope=$('an-scope').value,market=$('an-market-filter').value;
+    return state.assets.filter(a=>a.ticker.includes(term)&&(!filter||a.tipo_ativo===filter)&&(!market||a.mercado===market)&&(scope==='todos'||(scope==='carteira'?a.carteira:a.acompanhando)));
+  }
   function renderAssets() {
-    const list=$('an-assets-list');list.replaceChildren();
-    const term=$('an-search').value.toUpperCase().trim(),filter=$('an-filter').value;
-    const assets=state.assets.filter(a=>a.ticker.includes(term)&&(!filter||a.tipo_ativo===filter));
+    const list=$('an-assets-list');list.replaceChildren();const assets=visibleAssets();
     for(const a of assets) {
       const button=el('button',undefined,'an-asset'+(key(a)===key(state.asset)?' is-active':''));button.type='button';
       button.setAttribute('aria-pressed',String(key(a)===key(state.asset)));
       const top=el('span',undefined,'an-asset-top');top.append(el('strong',a.ticker),el('span',types[a.tipo_ativo]));
-      button.append(top,el('small',a.carteira?`${a.quantidade} un. · PM ${money(a.preco_medio)}`:a.erro?'Revisar histórico':a.acompanhando?'Em acompanhamento':'Posição encerrada'));
+      button.append(top,el('small',a.carteira?Number(a.quantidade).toLocaleString('pt-BR',{maximumFractionDigits:8})+' un. · PM '+money(a.preco_medio,a.moeda):a.erro?'Revisar histórico':a.acompanhando?'Em acompanhamento':'Posição encerrada'));
       button.addEventListener('click',()=>select(a));list.append(button);
     }
-    if(!assets.length)list.append(el('p',state.assets.length?'Nenhum ativo corresponde ao filtro.':'Sua lista está vazia. Adicione um ativo abaixo.','an-muted'));
+    if(!assets.length)list.append(el('p','Nenhum ativo corresponde aos filtros. Use “Todos, incluindo encerrados” para consultar o histórico.','an-muted'));
+  }
+  async function applyFilters(preferred) {
+    const assets=visibleAssets(),asset=assets.find(a=>key(a)===(preferred||key(state.asset)))||assets[0];
+    renderAssets();
+    if(asset){if(key(asset)!==key(state.asset)||preferred)await select(asset);return;}
+    state.asset=null;state.operations=[];state.annotations=[];state.request++;state.controller?.abort();
+    clearChart('Nenhum ativo corresponde aos filtros.');renderPrivate();$('an-symbol').textContent='Selecione outro filtro';$('an-category').textContent='SEM ATIVOS';$('an-average').textContent='—';$('an-quantity').textContent='—';$('an-unwatch').hidden=true;$('an-market').textContent='Nacionais e internacionais';
   }
   async function reloadAssets(preferred) {
     const data=await api('assets');if(!data.ok)throw new Error(data.message);
-    state.assets=data.assets;
-    const asset=state.assets.find(a=>key(a)===preferred)||state.assets[0];
-    renderAssets();
-    if(asset)await select(asset);
-    else {state.asset=null;state.operations=[];state.annotations=[];state.request++;state.controller?.abort();clearChart('Adicione um ativo para começar.');renderPrivate();$('an-symbol').textContent='Sua lista está vazia';$('an-category').textContent='ACOMPANHAMENTO';$('an-average').textContent='—';$('an-quantity').textContent='—';$('an-unwatch').hidden=true;}
+    state.assets=data.assets;await applyFilters(preferred||key(state.asset));
   }
   function clearChart(message) {
     marketNotice();
     state.raw=[];state.bars=[];state.history=null;averages?.update();
     if(chart){candle.setData([]);line.setData([]);volume.setData([]);markerApi.setMarkers([]);clearLines();}
     $('an-close').textContent='—';$('an-chart-empty').textContent=message;$('an-chart-empty').hidden=false;
-    $('an-source').textContent='BRAPI · sem histórico exibido.';
+    $('an-source').textContent=(state.asset?.moeda==='USD'?'Yahoo Finance':'BRAPI')+' · sem histórico exibido.';
     $('an-ohlc').textContent='Selecione um candle para consultar seus preços.';
     updateDistances();
   }
@@ -126,7 +131,7 @@
     drawLines();if(fit)chart.timeScale().fitContent();
     $('an-close').textContent=money(state.bars.at(-1).close);$('an-chart-empty').hidden=true;
     const h=state.history, date=t=>C.day(t).split('-').reverse().join('/');
-    $('an-source').textContent=`BRAPI · ${date(state.raw[0].time)} a ${date(state.raw.at(-1).time)} · ${state.bars.length} candles · consulta ${new Date(h.fetched_at*1000).toLocaleString('pt-BR')}${h.stale?' · atualização pendente; exibindo cache':''}${h.discarded?' · registros inválidos descartados':''}. Sem garantia de tempo real; último candle pode estar em formação.`;
+    $('an-source').textContent=`${h.source||'BRAPI'} · ${state.asset?.moeda||'BRL'} · ${date(state.raw[0].time)} a ${date(state.raw.at(-1).time)} · ${state.bars.length} candles · consulta ${new Date(h.fetched_at*1000).toLocaleString('pt-BR')}${h.stale?' · atualização pendente; exibindo cache':''}${h.discarded?' · registros inválidos descartados':''}. Sem garantia de tempo real; último candle pode estar em formação.`;
     $('an-operations-help').textContent=intraday?'Marcações indicam a data, sem horário de execução. A tabela mantém o preço original.':'C = compra · V = venda. Só são marcadas operações com pregão disponível no gráfico.';
     updateDistances();
   }
@@ -183,7 +188,7 @@
     for(const option of $('an-interval').options){const disabled=state.blocked.has(`${state.asset?.ticker}|${option.value}`);option.disabled=disabled;if(disabled)option.textContent=option.textContent.replace('consultar acesso','indisponível');else option.textContent=option.textContent.replace('indisponível','consultar acesso');}
   }
   async function select(asset) {
-    state.asset=asset;state.operations=[];state.annotations=[];renderPrivate();renderAssets();updateIntervals();
+    state.asset=asset;$('an-market').textContent=(asset.mercado==='internacional'?'Internacional · USD':'Nacional · BRL');$('an-price-label').textContent=asset.moeda==='USD'?'Preço (US$)':'Preço (R$)';state.operations=[];state.annotations=[];renderPrivate();renderAssets();updateIntervals();
     if($('an-interval').selectedOptions[0].disabled)$('an-interval').value='1d';
     $('an-symbol').textContent=asset.ticker;$('an-category').textContent=types[asset.tipo_ativo]+(asset.carteira?' · EM CARTEIRA':' · ACOMPANHAMENTO');
     $('an-average').textContent=money(asset.preco_medio);$('an-quantity').textContent=Number(asset.quantidade).toLocaleString('pt-BR');$('an-unwatch').hidden=!asset.acompanhando;
@@ -231,11 +236,11 @@
   });
   $('an-watch-form').addEventListener('submit',async event=>{
     event.preventDefault();const form=event.currentTarget,button=form.querySelector('button');button.disabled=true;
-    try{const data=Object.fromEntries(new FormData(form));data.ticker=data.ticker.toUpperCase().trim();const r=await api('watch',data);if(!r.ok)throw new Error(r.message);$('an-search').value='';$('an-filter').value='';await reloadAssets(key(data));form.reset();feedback('Ativo adicionado à sua lista.');}
+    try{const data=Object.fromEntries(new FormData(form));data.ticker=data.ticker.toUpperCase().trim();const r=await api('watch',data);if(!r.ok)throw new Error(r.message);$('an-search').value='';$('an-filter').value='';$('an-market-filter').value='';$('an-scope').value='acompanhando';await reloadAssets(key(data));form.reset();feedback('Ativo adicionado à sua lista.');}
     catch(e){feedback(e.message,true);}finally{button.disabled=false;}
   });
   $('an-unwatch').addEventListener('click',async()=>{if(!state.asset)return;const target=selectedData();$('an-unwatch').disabled=true;try{await api('unwatch',target);await reloadAssets(key(target));feedback('Ativo retirado do acompanhamento. Operações e marcações foram preservadas.');}catch(e){feedback(e.message,true);}finally{$('an-unwatch').disabled=false;}});
-  $('an-search').addEventListener('input',renderAssets);$('an-filter').addEventListener('change',renderAssets);
+  $('an-search').addEventListener('input',()=>applyFilters());for(const id of ['an-filter','an-scope','an-market-filter'])$(id).addEventListener('change',()=>applyFilters());
   $('an-interval').addEventListener('change',()=>{if(!['1d','1wk','1mo'].includes($('an-interval').value)){$('an-range').value='5d';preferences.write('an-range','5d');}load();});
   $('an-range').addEventListener('change',load);$('an-style').addEventListener('change',()=>renderChart(false));
   $('an-show-average').addEventListener('change',drawLines);$('an-show-operations').addEventListener('change',()=>renderChart(false));

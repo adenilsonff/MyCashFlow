@@ -35,16 +35,24 @@ try {
     $incluirInvestimentos=mcfContextoPode($conn,'investimentos');
     if ($method==='GET' && $action==='assets') analiseResposta(['ok'=>true,'assets'=>analiseCarteira($conn,$uid,$incluirInvestimentos)]);
     [$ticker,$tipoAtivo]=analiseAtivo($input);
+    $internacional=analiseInternacional($tipoAtivo);
+    $tabela=$internacional?'investimentos_internacionais':'investimentos_nacionais';
+    $tipoBanco=$tipoAtivo==='etf_us'?'etf':$tipoAtivo;
     if ($method==='GET' && $action==='state') {
-        $ops=$incluirInvestimentos ? analiseRows($conn,'SELECT id,data,quantidade,valor_unitario,tipo_operacao FROM investimentos_nacionais
-            WHERE usuario_id=? AND (UPPER(ticker)=? OR UPPER(ticker)=CONCAT(?,\'.SA\')) AND tipo_ativo=? ORDER BY data,id',
-            'isss',[$uid,$ticker,$ticker,$tipoAtivo]) : [];
+        $ops=$incluirInvestimentos ? analiseRows($conn,'SELECT id,data,quantidade,valor_unitario,tipo_operacao FROM '.$tabela.'
+            WHERE usuario_id=? AND (UPPER(ticker)=? OR (tipo_ativo IN (\'acao\',\'fii\',\'bdr\',\'etf\') AND UPPER(ticker)=CONCAT(?,\'.SA\'))) AND tipo_ativo=? ORDER BY data,id',
+            'isss',[$uid,$ticker,$internacional?'':$ticker,$tipoBanco]) : [];
         $marks=analiseRows($conn,'SELECT id,tipo,titulo,preco,cor,texto,versao FROM analise_marcacoes
             WHERE usuario_id=? AND ticker=? AND tipo_ativo=? ORDER BY id','iss',[$uid,$ticker,$tipoAtivo]);
         analiseResposta(['ok'=>true,'operations'=>$ops,'annotations'=>$marks,'position'=>analiseResumoPosicao($ops,$ticker,$tipoAtivo)]);
     }
     if ($method==='GET' && $action==='history') {
         if (!is_string($input['range']??null) || !is_string($input['interval']??null)) throw new DomainException('Período inválido.');
+        if ($internacional) {
+            require_once __DIR__.'/../../includes/analise_internacional.php';
+            $api=new AnaliseHistoricoInternacional(require __DIR__.'/../../includes/mercado_config.php');
+            analiseResposta($api->obter($ticker,$tipoAtivo,$input['range'],$input['interval']));
+        }
         $api=new AnaliseHistorico(require __DIR__.'/../../includes/mercado_config.php');
         analiseResposta($api->obter($ticker,$input['range'],$input['interval']));
     }

@@ -950,6 +950,8 @@ required
 <div class="ajuste-taxas">
 
 <h3>Taxas da operação</h3>
+<p id="ajuste-taxas-aviso" role="status"></p>
+<div id="ajuste-taxas-campos">
 
 <?php if (!empty($taxas_corretora)): ?>
 
@@ -972,6 +974,8 @@ ENT_QUOTES,
 <input
 type="text"
 class="ajuste-taxa-individual"
+name="taxas_valores[]"
+data-nome="<?= htmlspecialchars($taxa['nome_taxa'], ENT_QUOTES, 'UTF-8') ?>"
 data-percentual="<?= htmlspecialchars(
 $taxa['percentual'],
 ENT_QUOTES,
@@ -1013,7 +1017,9 @@ Taxas
 <input
 type="text"
 class="ajuste-taxa-individual"
+name="taxas_valores[]"
 data-percentual="1"
+data-nome="Taxas"
 inputmode="decimal"
 autocomplete="off"
 required
@@ -1024,6 +1030,7 @@ required
 </div>
 
 <?php endif; ?>
+</div>
 
 </div>
 
@@ -1361,6 +1368,9 @@ return Number(valor)
 
 }
 
+const camposTaxasContainer=document.getElementById('ajuste-taxas-campos');
+const camposTaxasOriginais=camposTaxasContainer?.innerHTML || '';
+
 const botoesAjustar =
 document.querySelectorAll(
 '.btn-ajustar-operacao'
@@ -1466,10 +1476,25 @@ formatarValorAjuste(
 totalVenda
 );
 
+camposTaxasContainer.innerHTML=camposTaxasOriginais;
+let detalhesSalvos=null;
+try {const parsed=JSON.parse(this.dataset.taxasDetalhes || 'null');if(Array.isArray(parsed)&&parsed.length&&parsed.every(t=>typeof t.nome==='string'&&Number.isFinite(Number(t.valor))))detalhesSalvos=parsed;} catch {}
+if(detalhesSalvos){
+    camposTaxasContainer.replaceChildren();
+    const grid=document.createElement('div');grid.className='ajuste-taxas-grid';
+    detalhesSalvos.forEach((taxa,index)=>{
+        const campo=document.createElement('div');campo.className='campo-ajuste';
+        const label=document.createElement('label');label.textContent=taxa.nome;label.htmlFor='ajuste-taxa-salva-'+index;
+        const input=document.createElement('input');input.id=label.htmlFor;input.type='text';input.className='ajuste-taxa-individual';input.name='taxas_valores[]';input.inputMode='decimal';input.autocomplete='off';input.required=true;input.dataset.nome=taxa.nome;input.value=formatarValorAjuste(taxa.valor);
+        campo.append(label,input);grid.append(campo);
+    });camposTaxasContainer.append(grid);
+}
+document.getElementById('ajuste-taxas-aviso').textContent=detalhesSalvos?'Valores individuais salvos nesta operação.':'Este registro possui apenas o total. A divisão abaixo é estimada pelos percentuais; informe os valores da nota para salvá-los separadamente.';
 const camposTaxas =
 document.querySelectorAll(
 '.ajuste-taxa-individual'
 );
+camposTaxas.forEach(campo=>{const nome=document.createElement('input');nome.type='hidden';nome.name='taxas_nomes[]';nome.value=campo.dataset.nome||'Taxas';campo.after(nome);});
 
 let somaPercentuais = 0;
 
@@ -1488,6 +1513,8 @@ let taxasDistribuidas = 0;
 
 camposTaxas.forEach(
 function(campo, indice) {
+
+if(detalhesSalvos)return;
 
 const percentual =
 parseFloat(

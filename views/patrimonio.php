@@ -61,7 +61,7 @@ if (!extension_loaded('bcmath')) {
 $tipos = ['corrente' => 'Corrente', 'poupanca' => 'Poupança', 'carteira' => 'Carteira',
     'corretora' => 'Corretora', 'outros' => 'Outros', 'acao' => 'Ação', 'fii' => 'FII',
     'etf' => 'ETF', 'bdr' => 'BDR', 'stock' => 'Stock', 'reit' => 'REIT', 'adr' => 'ADR'];
-$cssPagina = '/MyCashFlow/assets/css/style-patrimonio.css';
+$cssPagina = '/MyCashFlow/assets/css/style-patrimonio.css?v=20261014';
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/menu.php';
 $cotacoesAviso=[];
@@ -115,7 +115,7 @@ echo mcfAvisoMercado($cotacoesAviso);
                 <thead><tr><th scope="col">Ativo</th><th scope="col">Tipo</th><th scope="col" class="numero">Quantidade</th><th scope="col" class="numero">Cotação (<?= $carteira['nacional'] ? 'BRL' : 'USD' ?>)</th><?php if (!$carteira['nacional']): ?><th scope="col" class="numero">Valor de mercado (USD)</th><?php endif; ?><th scope="col" class="numero">Valor de mercado (BRL)</th></tr></thead>
                 <tbody>
                 <?php foreach ($carteira['posicoes'] as $p): ?>
-                    <tr><th scope="row"><?= patrimonioEscape($p['ticker']) ?><small><?= patrimonioEscape(mercadoLegenda($p['api'])) ?></small></th><td><?= patrimonioEscape($tipos[$p['tipo_ativo']] ?? $p['tipo_ativo']) ?></td><td class="numero"><?= patrimonioEscape(internacionalQuantidade($p['quantidade_total'])) ?></td><td class="numero"><?= patrimonioMoeda($p['api']['price'] ?? null, $carteira['nacional'] ? 'R$' : 'US$') ?></td><?php if (!$carteira['nacional']): ?><td class="numero"><?= patrimonioMoeda($p['valor_origem'], 'US$') ?></td><?php endif; ?><td class="numero"><?= patrimonioMoeda($p['valor_brl']) ?></td></tr>
+                    <tr><th scope="row"><?= patrimonioEscape($p['ticker']) ?><small><?= patrimonioEscape(mercadoLegenda($p['api'])) ?></small></th><td><span class="av-tipo-ativo av-tipo-<?= patrimonioEscape($p['tipo_ativo']) ?>"><?= patrimonioEscape($tipos[$p['tipo_ativo']] ?? $p['tipo_ativo']) ?></span></td><td class="numero"><?= patrimonioEscape(internacionalQuantidade($p['quantidade_total'])) ?></td><td class="numero"><?= patrimonioMoeda($p['api']['price'] ?? null, $carteira['nacional'] ? 'R$' : 'US$') ?></td><?php if (!$carteira['nacional']): ?><td class="numero"><?= patrimonioMoeda($p['valor_origem'], 'US$') ?></td><?php endif; ?><td class="numero"><?= patrimonioMoeda($p['valor_brl']) ?></td></tr>
                 <?php endforeach; ?>
                 <?php if (!$carteira['posicoes']): ?><tr><td colspan="<?= $carteira['nacional'] ? 5 : 6 ?>"><?= $carteira['total'] === null ? 'Carteira indisponível.' : 'Nenhuma posição em aberto.' ?></td></tr><?php endif; ?>
                 </tbody>

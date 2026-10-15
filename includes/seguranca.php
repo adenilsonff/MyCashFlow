@@ -185,4 +185,6 @@ function mcfProteger(mysqli $conn): void {
 
     require_once __DIR__.'/compartilhamento_contexto.php';
     mcfContextoIniciar($conn,$route);
+    require_once __DIR__.'/recorrencias_rendas.php';
+    mcfRendasPrepararAcesso($conn);
 }

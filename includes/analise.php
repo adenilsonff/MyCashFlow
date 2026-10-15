@@ -19,9 +19,9 @@ function analiseAtivo(array $input): array {
     if (!is_string($input['ticker'] ?? null) || !is_string($input['tipo_ativo'] ?? null)) {
         throw new DomainException('Informe o código e a categoria do ativo.');
     }
-    $ticker = acoesTicker($input['ticker']);
     $tipo = $input['tipo_ativo'];
-    if (!preg_match('/^[A-Z0-9]{1,10}$/D', $ticker) || !in_array($tipo, ['acao','fii','etf','bdr'], true)) {
+    $ticker = analiseInternacional($tipo) ? strtoupper(trim($input['ticker'])) : acoesTicker($input['ticker']);
+    if (!preg_match(analiseInternacional($tipo) ? '/^[A-Z0-9][A-Z0-9.-]{0,19}$/D' : '/^[A-Z0-9]{1,10}$/D', $ticker) || !in_array($tipo, ['acao','fii','etf','bdr','stock','etf_us','reit','adr','cripto'], true)) {
         throw new DomainException('Código ou categoria inválidos.');
     }
     return [$ticker, $tipo];
@@ -52,58 +52,53 @@ function analiseMarcacao(array $input): array {
     }
     return [$tipo,$titulo,$preco,$cor,$texto];
 }
+function analiseInternacional(string $tipo): bool {
+    return in_array($tipo,['stock','etf_us','reit','adr','cripto'],true);
+}
 function analiseCarteira(mysqli $conn, int $uid, bool $incluirInvestimentos=true): array {
-    $ops = $incluirInvestimentos ? analiseRows($conn, 'SELECT id,ticker,tipo_ativo,quantidade,valor_unitario,data,tipo_operacao,logo
-        FROM investimentos_nacionais WHERE usuario_id = ? ORDER BY data,id', 'i', [$uid]) : [];
-    $groups = [];
-    foreach ($ops as $op) {
-        $op['ticker'] = acoesTicker($op['ticker']);
-        $groups[$op['ticker'].'|'.$op['tipo_ativo']][] = $op;
-    }
-    $assets = [];
-    foreach ($groups as $key => $history) {
-        $op = $history[0];
-        $asset = ['ticker'=>$op['ticker'],'tipo_ativo'=>$op['tipo_ativo'],
-            'quantidade'=>0,'preco_medio'=>null,'carteira'=>false,'acompanhando'=>false,'erro'=>null];
-        try {
-            $p = array_values(acoesConsolidar($history));
-            if ($p) {
-                $asset['quantidade'] = $p[0]['quantidade_total'];
-                $asset['preco_medio'] = $p[0]['valor_medio_ponderado'];
-                $asset['carteira'] = true;
-            }
-        } catch (DomainException $e) {
-            $asset['erro'] = 'Histórico inconsistente: revise as operações na carteira.';
+    $assets=[];
+    if ($incluirInvestimentos) foreach (['nacionais','internacionais'] as $mercado) {
+        $internacional=$mercado==='internacionais';
+        $ops=analiseRows($conn,'SELECT id,ticker,tipo_ativo,quantidade,valor_unitario,data,tipo_operacao,logo FROM investimentos_'.$mercado.' WHERE usuario_id=? ORDER BY data,id','i',[$uid]);
+        $groups=[];
+        foreach($ops as $op) {
+            $op['ticker']=$internacional?strtoupper(trim($op['ticker'])):acoesTicker($op['ticker']);
+            $groups[$op['ticker'].'|'.$op['tipo_ativo']][]=$op;
         }
-        // Posições encerradas continuam acessíveis para consultar o histórico.
-        $assets[$key] = $asset;
+        foreach($groups as $history) {
+            $op=$history[0];$tipo=$internacional && $op['tipo_ativo']==='etf'?'etf_us':$op['tipo_ativo'];
+            $asset=['ticker'=>$op['ticker'],'tipo_ativo'=>$tipo,'mercado'=>$internacional?'internacional':'nacional',
+                'moeda'=>$internacional?'USD':'BRL','acompanhando'=>false]+analiseResumoPosicao($history,$op['ticker'],$tipo);
+            $assets[$asset['ticker'].'|'.$tipo]=$asset;
+        }
     }
-    foreach (analiseRows($conn,'SELECT ticker,tipo_ativo FROM analise_acompanhamento WHERE usuario_id = ?', 'i',[$uid]) as $a) {
-        $key = $a['ticker'].'|'.$a['tipo_ativo'];
-        $assets[$key] = ($assets[$key] ?? ($a + ['quantidade'=>0,'preco_medio'=>null,'carteira'=>false,'erro'=>null]));
-        $assets[$key]['acompanhando'] = true;
+    foreach(analiseRows($conn,'SELECT ticker,tipo_ativo FROM analise_acompanhamento WHERE usuario_id=?','i',[$uid]) as $a) {
+        $key=$a['ticker'].'|'.$a['tipo_ativo'];$intl=analiseInternacional($a['tipo_ativo']);
+        $assets[$key]??=$a+['quantidade'=>0,'preco_medio'=>null,'carteira'=>false,'erro'=>null,
+            'mercado'=>$intl?'internacional':'nacional','moeda'=>$intl?'USD':'BRL'];
+        $assets[$key]['acompanhando']=true;
     }
-    uasort($assets, fn($a,$b) => ($b['carteira'] <=> $a['carteira']) ?: strcmp($a['ticker'],$b['ticker']));
+    uasort($assets,fn($a,$b)=>($b['carteira']<=>$a['carteira'])?:strcmp($a['ticker'],$b['ticker'])?:strcmp($a['tipo_ativo'],$b['tipo_ativo']));
     return array_values($assets);
 }
-function analiseResumoPosicao(array $ops, string $ticker, string $tipo): array {
+function analiseResumoPosicao(array $ops,string $ticker,string $tipo): array {
     $summary=['quantidade'=>0,'preco_medio'=>null,'carteira'=>false,'erro'=>null];
     try {
-        $history=array_map(fn($op)=>$op+['ticker'=>$ticker,'tipo_ativo'=>$tipo,'logo'=>null],$ops);
-        $positions=array_values(acoesConsolidar($history));
-        if ($positions) {
-            $summary['quantidade']=$positions[0]['quantidade_total'];
+        $internacional=analiseInternacional($tipo);$tipoBanco=$tipo==='etf_us'?'etf':$tipo;
+        $history=array_map(fn($op)=>$op+['ticker'=>$ticker,'tipo_ativo'=>$tipoBanco,'logo'=>null],$ops);
+        $positions=array_values($internacional?internacionalConsolidar($history):acoesConsolidar($history));
+        if($positions){$summary['quantidade']=$positions[0]['quantidade_total'];
             $summary['preco_medio']=$positions[0]['valor_medio_ponderado'];
-            $summary['carteira']=true;
-        }
-    } catch (DomainException $e) { $summary['erro']='Histórico inconsistente: revise as operações na carteira.'; }
+            $summary['carteira']=true;}
+    }catch(DomainException $e){$summary['erro']='Histórico inconsistente: revise as operações na carteira.';}
     return $summary;
 }
 
+
 // Normaliza somente OHLC do provedor. Nunca mistura adjustedClose com OHLC.
-function analiseNormalizarBarras(array $rows, string $interval): array {
+function analiseNormalizarBarras(array $rows, string $interval, string $timezone="America/Sao_Paulo"): array {
     $bars = []; $discarded = 0;
-    $zone = new DateTimeZone('America/Sao_Paulo');
+    try {$zone = new DateTimeZone($timezone);} catch (Exception $e) {$zone = new DateTimeZone('UTC');}
     foreach ($rows as $r) {
         $ok = is_array($r) && isset($r['date']) && is_numeric($r['date'])
             && $r['date'] > 0 && $r['date'] <= time()+86400;

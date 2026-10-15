@@ -62,6 +62,25 @@ $taxas = isset($_POST['taxas'])
     ? normalizarValor($_POST['taxas'])
     : 0;
 
+$taxas_detalhes = null;
+if (isset($_POST['taxas_valores']) || isset($_POST['taxas_nomes'])) {
+    require_once __DIR__.'/../../includes/valores.php';
+    try {
+        $valores=$_POST['taxas_valores']??null;$nomes=$_POST['taxas_nomes']??null;
+        if (!is_array($valores)||!is_array($nomes)||!array_is_list($valores)||!array_is_list($nomes)
+            || count($valores)!==count($nomes)||count($valores)<1||count($valores)>100) throw new DomainException('Taxas inválidas. Reabra o ajuste.');
+        $itens=[];$centavos=0;
+        foreach($valores as $i=>$valor) {
+            if(!is_string($nomes[$i])||trim($nomes[$i])===''||mb_strlen($nomes[$i])>100) throw new DomainException('Nome de taxa inválido.');
+            $valor=mcfValorMonetario($valor);$centavos+=(int)round($valor*100);
+            $itens[]=['nome'=>trim($nomes[$i]),'valor'=>number_format($valor,2,'.','')];
+        }
+        if($centavos>9999999999)throw new DomainException('O total das taxas ultrapassa o limite permitido.');
+        $taxas=$centavos/100;
+        $taxas_detalhes=json_encode($itens,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+    }catch(DomainException $e){http_response_code(422);exit(htmlspecialchars($e->getMessage(),ENT_QUOTES,'UTF-8'));}
+}
+
 if ($operacao_id <= 0 || $corretora_id <= 0) {
     die("Operação ou corretora inválida.");
 }
@@ -214,6 +233,7 @@ $stmt = $conn->prepare("
         valor_operacao = ?,
         lucro_bruto = ?,
         taxas = ?,
+        taxas_detalhes = ?,
         deducao_1 = ?,
         imposto_20 = ?,
         lucro_desc = ?,
@@ -235,12 +255,13 @@ if (!$stmt) {
 }
 
 $stmt->bind_param(
-    "ddddddddddii",
+    "dddddsdddddii",
     $total_compra,
     $total_venda,
     $valor_operacao,
     $lucro_bruto,
     $taxas,
+    $taxas_detalhes,
     $deducao_1,
     $imposto_20,
     $lucro_desc,
